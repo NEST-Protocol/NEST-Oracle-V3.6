@@ -59,6 +59,15 @@ contract("TestNestMining", async accounts => {
 
         await nestMining.close(usdt.address, 0);
         await nestMining.close(usdt.address, 1);
+        await nestMining.close(nest.address, 0);
+
+        receipt = await nestMining.post2(usdt.address, 30, 1000000 * 1599, 123, { value: new BN('60099000000000000000') });
+        console.log(receipt);
+
+        receipt = await nestMining.close(usdt.address, 2);
+        console.log(receipt);
+        receipt = await nestMining.close(nest.address, 1);
+        console.log(receipt);
 
         // let receipt = await nestMining.post2(usdt.address, 30, 1000000 * 1599, 123, { value: new BN('60099000000000000000') });
         // console.log(receipt);
