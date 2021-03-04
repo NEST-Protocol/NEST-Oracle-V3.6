@@ -4,15 +4,61 @@ pragma solidity ^0.6.12;
 
 interface INestDAO {
 
-    /// @dev 添加ntoken映射
-    /// @param tokenAddress token地址
-    /// @param ntokenAddress ntoken地址
-    function addNTokenMapping(address tokenAddress, address ntokenAddress) external;
+    /// @dev 获取系统内置的合约地址
+    /// @param nestMiningAddress 挖矿合约地址
+    /// @param nestPriceFacadeAddress 价格调用入口合约地址
+    /// @param nestVoteAddress 投票合约地址
+    /// @param nestQueryAddress 提供价格的合约地址
+    /// @param nnIncomeAddress NN挖矿合约
+    /// @param nTokenControllerAddress nToken管理合约地址
+    function setBuiltinAddress(
+        address nestMiningAddress,
+        address nestPriceFacadeAddress,
+        address nestVoteAddress,
+        address nestQueryAddress,
+        address nnIncomeAddress,
+        address nTokenControllerAddress
+    ) external;
 
-    /// @dev 获取token对应的ntoken地址
-    /// @param tokenAddress token地址
-    /// @return ntoken地址
-    function getNToken(address tokenAddress) external view returns (address);
+    /// @dev 获取系统内置的合约地址
+    /// @return nestMiningAddress 挖矿合约地址
+    /// @return nestPriceFacadeAddress 价格调用入口合约地址
+    /// @return nestVoteAddress 投票合约地址
+    /// @return nestQueryAddress 提供价格的合约地址
+    /// @return nnIncomeAddress NN挖矿合约
+    /// @return nTokenControllerAddress nToken管理合约地址
+    function getBuiltinAddress() external view returns (
+        address nestMiningAddress,
+        address nestPriceFacadeAddress,
+        address nestVoteAddress,
+        address nestQueryAddress,
+        address nnIncomeAddress,
+        address nTokenControllerAddress
+    );
+
+    /// @dev 获取挖矿合约地址
+    /// @return 挖矿合约地址
+    function getNestMiningAddress() external view returns (address);
+
+    /// @dev 获取价格调用入口合约地址
+    /// @return 价格调用入口合约地址
+    function getNestPriceFacadeAddress() external view returns (address);
+
+    /// @dev 获取投票合约地址
+    /// @return 投票合约地址
+    function getNestVoteAddress() external view returns (address);
+
+    /// @dev 获取提供价格的合约地址
+    /// @return 提供价格的合约地址
+    function getNestQueryAddress() external view returns (address);
+
+    /// @dev 获取NN挖矿合约
+    /// @return NN挖矿合约
+    function getNnIncomeAddress() external view returns (address);
+
+    /// @dev 获取nToken管理合约地址
+    /// @return nToken管理合约地址
+    function getNTokenControllerAddress() external view returns (address);
 
     /// @dev 添加ntoken收益
     /// @param ntokenAddress ntoken地址
@@ -58,4 +104,9 @@ interface INestDAO {
 
     // event FlagSet(address gov, uint flag);
 
+    /// @dev 检查目标地址是否具备对给定目标的治理权限
+    /// @param 目标地址
+    /// @param 治理目标
+    /// @return true表示有权限
+    function checkGovernance(address addr, uint flag) external view returns (bool);
 }

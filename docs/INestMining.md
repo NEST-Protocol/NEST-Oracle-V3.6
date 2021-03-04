@@ -27,6 +27,7 @@
     function post2(address tokenAdderss, uint ethNum, uint tokenAmountPerEth, uint ntokenAmountPerEth) external payable;
 
 ### 2.3. 吃单，买入token
+
     /// @notice Call the function to buy TOKEN/NTOKEN from a posted price sheet
     /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
     /// @param tokenAdderss The address of token(ntoken)

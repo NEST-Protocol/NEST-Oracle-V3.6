@@ -52,5 +52,9 @@ interface INestVote {
     /// @return 投票信息结构体
     function getProposeInfo(uint proposeIndex) external view returns (Proposal memory);
 
+    /// @dev 获取累计投票提案数量
+    /// @return 累计投票提案数量
+    function getProposeCount() external view returns (uint);
+
     // function numberOfVoters(uint id) external view returns (uint) 
 }

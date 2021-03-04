@@ -2,10 +2,8 @@
 
 pragma solidity ^0.6.12;
 
-import "./interface/INestDAO.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-//import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./interface/INestDAO.sol";
 
 /// @dev The contract is for redeeming nest token and getting ETH in return
 contract NestDAO is INestDAO/*, INestVote*/ {
@@ -19,35 +17,120 @@ contract NestDAO is INestDAO/*, INestVote*/ {
         uint value;
     }
 
-    struct NTokenInfo {
-        address nTokenAddress;
-        uint96 flags;
-    }
-
     address immutable NEST_TOKEN_ADDRESS;
 
     constructor(address nestTokenAddress) public {
         NEST_TOKEN_ADDRESS = nestTokenAddress;
+        governanceMapping[msg.sender] = GovernanceInfo(msg.sender, 1);
     }
 
     uint nestLedger;
-
     mapping(address=>UINT) ntokenLedger;
-    mapping(address=>address) ntokenMapping;
 
-    /// @dev 添加ntoken映射
-    /// @param tokenAddress token地址
-    /// @param ntokenAddress ntoken地址
-    function addNTokenMapping(address tokenAddress, address ntokenAddress) override external {
-        ntokenMapping[tokenAddress] = ntokenMapping[ntokenAddress] = ntokenAddress;
+    struct GovernanceInfo {
+        address addr;
+        uint96 flag;
     }
 
-    /// @dev 获取token对应的ntoken地址
-    /// @param tokenAddress token地址
-    /// @return ntoken地址
-    function getNToken(address tokenAddress) override external view returns (address) {
-        return ntokenMapping[tokenAddress];
+    mapping(address=>GovernanceInfo) governanceMapping;
+    
+    /// @dev 挖矿合约地址
+    address public nestMining;
+    /// @dev 价格调用入口合约地址
+    address public nestPriceFacade;
+    /// @dev 投票合约地址
+    address public nestVote;
+    /// @dev 提供价格的合约地址
+    address public nestQuery;
+    /// @dev NN挖矿合约
+    address public nnIncome;
+    /// @dev nToken管理合约地址
+    address public nTokenController;
+
+    /// @dev 获取系统内置的合约地址
+    /// @param nestMiningAddress 挖矿合约地址
+    /// @param nestPriceFacadeAddress 价格调用入口合约地址
+    /// @param nestVoteAddress 投票合约地址
+    /// @param nestQueryAddress 提供价格的合约地址
+    /// @param nnIncomeAddress NN挖矿合约
+    /// @param nTokenControllerAddress nToken管理合约地址
+    function setBuiltinAddress(
+        address nestMiningAddress,
+        address nestPriceFacadeAddress,
+        address nestVoteAddress,
+        address nestQueryAddress,
+        address nnIncomeAddress,
+        address nTokenControllerAddress
+    ) override external {
+        
+        if (nestMiningAddress != address(0)) {
+            nestMining = nestMiningAddress;
+        }
+        if (nestPriceFacadeAddress != address(0)) {
+            nestPriceFacade = nestPriceFacadeAddress;
+        }
+        if (nestVoteAddress != address(0)) {
+            nestVote = nestVoteAddress;
+        }
+        if (nestQueryAddress != address(0)) {
+            nestQuery = nestQueryAddress;
+        }
+        if (nnIncomeAddress != address(0)) {
+            nnIncome = nnIncomeAddress;
+        }
+        if (nTokenControllerAddress != address(0)) {
+            nTokenController = nTokenControllerAddress;
+        }
     }
+
+    /// @dev 获取系统内置的合约地址
+    /// @return nestMiningAddress 挖矿合约地址
+    /// @return nestPriceFacadeAddress 价格调用入口合约地址
+    /// @return nestVoteAddress 投票合约地址
+    /// @return nestQueryAddress 提供价格的合约地址
+    /// @return nnIncomeAddress NN挖矿合约
+    /// @return nTokenControllerAddress nToken管理合约地址
+    function getBuiltinAddress() override external view returns (
+        address nestMiningAddress,
+        address nestPriceFacadeAddress,
+        address nestVoteAddress,
+        address nestQueryAddress,
+        address nnIncomeAddress,
+        address nTokenControllerAddress
+    ) {
+        return (
+            nestMining,
+            nestPriceFacade,
+            nestVote,
+            nestQuery,
+            nnIncome,
+            nTokenController
+        );
+    }
+
+    /// @dev 获取挖矿合约地址
+    /// @return 挖矿合约地址
+    function getNestMiningAddress() override external view returns (address) { return nestMining; }
+
+    /// @dev 获取价格调用入口合约地址
+    /// @return 价格调用入口合约地址
+    function getNestPriceFacadeAddress() override external view returns (address) { return nestPriceFacade; }
+
+    /// @dev 获取投票合约地址
+    /// @return 投票合约地址
+    function getNestVoteAddress() override external view returns (address) { return nestVote; }
+
+    /// @dev 获取提供价格的合约地址
+    /// @return 提供价格的合约地址
+    function getNestQueryAddress() override external view returns (address) { return nestQuery; }
+
+    /// @dev 获取NN挖矿合约
+    /// @return NN挖矿合约
+    function getNnIncomeAddress() override external view returns (address) { return nnIncome; }
+
+    /// @dev 获取nToken管理合约地址
+    /// @return nToken管理合约地址
+    function getNTokenControllerAddress() override external view returns (address) { return nTokenController; }
 
     /// @dev ntoken收益
     /// @param ntokenAddress ntoken地址
@@ -87,6 +170,19 @@ contract NestDAO is INestDAO/*, INestVote*/ {
         return 0;
     }
 
+    /// @dev 检查目标地址是否具备对给定目标的治理权限
+    /// @param 目标地址
+    /// @param 治理目标
+    /// @return true表示有权限
+    function checkGovernance(address addr, uint flag) override external view returns (bool) {
+        
+        if (governanceMapping[addr].flag > 0) {
+            return true;
+        }
+
+        return false;
+    }
+    
     /* 投票 */
 
     // /* ========== STATE ============== */
