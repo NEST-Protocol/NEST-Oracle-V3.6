@@ -1,56 +1,52 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+//import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./lib/SafeMath.sol";
 import "./interface/INToken.sol";
-
-/// @title NNRewardPool
-/// @author MLY0813 - <mly0813@nestprotocol.org>
-/// @author Inf Loop - <inf-loop@nestprotocol.org>
-/// @author Paradox  - <paradox@nestprotocol.org>
+import "./interface/INestGovernance.sol";
+import "./NestBase.sol";
 
 // The contract is based on Nest_NToken from Nest Protocol v3.0. Considering compatibility, the interface
 // keeps the same. 
 
-contract NToken is INToken {
+contract NToken is NestBase, INToken {
     using SafeMath for uint256;
-    
+
+    // TODO: 使用UINT结构体
     mapping (address => uint256) private _balances;
+    // TODO: 使用UINT结构体
     mapping (address => mapping (address => uint256)) private _allowed;
-    uint256 public _totalSupply = 0 ether;                                        
+    uint8 constant public decimals = 18;
     string public name;
     string public symbol;
-    uint8 public decimals = 18;
-    // TODO: 改为immutable
-    uint256 public createdAtHeight;
-    uint256 public lastestMintAtHeight;
-    address public governance;
+    //uint256 public _totalSupply = 0 ether;                                        
+    //uint256 public lastestMintAtHeight;
+    
+    // token状态，高128位表示_totalSupply，低128位表示lastestMintAtHeight
+    uint256 _state;
+    uint256 immutable public createdAtHeight;
 
-    /// @dev The address of NestPool (Nest Protocol v3.5)
-    address C_NestPool;
     address C_NestMining;
     
     /// @notice Constructor
     /// @dev Given the address of NestPool, NToken can get other contracts by calling addrOfxxx()
     /// @param _name The name of NToken
     /// @param _symbol The symbol of NToken
-    /// @param gov The address of admin
-    /// @param nestMining NestMining合约地址
-    constructor (string memory _name, string memory _symbol, address gov, address nestMining) public {
+    constructor (string memory _name, string memory _symbol) {
     	name = _name;                                                               
     	symbol = _symbol;
     	createdAtHeight = block.number;
-    	lastestMintAtHeight = block.number;
-    	governance = gov;
-    	//C_NestPool = NestPool;
-        C_NestMining = nestMining; //INestPool(C_NestPool).addrOfNestMining();
+    	//lastestMintAtHeight = block.number;
+        _state = block.number;
     }
 
-    modifier onlyGovernance() 
-    {
-        require(msg.sender == governance, "Nest:NTK:!gov");
-        _;
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @param nestGovernanceAddress 治理合约地址
+    function update(address nestGovernanceAddress) override public {
+        super.update(nestGovernanceAddress);
+        C_NestMining = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
     }
 
     // /// @dev To ensure that all of governance-addresses be consist with each other
@@ -75,14 +71,18 @@ contract NToken is INToken {
     function mint(uint256 amount, address account) override public {
         require(address(msg.sender) == C_NestMining, "Nest:NTK:!Auth");
         _balances[account] = _balances[account].add(amount);
-        _totalSupply = _totalSupply.add(amount);
-        lastestMintAtHeight = block.number;
+
+        // _totalSupply和lastestMintAtHeight共用一个存储
+        //_totalSupply = _totalSupply.add(amount);
+        //lastestMintAtHeight = block.number;
+        _state = (((_state >> 128) + amount) << 128) | block.number;
     }
 
     /// @notice The view of totalSupply
     /// @return The total supply of ntoken
     function totalSupply() override public view returns (uint256) {
-        return _totalSupply;
+        //return _totalSupply;
+        return _state >> 128;
     }
 
     /// @dev The view of balances
@@ -101,7 +101,7 @@ contract NToken is INToken {
         override public view 
         returns(uint256 createBlock, uint256 recentlyUsedBlock) 
     {
-        return (createdAtHeight, lastestMintAtHeight);
+        return (createdAtHeight, _state & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
     }
 
     function allowance(address owner, address spender) override public view returns (uint256) 
@@ -159,6 +159,7 @@ contract NToken is INToken {
     /// @dev The ABI keeps unchanged with old NTokens, so as to support token-and-ntoken-mining
     /// @return The address of bidder
     function checkBidder() override public view returns(address) {
-        return C_NestPool;
+        //return C_NestPool;
+        return C_NestMining;
     }
 }

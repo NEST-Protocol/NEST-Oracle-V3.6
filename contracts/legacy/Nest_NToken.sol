@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+//import "@openzeppelin/contracts/math/SafeMath.sol";
+//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../lib/SafeMath.sol";
+import "../lib/IERC20.sol";
 import "./Nest_3_VoteFactory.sol";
 import "../interface/INest_NToken.sol";
 
@@ -28,7 +30,7 @@ contract Nest_NToken is INest_NToken {
     * @param voteFactory 投票合约地址
     * @param bidder 中标者地址
     */
-    constructor (string memory _name, string memory _symbol, address voteFactory, address bidder) public {
+    constructor (string memory _name, string memory _symbol, address voteFactory, address bidder) {
     	name = _name;                                                               
     	symbol = _symbol;
     	_createBlock = block.number;

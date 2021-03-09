@@ -45,7 +45,7 @@ library IterableMapping {
   }
   function iterate_start(itmap storage self) public view returns (uint keyIndex)
   {
-    return iterate_next(self, uint(-1));
+      return iterate_next(self, uint(int(-1)));
   }
   function iterate_valid(itmap storage self, uint keyIndex) public view returns (bool)
   {
@@ -72,7 +72,7 @@ library IterableMapping {
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error
  */
-library SafeMath {
+library SafeMath_ {
 
   /**
   * @dev Multiplies two numbers, throws on overflow.
@@ -136,7 +136,7 @@ interface ERC20Basic {
  * @dev Basic version of StandardToken, with no allowances.
  */
 contract BasicToken is ERC20Basic {
-  using SafeMath for uint256;
+  using SafeMath_ for uint256;
   IterableMapping.itmap balances;
 
   uint256 internal totalSupply_;
@@ -181,7 +181,7 @@ contract BasicToken is ERC20Basic {
  * @title ERC20 interface
  * @dev see https://github.com/ethereum/EIPs/issues/20
  */
-abstract contract ERC20 is ERC20Basic {
+abstract contract ERC20_ is ERC20Basic {
   function allowance(address _owner, address _spender)
     public virtual view returns (uint256);
 
@@ -203,8 +203,8 @@ abstract contract ERC20 is ERC20Basic {
  * https://github.com/ethereum/EIPs/issues/20
  * Based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
  */
-contract StandardToken is ERC20, BasicToken {
-
+contract StandardToken is ERC20_, BasicToken {
+  using SafeMath_ for uint;
   mapping (address => mapping (address => uint256)) internal allowed;
 
 
@@ -325,7 +325,7 @@ contract IBNEST is StandardToken {
     uint8 public decimals = 18;
     uint256 public INITIAL_SUPPLY = 10000000000 ether;
 
-    constructor () public {
+    constructor () {
     	totalSupply_ = INITIAL_SUPPLY;
     	IterableMapping.insert(balances, tx.origin, INITIAL_SUPPLY);
     }

@@ -1,38 +1,40 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import "./lib/TransferHelper.sol";
-import "./interface/INestDAO.sol";
+import "./interface/INestGovernance.sol";
 
 /// @dev NEST合约基类
 contract NestBase {
 
-	address public dao;
+    /// @dev 治理合约地址
+	address public _governance;
 
-    constructor() public {
+    constructor() {
 
-        // 临时存储，用于限制只允许创建者设置DAO合约地址
-        // DAO合约地址设置后，dao将真正的表示合约地址
-        dao = msg.sender;
+        // 临时存储，用于限制只允许创建者设置治理合约地址
+        // 治理合约地址设置后，_governance将真正的表示合约地址
+        _governance = msg.sender;
     }
 
-    function initialize(address nestDaoAddress) external {
-        require(msg.sender == dao, "NEST:only for creater");
-        dao = nestDaoAddress;
-    }
+    // function initialize(address nestDaoAddress) external {
+    //     require(msg.sender == dao, "NEST:!creater");
+    //     dao = nestDaoAddress;
+    // }
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址
-    /// @param nestDaoAddress dao合约地址
-    function update(address nestDaoAddress) virtual external onlyGovernance {
-        dao = nestDaoAddress;
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @param nestGovernanceAddress 治理合约地址
+    function update(address nestGovernanceAddress) virtual public {
+        address governance = _governance;
+        require(governance == msg.sender || INestGovernance(governance).checkGovernance(msg.sender, 0));
+        _governance = nestGovernanceAddress;
     }
 
     //---------modifier------------
 
     modifier onlyGovernance() {
-        require(INestDAO(dao).checkGovernance(msg.sender, 0), "NEST:!gov");
+        require(INestGovernance(_governance).checkGovernance(msg.sender, 0), "NEST:!gov");
         _;
     }
 
@@ -51,9 +53,16 @@ contract NestBase {
     /// @param value 转账金额
     function transfer(address tokenAddress, address to, uint value) onlyGovernance external {
         if (tokenAddress == address(0)) {
-            address(uint160(to)).transfer(value);
+            //address(uint160(to)).transfer(value);
+            payable(to).transfer(value);
         } else {
             TransferHelper.safeTransfer(tokenAddress, to, value);
         }
     }
+
+    // /// @dev 获取DAO合约地址
+    // /// @return DAO合约地址
+    // function getDaoAddress() public view returns (address) {
+    //     return _DAO;
+    // }
 }

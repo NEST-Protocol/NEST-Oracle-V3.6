@@ -10,7 +10,6 @@ const $hcj = require("./hcore.js");
 const NestMining = artifacts.require("NestMining");
 const TestERC20 = artifacts.require("TestERC20");
 const IBNEST = artifacts.require("IBNEST");
-const NestDAO = artifacts.require("NestDAO");
 
 const USDT = function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
 const GWEI = function(value) { return new BN('1000000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }

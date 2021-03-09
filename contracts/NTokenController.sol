@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.0;
 
-pragma experimental ABIEncoderV2;
-
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+//import "@openzeppelin/contracts/math/SafeMath.sol";
+//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./lib/SafeMath.sol";
+import "./lib/IERC20.sol";
 import './lib/TransferHelper.sol';
 import "./interface/INTokenController.sol";
 import "./interface/INToken.sol";
@@ -19,17 +19,15 @@ import "./NestBase.sol";
 /// @dev NToken控制器
 contract NTokenController is NestBase, INTokenController {
 
-    using SafeMath for uint256;
-
     /* ========== STATE VARIABLES ============== */
 
     /// @dev A number counter for generating ntoken name
     uint32  public ntokenCounter;
-    uint8   public flag;         // 0: uninitialized 
-                                 // 1: active (and initialized)
-                                 // 2: paused
-    uint216 private _reserved;
 
+    // 0: uninitialized 
+    // 1: active (and initialized)
+    // 2: paused
+    uint8   public flag;
     uint8   constant NTCTRL_FLAG_UNINITIALIZED    = 0;
     uint8   constant NTCTRL_FLAG_ACTIVE           = 1;
     uint8   constant NTCTRL_FLAG_PAUSED           = 2;
@@ -40,17 +38,13 @@ contract NTokenController is NestBase, INTokenController {
 
     /* ========== PARAMETERS ============== */
 
-    uint256 public openFeeNestAmount = 10_000; // default = 10_000
+    uint256 public openFeeNestAmount = 10000 ether; // default = 10000
 
     /* ========== ADDRESSES ============== */
 
     /// @dev Contract address of NestToken
-    address public C_NestToken;
-    /// @dev Contract address of NestDAO
-    address public C_NestDAO;
-    address public NEST_MINING_ADDRESS;
-
-    //address public governance;
+    address immutable NEST_TOKEN_ADDRESS;
+    address public nestMining;
 
     /* ========== EVENTS ============== */
 
@@ -82,16 +76,20 @@ contract NTokenController is NestBase, INTokenController {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor() public
+    constructor(address nestTokenAddress)
     {
         //governance = msg.sender;
         flag = NTCTRL_FLAG_UNINITIALIZED;
+        NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
 
-    function setAddress(address nestMiningAddress) public onlyGovernance {
-        NEST_MINING_ADDRESS = nestMiningAddress;
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @param nestGovernanceAddress 治理合约地址
+    function update(address nestGovernanceAddress) override public {
+        super.update(nestGovernanceAddress);
+        nestMining = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
     }
-
+    
     /// @dev The initialization function takes `_ntokenCounter` as argument, 
     ///     which shall be migrated from Nest v3.0
     function start(uint32 _ntokenCounter) public onlyGovernance
@@ -102,46 +100,12 @@ contract NTokenController is NestBase, INTokenController {
         emit FlagSet(address(msg.sender), uint256(NTCTRL_FLAG_ACTIVE));
     }
 
-    // modifier noContract()
-    // {
-    //     require(address(msg.sender) == address(tx.origin), "Nest:NTC:^(contract)");
-    //     _;
-    // }
-
     modifier whenActive() 
     {
         require(flag == NTCTRL_FLAG_ACTIVE, "Nest:NTC:!flag");
         _;
     }
 
-    // modifier onlyGovOrBy(address _account)
-    // {
-    //     if (msg.sender != governance) {
-    //         require(msg.sender == _account, "Nest:NTC:!Auth");
-    //     }
-    //     _;
-    // }
-
-    /* ========== GOVERNANCE ========== */
-
-    // modifier onlyGovernance() 
-    // {
-    //     require(msg.sender == governance, "Nest:NTC:!governance");
-    //     _;
-    // }
-
-    // function loadGovernance() override external
-    // {
-    //     governance = INestPool(C_NestPool).governance();
-    // }
-
-    // /// @dev  It should be called immediately after being deployed
-    // function loadContracts() override external onlyGovOrBy(C_NestPool) 
-    // {
-    //     C_NestToken = INestPool(C_NestPool).addrOfNestToken();
-    //     C_NestDAO = INestPool(C_NestPool).addrOfNestDAO();
-    // }
-    
     function setParams(uint256 _openFeeNestAmount) override external onlyGovernance
     {
         uint256 _old = openFeeNestAmount;
@@ -189,10 +153,10 @@ contract NTokenController is NestBase, INTokenController {
     {
         // 开通nToken报价
 
-        // TODO: token必须没有对应的nToken
+        // token必须没有对应的nToken
         require(getNTokenAddress(tokenAddress) == address(0), "Nest:NTC:EX(token)");
 
-        // TODO: token的标记为0
+        // token的标记为0
         require(nTokenTagList[tokenAddress].state == 0,
             "Nest:NTC:DIS(token)");
 
@@ -205,16 +169,19 @@ contract NTokenController is NestBase, INTokenController {
         );
         
         // 创建nToken代币合约
-        //  create ntoken
+        // create ntoken
         NToken ntoken = new NToken(strConcat("NToken",
                 getAddressStr(ntokenCounter)),
-                strConcat("N", getAddressStr(ntokenCounter)),
+                strConcat("N", getAddressStr(ntokenCounter))
                 //address(governance),
-                address(0),
+                //address(0),
                 // NOTE: here `bidder`, we use `C_NestPool` to separate new NTokens 
                 //   from old ones, whose bidders are the miners creating NTokens
-                address(NEST_MINING_ADDRESS)
+                //address(NEST_MINING_ADDRESS)
         );
+
+        address governance = _governance;
+        ntoken.update(governance);
 
         // 计数
         // increase the counter
@@ -231,11 +198,10 @@ contract NTokenController is NestBase, INTokenController {
 
         // 支付nest
         // charge nest
-        IERC20(C_NestToken).transferFrom(address(msg.sender), address(C_NestDAO), openFeeNestAmount);
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(address(msg.sender), address(governance), openFeeNestAmount);
 
         // raise an event
         emit NTokenOpened(tokenAddress, address(ntoken), address(msg.sender));
-
     }
 
     /* ========== VIEWS ========== */
@@ -270,7 +236,7 @@ contract NTokenController is NestBase, INTokenController {
         bytes memory buf = new bytes(64);
         uint256 index = 0;
         do {
-            buf[index++] = byte(uint8(iv % 10 + 48));
+            buf[index++] = bytes1(uint8(iv % 10 + 48));
             iv /= 10;
         } while (iv > 0 || index < 4);
         bytes memory str = new bytes(index);
@@ -279,5 +245,4 @@ contract NTokenController is NestBase, INTokenController {
         }
         return string(str);
     }
-
 }

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity 0.6.12;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+//import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../lib/ERC20.sol";
 
 contract TestERC20 is ERC20 {
     //event Approval(address indexed owner, address indexed spender, uint value);
@@ -16,7 +17,7 @@ contract TestERC20 is ERC20 {
     //mapping(address=>uint) _balances;
     //mapping(address=>mapping(address=>uint)) _allowance;
 
-    constructor (string memory name, string memory symbol, uint8 decimals) ERC20(name, symbol) public {
+    constructor (string memory name, string memory symbol, uint8 decimals) ERC20(name, symbol) {
         //_name = name;
         //_symbol = symbol;
         //_decimals = decimals;

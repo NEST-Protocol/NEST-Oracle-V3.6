@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+//import "@openzeppelin/contracts/math/SafeMath.sol";
+//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./lib/SafeMath.sol";
+import "./lib/IERC20.sol";
 import "./NestBase.sol";
 
 contract NNIncome is NestBase {
@@ -31,7 +33,7 @@ contract NNIncome is NestBase {
 	// 个人账本
 	mapping(address=>uint256) infoMapping;
 
-	constructor() public {
+	constructor() {
 		//governance = msg.sender;
 		uint256 amount = 60 ether;
 		// 设置区块衰减

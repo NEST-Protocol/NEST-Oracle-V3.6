@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.0;
 
 interface INToken {
+    
     // mint ntoken for value
     function mint(uint256 amount, address account) external;
 

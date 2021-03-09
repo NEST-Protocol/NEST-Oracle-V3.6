@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.6.12;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
-/// @dev nest挖矿合约
+/// @dev NEST挖矿合约
 interface INestMining {
     
     // /// @dev 参数结构体
