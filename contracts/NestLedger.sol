@@ -9,65 +9,59 @@ import "./NestBase.sol";
 /// @dev NEST 账本合约
 contract NestLedger is NestBase, INestLedger {
 
-    address immutable NEST_TOKEN_ADDRESS;
-
-    /// @dev 配置结构体
-    struct Config {
-        // NEST分成（万分制）。2000
-        uint32 nestRewardScale;
-        // NTOKEN分成（万分制）。8000
-        uint32 ntokenRedardScale;
+    constructor(address nestTokenAddress) {
+        NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
 
     struct UINT {
         uint value;
     }
 
-    uint _nestLedger;
-    mapping(address=>UINT) _ntokenLedger;
-    mapping(address=>uint) _applications;
     Config _config;
+    // nest账本
+    uint _nestLedger;
+    // ntoken账本
+    mapping(address=>UINT) _ntokenLedger;
+    // DAO应用
+    mapping(address=>uint) _applications;
+    address immutable NEST_TOKEN_ADDRESS;
 
-    constructor(address nestTokenAddress) {
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-    }
+    // /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    // /// @param nestGovernanceAddress 治理合约地址
+    // function update(address nestGovernanceAddress) override public {
+    //     super.update(nestGovernanceAddress);
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
-    function update(address nestGovernanceAddress) override public {
-        super.update(nestGovernanceAddress);
-
-        // (
-        //     , //address nestTokenAddress,
-        //     _nestLedgerAddress, //address nestLedgerAddress,
+    //     // (
+    //     //     , //address nestTokenAddress,
+    //     //     _nestLedgerAddress, //address nestLedgerAddress,
               
-        //     , //address nestMiningAddress,
-        //     , //address nestPriceFacadeAddress,
+    //     //     , //address nestMiningAddress,
+    //     //     , //address nestPriceFacadeAddress,
               
-        //     , //address nestVoteAddress,
-        //     _nestQueryAddress, //address nestQueryAddress,
-        //     , //address nnIncomeAddress,
-        //       //address nTokenControllerAddress
+    //     //     , //address nestVoteAddress,
+    //     //     _nestQueryAddress, //address nestQueryAddress,
+    //     //     , //address nnIncomeAddress,
+    //     //       //address nTokenControllerAddress
               
-        // ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
-    }
+    //     // ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
+    // }
 
-    /// @dev 设置配置
+    /// @dev 修改配置
     /// @param config 配置结构体
-    function setConfig(Config memory config) public onlyGovernance {
+    function setConfig(Config memory config) override external onlyGovernance {
         _config = config;
     }
 
     /// @dev 获取配置
     /// @return 配置结构体
-    function getConfig() public view returns (Config memory) {
+    function getConfig() override external view returns (Config memory) {
         return _config;
     }
 
     /// @dev 设置DAO应用
     /// @param addr DAO应用地址
     /// @param flag 授权标记，1表示授权，0表示取消授权
-    function setApplication(address addr, uint flag) external onlyGovernance {
+    function setApplication(address addr, uint flag) override external onlyGovernance {
         _applications[addr] = flag;
     }
 

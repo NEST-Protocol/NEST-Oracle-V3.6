@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 
 //import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./lib/IERC20.sol";
-import "./lib/SafeMath.sol";
 import "./interface/INestMapping.sol";
 import "./interface/INestQuery.sol";
 import "./NestBase.sol";
@@ -12,13 +11,8 @@ import "./NestBase.sol";
 /// @dev The contract is for redeeming nest token and getting ETH in return
 abstract contract NestMapping is NestBase, INestMapping {
 
-    // constructor(address nestTokenAddress) {
-    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
-    // }
-
-    // address immutable NEST_TOKEN_ADDRESS;
     constructor() { }
-    
+
     /// @dev nest代币合约地址
     address _nestTokenAddress;
     /// @dev nest账本合约
@@ -35,6 +29,9 @@ abstract contract NestMapping is NestBase, INestMapping {
     address _nnIncomeAddress;
     /// @dev nToken管理合约地址
     address _nTokenControllerAddress;
+    
+    /// @dev 在系统内注册过的地址
+    mapping(string=>address) _registeredAddress;
 
     /// @dev 获取系统内置的合约地址
     /// @param nestTokenAddress nest代币合约地址
@@ -144,4 +141,18 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @dev 获取nToken管理合约地址
     /// @return nToken管理合约地址
     function getNTokenControllerAddress() override external view returns (address) { return _nTokenControllerAddress; }
+
+    /// @dev 注册地址。通过此处注册的地址，是被nest系统接受的地址
+    /// @param key 地址标识
+    /// @param addr 目标地址。0地址表示删除注册信息
+    function register(string memory key, address addr) override external onlyGovernance {
+        _registeredAddress[key] = addr;
+    }
+
+    /// @dev 查询注册地址
+    /// @param key 地址标识
+    /// @return 目标地址
+    function getAddress(string memory key) override external view returns (address) {
+        return _registeredAddress[key];
+    }
 }

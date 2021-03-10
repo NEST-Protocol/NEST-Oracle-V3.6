@@ -2,21 +2,48 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev NEST挖矿合约
+/// @dev nest挖矿合约
 interface INestMining {
     
-    // /// @dev 参数结构体
-    // // TODO: State中的部分内容迁移到参数结构体中
-    // struct Params {
-    //     uint8    miningEthUnit;     // = 10;
-    //     uint32   nestStakedNum1k;   // = 1;
-    //     uint8    biteFeeRate;       // = 1; 
-    //     uint8    miningFeeRate;     // = 10;
-    //     uint8    priceDurationBlock; 
-    //     uint8    maxBiteNestedLevel; // = 3;
-    //     uint8    biteInflateFactor;
-    //     uint8    biteNestInflateFactor;
-    // }
+    /// @dev 报价事件
+    /// @param tokenAddress token地址
+    /// @param miner 矿工地址
+    /// @param index 报价单index
+    /// @param ethNum 报价的eth规模
+    event Post(address tokenAddress, address miner, uint index, uint ethNum, uint price);
+
+    /* ========== 数据定义 ========== */
+    
+    /// @dev 配置结构体
+    struct Config {
+        
+        // TODO: token和ntoken配置分开
+
+        // 报价的eth单位。30
+        // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
+        uint32 postEthUnit;
+
+        // 报价的手续费比例（万分制，DIMI_ETHER）。33
+        uint32 postFeeRate;
+        
+        // 报价抵押nest数量单位（千）。100
+        uint32 nestPledgeNest;
+        
+        // 吃单资产翻倍次数。4
+        uint32 maxBiteNestedLevel;
+        
+        // 价格生效区块间隔。20
+        uint32 priceEffectSpan;
+        
+        // 矿工挖到nest的比例（万分制）。8000
+        uint32 minerNestReward;// MINER_NEST_REWARD_PERCENTAGE
+        
+        // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分之）。9500
+        uint32 minerNTokenReward;
+
+        // 双轨报价阈值，当ntoken的发行量超过此阈值时，禁止单轨报价（单位：10000 ether）。500
+        uint32 doublePostThreshold;
+    }
 
     /// @dev 报价单视图
     struct PriceSheetView {
@@ -49,21 +76,27 @@ interface INestMining {
         uint128 price;
     }
 
-    // TODO: 状态
+    /* ========== 系统配置 ========== */
 
-    // TODO: 提供组合价格接口
+    /// @dev 修改配置。（修改配置之前，需要对所有的ntoken的收益进行结算）
+    /// @param config 配置对象
+    function setConfig(Config memory config) external;
+
+    /// @dev 获取配置
+    /// @return 配置对象
+    function getConfig() external view returns (Config memory);
 
     /* ========== 报价相关 ========== */
 
     /// @notice Post a price sheet for TOKEN
-    /// @dev  It is for TOKEN (except USDT and NTOKENs) whose NTOKEN has a total supply below a threshold (e.g. 5,000,000 * 1e18)
+    /// @dev It is for TOKEN (except USDT and NTOKENs) whose NTOKEN has a total supply below a threshold (e.g. 5,000,000 * 1e18)
     /// @param tokenAdderss The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
     function post(address tokenAdderss, uint ethNum, uint tokenAmountPerEth) external payable;
 
     /// @notice Post two price sheets for a token and its ntoken simultaneously 
-    /// @dev  Support dual-posts for TOKEN/NTOKEN, (ETH, TOKEN) + (ETH, NTOKEN)
+    /// @dev Support dual-posts for TOKEN/NTOKEN, (ETH, TOKEN) + (ETH, NTOKEN)
     /// @param tokenAdderss The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
@@ -102,17 +135,27 @@ interface INestMining {
     /// @param tokenAdderss 目标token地址
     function stat(address tokenAdderss) external;
 
+    /// @dev 结算佣金
+    /// @param tokenAddress 目标token地址
+    function settle(address tokenAddress) external;
+
     /// @dev 分页列出报价单
     /// @param tokenAddress 目标token地址
     /// @param offset 跳过前面offset条记录
     /// @param count 返回count条记录
     /// @param order 排序方式. 0倒序, 非0正序
+    /// @return 报价单列表
     function list(address tokenAddress, uint offset, uint count, uint order) external view returns (PriceSheetView[] memory);
 
     /// @dev 预估出矿量
     /// @param tokenAddress 目标token地址
     /// @return 预估的出矿量
     function estimate(address tokenAddress) external view returns (uint);
+
+    /// @dev 查询目标报价单挖矿情况。
+    /// @param tokenAddress token地址。ntoken不能挖矿，调用的时候请自行保证不要使用ntoken地址
+    /// @param index 报价单地址
+    function getMinedBlocks(address tokenAddress, uint index) external view returns (uint minedBlocks, uint count);
 
     /* ========== 账户相关 ========== */
 

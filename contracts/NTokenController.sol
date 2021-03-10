@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 //import "@openzeppelin/contracts/math/SafeMath.sol";
 //import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./lib/SafeMath.sol";
+//import "./lib/SafeMath.sol";
 import "./lib/IERC20.sol";
 import './lib/TransferHelper.sol';
 import "./interface/INTokenController.sol";
@@ -19,165 +19,130 @@ import "./NestBase.sol";
 /// @dev NToken控制器
 contract NTokenController is NestBase, INTokenController {
 
-    /* ========== STATE VARIABLES ============== */
+    constructor(address nestTokenAddress)
+    {
+        NEST_TOKEN_ADDRESS = nestTokenAddress;
+    }
 
-    /// @dev A number counter for generating ntoken name
-    uint32  public ntokenCounter;
+    Config _config;
 
-    // 0: uninitialized 
-    // 1: active (and initialized)
-    // 2: paused
-    uint8   public flag;
-    uint8   constant NTCTRL_FLAG_UNINITIALIZED    = 0;
-    uint8   constant NTCTRL_FLAG_ACTIVE           = 1;
-    uint8   constant NTCTRL_FLAG_PAUSED           = 2;
+    /// @dev ntoken->token映射
+    mapping(address=>address) _tokenMapping;
+
+    /// @dev token->ntoken映射
+    mapping(address=>address) _ntokenMapping;
 
     /// @dev A mapping for all auctions
     ///     token(address) => NTokenTag
-    mapping(address => NTokenTag) public nTokenTagList;
-
-    /* ========== PARAMETERS ============== */
-
-    uint256 public openFeeNestAmount = 10000 ether; // default = 10000
+    mapping(address => NTokenTag) public _nTokenTagList;
 
     /* ========== ADDRESSES ============== */
+    
+    /// @dev A number counter for generating ntoken name
+    uint public _ntokenCounter;
 
     /// @dev Contract address of NestToken
-    address immutable NEST_TOKEN_ADDRESS;
-    address public nestMining;
-
-    /* ========== EVENTS ============== */
-
-    /// @notice when the auction of a token gets started
-    /// @param token    The address of the (ERC20) token
-    /// @param ntoken   The address of the ntoken w.r.t. token for incentives
-    /// @param owner    The address of miner who opened the oracle
-    event NTokenOpened(address token, address ntoken, address owner);
-
-    event NTokenDisabled(address token);
+    address public _nestMiningAddress;
     
-    event NTokenEnabled(address token);
+    address immutable NEST_TOKEN_ADDRESS;
+    
+    /* ========== 治理相关 ========== */
 
-    mapping(address=>address) ntokenMapping;
-
-    /// @dev 添加ntoken映射
-    /// @param tokenAddress token地址
-    /// @param ntokenAddress ntoken地址
-    function addNTokenMapping(address tokenAddress, address ntokenAddress) override external onlyGovernance {
-        ntokenMapping[tokenAddress] = ntokenMapping[ntokenAddress] = ntokenAddress;
+    /// @dev 设置ntokenCounter
+    /// @param ntokenCounter 当前已经创建的ntoken数量
+    function setNTokenCounter(uint ntokenCounter) override external onlyGovernance {
+        _ntokenCounter = ntokenCounter;
     }
 
-    /// @dev 获取token对应的ntoken地址
-    /// @param tokenAddress token地址
-    /// @return ntoken地址
-    function getNTokenAddress(address tokenAddress) override public view returns (address) {
-        return ntokenMapping[tokenAddress];
+    /// @dev 修改配置。
+    /// @param config 配置对象
+    function setConfig(Config memory config) override external onlyGovernance {
+        _config = config;
     }
 
-    /* ========== CONSTRUCTOR ========== */
-
-    constructor(address nestTokenAddress)
-    {
-        //governance = msg.sender;
-        flag = NTCTRL_FLAG_UNINITIALIZED;
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
+    /// @dev 获取配置
+    /// @return 配置对象
+    function getConfig() override external view returns (Config memory) {
+        return _config;
     }
 
     /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
-        nestMining = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
-    }
-    
-    /// @dev The initialization function takes `_ntokenCounter` as argument, 
-    ///     which shall be migrated from Nest v3.0
-    function start(uint32 _ntokenCounter) public onlyGovernance
-    {
-        require(flag == NTCTRL_FLAG_UNINITIALIZED, "Nest:NTC:!flag");
-        ntokenCounter = _ntokenCounter;
-        flag = NTCTRL_FLAG_ACTIVE;
-        emit FlagSet(address(msg.sender), uint256(NTCTRL_FLAG_ACTIVE));
+        _nestMiningAddress = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
     }
 
-    modifier whenActive() 
-    {
-        require(flag == NTCTRL_FLAG_ACTIVE, "Nest:NTC:!flag");
-        _;
+    /// @dev 添加ntoken映射
+    /// @param tokenAddress token地址
+    /// @param ntokenAddress ntoken地址
+    function addNTokenMapping(address tokenAddress, address ntokenAddress) override external onlyGovernance {
+        _ntokenMapping[tokenAddress] = _ntokenMapping[ntokenAddress] = ntokenAddress;
+        _tokenMapping[ntokenAddress] = tokenAddress;
     }
 
-    function setParams(uint256 _openFeeNestAmount) override external onlyGovernance
-    {
-        uint256 _old = openFeeNestAmount;
-        openFeeNestAmount = _openFeeNestAmount;
-        emit ParamsSetup(address(msg.sender), _old, _openFeeNestAmount);
+    /// @dev 获取ntoken对应的token地址
+    /// @param ntokenAddress ntoken地址
+    /// @return token地址
+    function getTokenAddress(address ntokenAddress) override public view returns (address) {
+        return _tokenMapping[ntokenAddress];
     }
 
-    /// @dev  Bad tokens should be banned 
-    function disable(address token) external onlyGovernance
-    {
-        NTokenTag storage _to = nTokenTagList[token];
-        _to.state = 1;
-        emit NTokenDisabled(token);
-    }
-
-    function enable(address token) external onlyGovernance
-    {
-        NTokenTag storage _to = nTokenTagList[token];
-        _to.state = 0;
-        emit NTokenEnabled(token);
-    }
-
-    /// @dev Stop service for emergency
-    function pause() external onlyGovernance
-    {
-        require(flag == NTCTRL_FLAG_ACTIVE, "Nest:NTC:!flag");
-        flag = NTCTRL_FLAG_PAUSED;
-        emit FlagSet(address(msg.sender), uint256(NTCTRL_FLAG_PAUSED));
-    }
-
-    /// @dev Resume service 
-    function resume() external onlyGovernance
-    {
-        require(flag == NTCTRL_FLAG_PAUSED, "Nest:NTC:!flag");
-        flag = NTCTRL_FLAG_ACTIVE;
-        emit FlagSet(address(msg.sender), uint256(NTCTRL_FLAG_ACTIVE));
+    /// @dev 获取token对应的ntoken地址
+    /// @param tokenAddress token地址
+    /// @return ntoken地址
+    function getNTokenAddress(address tokenAddress) override public view returns (address) {
+        return _ntokenMapping[tokenAddress];
     }
 
     /* ========== OPEN ========== */
-
-    /// @notice  Open a NToken for a token by anyone (contracts aren't allowed)
-    /// @dev  Create and map the (Token, NToken) pair in NestPool
-    /// @param tokenAddress  The address of token contract
-    function open(address tokenAddress) override external noContract whenActive
+    
+    /// @dev Bad tokens should be banned 
+    function disable(address tokenAddress) override external onlyGovernance
     {
-        // 开通nToken报价
+        NTokenTag storage _to = _nTokenTagList[tokenAddress];
+        _to.state = 0;
+        emit NTokenDisabled(tokenAddress);
+    }
+
+    /// @dev 启用ntoken
+    function enable(address tokenAddress) override external onlyGovernance
+    {
+        NTokenTag storage _to = _nTokenTagList[tokenAddress];
+        _to.state = 1;
+        emit NTokenEnabled(tokenAddress);
+    }
+
+    /// @notice Open a NToken for a token by anyone (contracts aren't allowed)
+    /// @dev Create and map the (Token, NToken) pair in NestPool
+    /// @param tokenAddress  The address of token contract
+    function open(address tokenAddress) override external noContract
+    {
+        Config memory config = _config;
+        require(config.state == 1, "NTokenController:!state");
 
         // token必须没有对应的nToken
-        require(getNTokenAddress(tokenAddress) == address(0), "Nest:NTC:EX(token)");
+        //require(getNTokenAddress(tokenAddress) == address(0), "NTokenController:!exists");
 
         // token的标记为0
-        require(nTokenTagList[tokenAddress].state == 0,
-            "Nest:NTC:DIS(token)");
+        require(_nTokenTagList[tokenAddress].state == 0, "NTokenController:!active");
 
-        nTokenTagList[tokenAddress] = NTokenTag(
+        _nTokenTagList[tokenAddress] = NTokenTag(
             address(msg.sender),                                // owner
             uint128(0),                                         // nestFee
             uint64(block.timestamp),                            // startTime
-            0,                                                  // state
+            // 3.5的代码中定义的状态存在问题，因为state默认值为0
+            1,                                                  // state
             0                                                   // _reserved
         );
         
+        uint ntokenCounter = _ntokenCounter;
+
         // 创建nToken代币合约
         // create ntoken
         NToken ntoken = new NToken(strConcat("NToken",
                 getAddressStr(ntokenCounter)),
                 strConcat("N", getAddressStr(ntokenCounter))
-                //address(governance),
-                //address(0),
-                // NOTE: here `bidder`, we use `C_NestPool` to separate new NTokens 
-                //   from old ones, whose bidders are the miners creating NTokens
-                //address(NEST_MINING_ADDRESS)
         );
 
         address governance = _governance;
@@ -185,20 +150,19 @@ contract NTokenController is NestBase, INTokenController {
 
         // 计数
         // increase the counter
-        ntokenCounter = ntokenCounter + 1;  // safe math
-        //addNTokenMapping(token, address(ntoken));
-        ntokenMapping[tokenAddress] = ntokenMapping[address(ntoken)] = address(ntoken);
+        _ntokenCounter = ntokenCounter + 1;  // safe math
+        _ntokenMapping[tokenAddress] = _ntokenMapping[address(ntoken)] = address(ntoken);
+        _tokenMapping[address(ntoken)] = tokenAddress;
 
         // is token valid ?
         IERC20 tokenERC20 = IERC20(tokenAddress);
         TransferHelper.safeTransferFrom(tokenAddress, address(msg.sender), address(this), 1);
-        require(tokenERC20.balanceOf(address(this)) >= 1, 
-            "Nest:NTC:!TEST(token)");
+        require(tokenERC20.balanceOf(address(this)) >= 1, "NTokenController:!transfer");
         TransferHelper.safeTransfer(tokenAddress, address(msg.sender), 1);
 
         // 支付nest
         // charge nest
-        IERC20(NEST_TOKEN_ADDRESS).transferFrom(address(msg.sender), address(governance), openFeeNestAmount);
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(address(msg.sender), address(governance), uint(config.openFeeNestAmount));
 
         // raise an event
         emit NTokenOpened(tokenAddress, address(ntoken), address(msg.sender));
@@ -206,9 +170,9 @@ contract NTokenController is NestBase, INTokenController {
 
     /* ========== VIEWS ========== */
 
-    function NTokenTagOf(address token) override public view returns (NTokenTag memory) 
+    function getNTokenTag(address token) override public view returns (NTokenTag memory) 
     {
-        return nTokenTagList[token];
+        return _nTokenTagList[token];
     }
 
     /* ========== HELPERS ========== */

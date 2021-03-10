@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-//import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./INestMapping.sol";
 
 /// @dev The contract is for redeeming nest token and getting ETH in return
@@ -12,6 +11,11 @@ interface INestGovernance is INestMapping {
     /// @param addr 目标地址
     /// @param flag 权重。为0表示删除目标地址的治理权限。权重当前系统并没有实现，只有有权限和无权限的区别，此处用一个uint96来表示权重，只是留作扩展用
     function setGovernance(address addr, uint flag) external;
+
+    /// @dev 获取治理权限
+    /// @param addr 目标地址
+    /// @return 权重。为0表示删除目标地址的治理权限。权重当前系统并没有实现，只有有权限和无权限的区别，此处用一个uint96来表示权重，只是留作扩展用
+    function getGovernance(address addr) external view returns (uint);
 
     /// @dev 检查目标地址是否具备对给定目标的治理权限
     /// @param 目标地址

@@ -8,15 +8,15 @@ import "./interface/INestGovernance.sol";
 /// @dev NEST合约基类
 contract NestBase {
 
-    /// @dev 治理合约地址
-	address public _governance;
-
     constructor() {
 
         // 临时存储，用于限制只允许创建者设置治理合约地址
         // 治理合约地址设置后，_governance将真正的表示合约地址
         _governance = msg.sender;
     }
+
+    /// @dev 治理合约地址
+	address public _governance;
 
     // function initialize(address nestDaoAddress) external {
     //     require(msg.sender == dao, "NEST:!creater");
@@ -26,6 +26,7 @@ contract NestBase {
     /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) virtual public {
+
         address governance = _governance;
         require(governance == msg.sender || INestGovernance(governance).checkGovernance(msg.sender, 0));
         _governance = nestGovernanceAddress;
@@ -51,7 +52,7 @@ contract NestBase {
     /// @param tokenAddress 目标token地址（0表示eth）
     /// @param to 转入地址
     /// @param value 转账金额
-    function transfer(address tokenAddress, address to, uint value) onlyGovernance external {
+    function transfer(address tokenAddress, address to, uint value) external onlyGovernance {
         if (tokenAddress == address(0)) {
             //address(uint160(to)).transfer(value);
             payable(to).transfer(value);

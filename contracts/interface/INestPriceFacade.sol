@@ -5,6 +5,18 @@ pragma solidity ^0.8.0;
 /// @dev 价格调用入口
 interface INestPriceFacade {
     
+    struct Config {
+        uint fee;
+    }
+    
+    /// @dev 修改配置
+    /// @param config 配置结构体
+    function setConfig(Config memory config) external;
+
+    /// @dev 获取配置
+    /// @return 配置结构体
+    function getConfig() external view returns (Config memory);
+
     /// @dev 获取最新的触发价格
     /// @param tokenAddress 目标token地址
     /// @return blockNumber 价格所在区块号

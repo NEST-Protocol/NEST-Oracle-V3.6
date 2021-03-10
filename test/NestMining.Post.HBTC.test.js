@@ -63,15 +63,6 @@ contract("NestMining", async accounts => {
             '0x0000000000000000000000000000000000000000', //nnIncomeAddress,
             nTokenController.address //nTokenControllerAddress
         );
-        /*
-                address nestTokenAddress,
-        address nestLedgerAddress,
-        address nestMiningAddress,
-        address nestPriceFacadeAddress,
-        address nestVoteAddress,
-        address nestQueryAddress,
-        address nnIncomeAddress,
-        address nTokenControllerAddress*/
 
         await nTokenController.update(nestGovernance.address);
         await nestMining.update(nestGovernance.address);
@@ -93,10 +84,12 @@ contract("NestMining", async accounts => {
             // 矿工挖到nest的比例（万分制）。8000
             minerNestReward: 8000, // MINER_NEST_REWARD_PERCENTAGE
             // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分之）。9500
-            minerNTokenReward: 9500
+            minerNTokenReward: 9500,
+            // 双轨报价阈值，当ntoken的发行量超过此阈值时，禁止单轨报价（单位：10000 ether）。500
+            doublePostThreshold: 500
         });
 
-        console.log(await nestMining.getConfig());
+        //console.log(await nestMining.getConfig());
 
         // 添加ntoken映射
         await nTokenController.addNTokenMapping(hbtc.address, nhbtc.address);

@@ -10,7 +10,7 @@
 ### 2.1. 单轨报价
     
     /// @notice Post a price sheet for TOKEN
-    /// @dev  It is for TOKEN (except USDT and NTOKENs) whose NTOKEN has a total supply below a threshold (e.g. 5,000,000 * 1e18)
+    /// @dev It is for TOKEN (except USDT and NTOKENs) whose NTOKEN has a total supply below a threshold (e.g. 5,000,000 * 1e18)
     /// @param tokenAdderss The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
@@ -19,7 +19,7 @@
 ### 2.2. 双轨报价
 
     /// @notice Post two price sheets for a token and its ntoken simultaneously 
-    /// @dev  Support dual-posts for TOKEN/NTOKEN, (ETH, TOKEN) + (ETH, NTOKEN)
+    /// @dev Support dual-posts for TOKEN/NTOKEN, (ETH, TOKEN) + (ETH, NTOKEN)
     /// @param tokenAdderss The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN

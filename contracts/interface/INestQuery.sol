@@ -14,9 +14,9 @@ interface INestQuery {
     /// @dev 获取最新的触发价格完整信息
     /// @param tokenAddress 目标token地址
     /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
+    /// @return price 价格（1eth可以兑换多少token）
     /// @return avgPrice 平均价格
-    /// @return sigma 波动率的平方
+    /// @return sigma 波动率的平方（18位小数）
     function triggeredPriceInfo(address tokenAddress) external view returns (uint blockNumber, uint price, uint avgPrice, uint sigma);
 
     /// @dev 获取最新的生效价格

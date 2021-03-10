@@ -49,27 +49,11 @@ contract NToken is NestBase, INToken {
         C_NestMining = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
     }
 
-    // /// @dev To ensure that all of governance-addresses be consist with each other
-    // function loadGovernance() external 
-    // { 
-    //     governance = INestPool(C_NestPool).governance();
-    // }
-
-    // function loadContracts() external onlyGovernance
-    // {
-    //     C_NestMining = INestPool(C_NestPool).addrOfNestMining();
-    // }
-
-    // function resetNestPool(address _NestPool) external onlyGovernance
-    // {
-    //     C_NestPool = _NestPool;
-    // }
-
     /// @dev Mint 
     /// @param amount The amount of NToken to add
     /// @param account The account of NToken to add
     function mint(uint256 amount, address account) override public {
-        require(address(msg.sender) == C_NestMining, "Nest:NTK:!Auth");
+        require(address(msg.sender) == C_NestMining, "NToken:!Auth");
         _balances[account] = _balances[account].add(amount);
 
         // _totalSupply和lastestMintAtHeight共用一个存储

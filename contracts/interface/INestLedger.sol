@@ -5,6 +5,27 @@ pragma solidity ^0.8.0;
 /// @dev NEST 账本合约
 interface INestLedger {
 
+    /// @dev 配置结构体
+    struct Config {
+        // NEST分成（万分制）。2000
+        uint32 nestRewardScale;
+        // NTOKEN分成（万分制）。8000
+        uint32 ntokenRedardScale;
+    }
+    
+    /// @dev 修改配置
+    /// @param config 配置结构体
+    function setConfig(Config memory config) external;
+
+    /// @dev 获取配置
+    /// @return 配置结构体
+    function getConfig() external view returns (Config memory);
+
+    /// @dev 设置DAO应用
+    /// @param addr DAO应用地址
+    /// @param flag 授权标记，1表示授权，0表示取消授权
+    function setApplication(address addr, uint flag) external;
+
     /// @dev ntoken收益
     /// @param ntokenAddress ntoken地址
     function addReward(address ntokenAddress) external payable;

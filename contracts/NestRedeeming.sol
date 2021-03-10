@@ -3,8 +3,8 @@
 pragma solidity ^0.8.0;
 
 //import "@openzeppelin/contracts/math/SafeMath.sol";
+//import "./lib/SafeMath.sol";
 import "./lib/IERC20.sol";
-import "./lib/SafeMath.sol";
 import "./interface/INestLedger.sol";
 import "./interface/INestQuery.sol";
 import "./interface/INestRedeeming.sol";
@@ -32,28 +32,45 @@ contract NestRedeeming is NestBase, INestRedeeming {
         uint8 state;
     }
 
+    Config _config;
     mapping(address=>RedeemInfo) redeemLedger;
-
-    address immutable NEST_TOKEN_ADDRESS;
     address _nestLedgerAddress;
     address _nestQueryAddress;
-    
+    address immutable NEST_TOKEN_ADDRESS;
+
+    /// @dev 修改配置
+    /// @param config 配置结构体
+    function setConfig(Config memory config) override external onlyGovernance {
+        _config = config;
+    }
+
+    /// @dev 获取配置
+    /// @return 配置结构体
+    function getConfig() override external view returns (Config memory) {
+        return _config;
+    }
+
     /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
 
         (
-            , //address nestTokenAddress,
-            _nestLedgerAddress, //address nestLedgerAddress,
-              
-            , //address nestMiningAddress,
-            , //address nestPriceFacadeAddress,
-              
-            , //address nestVoteAddress,
-            _nestQueryAddress, //address nestQueryAddress,
-            , //address nnIncomeAddress,
-              //address nTokenControllerAddress
+            //address nestTokenAddress
+            ,
+            //address nestLedgerAddress
+            _nestLedgerAddress, 
+            //address nestMiningAddress
+            ,
+            //address nestPriceFacadeAddress
+            , 
+            //address nestVoteAddress
+            ,
+            //address nestQueryAddress
+            _nestQueryAddress, 
+            //address nnIncomeAddress
+            ,
+            //address nTokenControllerAddress
               
         ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
     }
@@ -103,12 +120,14 @@ contract NestRedeeming is NestBase, INestRedeeming {
         }
         require(quota >= amount, "NestDAO:!amount");
         require(latestPriceValue <= triggeredAvgPrice * 105 / 100 && latestPriceValue >= triggeredAvgPrice * 95 / 100, "NestDAO:!price");
-        TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, address(this), amount);
+        
+        address nestLedgerAddress = _nestLedgerAddress;
+        TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, address(nestLedgerAddress), amount);
         //payable(msg.sender).transfer(value);
         
         // TODO: 考虑改为一个结算方法（settle）
-        INestLedger(_nestLedgerAddress).addReward { value: msg.value } (ntokenAddress);
-        INestLedger(_nestLedgerAddress).pay(ntokenAddress, address(0), msg.sender, value);
+        INestLedger(nestLedgerAddress).addReward { value: msg.value } (ntokenAddress);
+        INestLedger(nestLedgerAddress).pay(ntokenAddress, address(0), msg.sender, value);
     }
 
     /// @dev Get the current amount available for repurchase
