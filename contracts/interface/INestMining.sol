@@ -24,7 +24,10 @@ interface INestMining {
         uint32 postEthUnit;
 
         // 报价的手续费比例（万分制，DIMI_ETHER）。33
-        uint32 postFeeRate;
+        uint16 postFeeRate;
+
+        // 吃单的手续费比例（万分制，DIMI_ETHER）。0
+        uint16 biteFeeRate;
         
         // 报价抵押nest数量单位（千）。100
         uint32 nestPledgeNest;

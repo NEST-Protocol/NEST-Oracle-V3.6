@@ -36,6 +36,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 投票
         // 整理PriceInfoV36结构体，完成_stat()方法的实现逻辑
         // 投票的通过状态改为实时计算，并且任何时候都可以撤回投票。（什么时候可以取回资产，投票并行问题如何解决）
+        // 吃单手续费，配置
         // TODO: 验证均价，波动率计算是否正确
         // TODO: freeze，unfreeze方法整理
         // TODO: NN挖矿
@@ -95,23 +96,26 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 剩余的有效报价单的总规模
         uint32 remainNum;
 
-        // 波动率的平方，为下次计算新的波动率准备
-        uint32 volatility_sigma_sq;
-
-        // 记录值，计算新波动率的必要参数
-        uint32 volatility_ut_sq;
-
         // token 余额
         //uint64 tokenAmount;
         // token数量的浮动表示
-        uint8 tokenExponent;
-        uint40 tokenFraction;
+        uint8 priceExponent;
+        uint48 priceFraction;
 
         // // 平均 token 的价格（多少 token 可以兑换 1 ETH）
         // uint64 avgTokenAmount;
         // 平均价格的浮动表示
         uint8 avgExponent;
-        uint40 avgFraction;
+        uint48 avgFraction;
+        
+        // // 波动率的平方，为下次计算新的波动率准备
+        // uint32 volatility_sigma_sq;
+
+        // // 记录值，计算新波动率的必要参数
+        // uint32 volatility_ut_sq;
+
+        // 波动率的平方。需要除以2^48
+        uint48 sigmaSQ;
     }
 
     /// @dev 表示一个价格通道
@@ -120,12 +124,20 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 报价单数组
         PriceSheetV36[] sheets;
 
-        // 从上次结算后的吃单计数
-        // TODO: ntoken不需要计数
-        uint256 biteCount;
-
         // 价格信息
         PriceInfoV36 price;
+
+        // // 报价手续费
+        // uint postFee;
+
+        // // 从上次结算后的吃单计数
+        // // TODO: ntoken不需要计数
+        // uint nofeeCount;
+
+        // 报价佣金相关信息。
+        // 低128位表示当前每笔报价需要收取的佣金值
+        // 高128位表示当前累计的不需要收佣金的报价单数量（包括吃单和已经结算的）
+        uint feeInfo;
     }
 
     /// @dev 用结构体表示一个存储位置，可以使用storage变量，避免多次从mapping中索引
@@ -182,7 +194,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /// @dev 批量结算分红的掩码。测试时每16个报价单结算一次，线上版本256个报价单结算一次
     uint constant COLLECT_REWARD_MASK = 0xF;
-    uint constant COLLECT_REWARD_COUNT = COLLECT_REWARD_MASK + 1;
     
     /// @dev ntoken最多可以挖到100区块
     uint constant MINING_NTOKEN_YIELD_BLOCK_LIMIT = 100;
@@ -225,8 +236,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev 修改配置。（修改配置之前，需要对所有的ntoken的收益进行结算）
     /// @param config 配置对象
     function setConfig(Config memory config) override external onlyGovernance {
-
-        // TODO: 修改配置之前，需要对所有的ntoken的收益进行结算
         _config = config;
     }
 
@@ -293,7 +302,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         Config memory config = _config;
 
         // 1. 参数检查
-        require(ethNum > 0 && ethNum % uint(config.postEthUnit) == 0, "NestMining:!ethNum");
+        require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NestMining:!ethNum");
         require(tokenAmountPerEth > 0, "NestMining:!price");
         
         // 2. 手续费
@@ -315,12 +324,18 @@ contract NestMining is NestBase, INestMining, INestQuery {
         
         // 每隔256个报价单存入一次收益，扣除吃单的次数
         uint length = sheets.length;
-        if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK) {
-            INestLedger(_nestLedgerAddress).carveReward { 
-                value: fee * (COLLECT_REWARD_COUNT - channel.biteCount) 
-            } (ntokenAddress);
-            channel.biteCount = 0;
-        }
+        // {
+        //     uint feeInfo = channel.feeInfo;
+        //     if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || fee != (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)) {
+        //         INestLedger(_nestLedgerAddress).carveReward { 
+        //             value: fee + (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (COLLECT_REWARD_MASK - (feeInfo >> 128)) 
+        //         } (ntokenAddress);
+        //         // 更新佣金信息
+        //         // 当前累计的不需要收佣金的报价单数量清零，因此无需给高128位赋值
+        //         channel.feeInfo = fee;
+        //     }
+        // }
+        collect(channel, ntokenAddress, length, fee, fee);
 
         // 5. 冻结资产
         uint accountIndex = addressIndex(msg.sender);
@@ -331,13 +346,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 实际应该按照decodeFloat(fraction, exponent) * ethNum来冻结
         // 但是考虑到损失在1/10^14以内，因此忽略此处的损失，精度损失的部分，将来可以作为系统收益转出
         //freeze2(tokenAddress, tokenAmountPerEth * ethNum, POST_PLEDGE_UNIT);
-        mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-        freeze(balances, tokenAddress, tokenAmountPerEth * ethNum);
-        freeze(balances, NEST_TOKEN_ADDRESS, uint(config.nestPledgeNest) * 1000 ether);
+        //mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
+        //freeze(balances, tokenAddress, tokenAmountPerEth * ethNum);
+        //freeze(balances, NEST_TOKEN_ADDRESS, uint(config.nestPledgeNest) * 1000 ether);
+        freeze2(_accounts[accountIndex].balances, tokenAddress, tokenAmountPerEth * ethNum, uint(config.nestPledgeNest) * 1000 ether);
 
         // 6. 计算价格
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
-        _stat(channel);
+        _stat(channel, sheets, uint(config.priceEffectSpan));
 
         // 7. 创建报价单
         // (uint48 fraction, uint8 exponent) = encodeFloat(tokenAmountPerEth);
@@ -353,8 +369,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         //     fraction                    // uint48 priceFraction;
         // ));
 
-        createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.nestPledgeNest), 0, tokenAmountPerEth);
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
+        createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.nestPledgeNest), 0, tokenAmountPerEth);
     }
 
     /// @notice Post two price sheets for a token and its ntoken simultaneously 
@@ -363,14 +379,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
     /// @param ntokenAmountPerEth The price of NTOKEN
-    function post2(address tokenAddress, uint ethNum, uint tokenAmountPerEth, uint ntokenAmountPerEth) override external payable {
+    function post2(address tokenAddress, uint ethNum, uint tokenAmountPerEth, uint ntokenAmountPerEth) override external payable noContract {
 
         Config memory config = _config;
 
         // 1. 参数检查
-        require(ethNum > 0 && ethNum % uint(config.postEthUnit) == 0, "NestMining:!ethNum");
+        require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NestMining:!ethNum");
         require(tokenAmountPerEth > 0 && ntokenAmountPerEth > 0, "NestMining:!price");
-        require(msg.sender == tx.origin, "NestMining:!contract");
         
         // 2. 手续费
         uint fee = ethNum * uint(config.postFeeRate) * DIMI_ETHER;
@@ -385,12 +400,18 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheetV36[] storage sheets = channel.sheets;
         // 每隔256个报价单存入一次收益，扣除吃单的次数
         uint length = sheets.length;
-        if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK) {
-            INestLedger(_nestLedgerAddress).carveReward { 
-                value: fee * (COLLECT_REWARD_COUNT - channel.biteCount) 
-            } (ntokenAddress);
-            channel.biteCount = 0;
-        }
+        // {
+        //     uint feeInfo = channel.feeInfo;
+        //     if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || fee != (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)) {
+        //         INestLedger(_nestLedgerAddress).carveReward { 
+        //             value: fee + (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (COLLECT_REWARD_MASK - (feeInfo >> 128)) 
+        //         } (ntokenAddress);
+        //         // 更新佣金信息
+        //         // 当前累计的不需要收佣金的报价单数量清零，因此无需给高128位赋值
+        //         channel.feeInfo = fee;
+        //     }
+        // }
+        collect(channel, ntokenAddress, length, fee, fee);
 
         // 5. 冻结资产
         uint accountIndex = addressIndex(msg.sender);
@@ -407,17 +428,17 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 6. 计算价格
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
         // TODO: 考虑在计算价格的时候帮人关闭报价单
-        _stat(channel);
+        _stat(channel, sheets, uint(config.priceEffectSpan));
 
         // 7. 创建报价单
-        createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.nestPledgeNest), 0, tokenAmountPerEth);
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
+        createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.nestPledgeNest), 0, tokenAmountPerEth);
 
         channel = _channels[ntokenAddress];
         sheets = channel.sheets;
 
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
-        _stat(channel);
+        _stat(channel, sheets, uint(config.priceEffectSpan));
         emit Post(ntokenAddress, msg.sender, sheets.length, ethNum, ntokenAmountPerEth);
         createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.nestPledgeNest), 0, ntokenAmountPerEth);
     }
@@ -428,7 +449,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param index The position of the sheet in priceSheetList[token]
     /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteToken(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) override external payable {
+    function biteToken(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) override external payable noContract {
 
         Config memory config = _config;
 
@@ -445,29 +466,29 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(uint(sheet.remainNum) >= biteNum, "NestMining:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NestMining:!state");
 
-        // 每隔256个报价单存入一次收益，扣除吃单的次数
-        if (sheets.length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK) {
+        {
+            // 每隔256个报价单存入一次收益，扣除吃单的次数
             address ntokenAddress = getNTokenAddress(tokenAddress);
             if (tokenAddress != ntokenAddress) {
-                INestLedger(_nestLedgerAddress).carveReward { 
-                    value: uint(config.postEthUnit) * uint(config.postFeeRate) * (COLLECT_REWARD_MASK - channel.biteCount) * DIMI_ETHER
-                } (ntokenAddress);
-                channel.biteCount = 0;
+                collect(channel, ntokenAddress, sheets.length, 0, uint(config.postEthUnit) * uint(config.postFeeRate) * DIMI_ETHER);
             }
-        } else {
-            ++channel.biteCount;
+            if (uint(config.biteFeeRate) > 0) {
+                INestLedger(_nestLedgerAddress).carveReward { 
+                    value: biteNum * uint(config.biteFeeRate) * DIMI_ETHER
+                } (ntokenAddress);
+            }
         }
 
         // 4. 计算需要的eth, token, nest数量
         //uint needEthValue;
         uint needTokenValue;
+        uint level = uint(sheet.level);
 
         // 当吃单深度小于4的时候, nest和报价规模都翻倍
-        uint level = uint(sheet.level);
         if (level < uint(config.maxBiteNestedLevel)) {
             // 翻倍报价 + 用于买入token的数量，一共三倍
             //needEthValue = biteNum * 3 ether;
-            require(msg.value == biteNum * 3 ether, "NestMining:!value");
+            require(msg.value == biteNum * 3 ether + biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NestMining:!value");
             // 翻倍报价
             needTokenValue = newTokenAmountPerEth * (biteNum << 1);
             ++level;
@@ -476,7 +497,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         else {
             // 单倍报价 + 用于买入token的数量，一共两倍
             //needEthValue = biteNum * 2 ether;
-            require(msg.value == biteNum * 2 ether, "NestMining:!value");
+            require(msg.value == biteNum * 2 ether + biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NestMining:!value");
             // 单倍报价
             needTokenValue = newTokenAmountPerEth * biteNum;
             if (level < 255) ++level;
@@ -515,23 +536,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 6. 计算价格
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
-        _stat(channel);
+        _stat(channel, sheets, uint(config.priceEffectSpan));
 
         // 7.生成吃单报价单
-        // (uint48 fraction, uint8 exponent) = encodeFloat(newTokenAmountPerEth);
-        // sheets.push(PriceSheetV36(
-        //     uint32(accountIndex),       // uint32 miner;
-        //     uint32(block.number),       // uint32 height;
-        //     uint32(biteNum << 1),       // uint32 remainNum;
-        //     uint32(biteNum << 1),       // uint32 ethNumBal;
-        //     uint32(biteNum << 1),       // uint32 tokenNumBal;
-        //     uint32(needNest1k),         // uint32 nestNum1k;
-        //     uint8(sheet.level + 1),     // uint8 level;
-        //     exponent,                   // uint8 priceExponent;
-        //     fraction                    // uint48 priceFraction;
-        // ));
-        createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
         emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
+        createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
     }
 
     /// @notice Call the function to buy TOKEN/NTOKEN from a posted price sheet
@@ -540,7 +549,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param index The position of the sheet in priceSheetList[token]
     /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteEth(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) override external payable {
+    function biteEth(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) override external payable noContract {
 
         Config memory config = _config;
 
@@ -557,29 +566,45 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(uint(sheet.remainNum) >= biteNum, "NestMining:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NestMining:!state");
 
-        // 每隔256个报价单存入一次收益，扣除吃单的次数
-        if ((sheets.length & COLLECT_REWARD_MASK) == COLLECT_REWARD_MASK) {
+        {
+            // 每隔256个报价单存入一次收益，扣除吃单的次数
             address ntokenAddress = getNTokenAddress(tokenAddress);
             if (tokenAddress != ntokenAddress) {
-                INestLedger(_nestLedgerAddress).carveReward { 
-                    value: uint(config.postEthUnit) * uint(config.postFeeRate) * (COLLECT_REWARD_MASK - channel.biteCount) * DIMI_ETHER
-                } (ntokenAddress);
-                channel.biteCount = 0;
+                collect(channel, ntokenAddress, sheets.length, 0, uint(config.postEthUnit) * uint(config.postFeeRate) * DIMI_ETHER);
             }
-        } else {
-            ++channel.biteCount;
+            if (uint(config.biteFeeRate) > 0) {
+                INestLedger(_nestLedgerAddress).carveReward { 
+                    value: biteNum * uint(config.biteFeeRate) * DIMI_ETHER
+                } (ntokenAddress);
+            }
         }
+        // {
+        //     uint feeInfo = channel.feeInfo;
+        //     if (sheets.length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || uint(config.postEthUnit) * uint(config.postFeeRate) * DIMI_ETHER != (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)) {
+        //         address ntokenAddress = getNTokenAddress(tokenAddress);
+        //         if (tokenAddress != ntokenAddress) {
+        //             INestLedger(_nestLedgerAddress).carveReward { 
+        //                 value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (COLLECT_REWARD_MASK - (feeInfo >> 128)) 
+        //             } (ntokenAddress);
+        //             // 更新佣金信息
+        //             // 当前累计的不需要收佣金的报价单数量清零，因此无需给高128位赋值
+        //             channel.feeInfo = uint(config.postEthUnit) * uint(config.postFeeRate) * DIMI_ETHER;
+        //         }
+        //     } else {
+        //         channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (((feeInfo >> 128) + 1) << 128);
+        //     }
+        // }
 
         // 4. 计算需要的eth, token, nest数量
         //uint needEthValue;
         uint needTokenValue;
+        uint level = uint(sheet.level);
 
         // 当吃单深度小于4的时候, nest和报价规模都翻倍
-        uint level = uint(sheet.level);
         if (level < uint(config.maxBiteNestedLevel)) {
             // 翻倍报价 - 卖出token换得的数量，一共一倍
             //needEthValue = biteNum * 1 ether;
-            require(msg.value == biteNum * 1 ether, "NestMining:!value");
+            require(msg.value == biteNum * 1 ether + biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NestMining:!value");
 
             // 翻倍报价
             needTokenValue = newTokenAmountPerEth * (biteNum << 1);
@@ -589,7 +614,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         else {
             // 单倍报价 - 用于买入token的数量，一共0倍
             //needEthValue = 0 ether;
-            require(msg.value == 0, "NestMining:!value");
+            require(msg.value == biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NestMining:!value");
 
             // 单倍报价
             needTokenValue = newTokenAmountPerEth * biteNum;
@@ -625,11 +650,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 7. 计算价格
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
-        _stat(channel);
+        _stat(channel, sheets, uint(config.priceEffectSpan));
 
         // 8.生成吃单报价
-        createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
         emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
+        createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
     }
 
     // 创建报价单
@@ -702,7 +727,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev Here we allow an empty price sheet (still in VERIFICATION-PERIOD) to be closed 
     /// @param tokenAddress The address of TOKEN contract
     /// @param index The index of the price sheet w.r.t. `token`
-    function close(address tokenAddress, uint index) override external {
+    function close(address tokenAddress, uint index) override external noContract {
         
         Config memory config = _config;
 
@@ -728,7 +753,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal), 
                     uint(sheet.nestNum1k) * 1000 ether
                 );
-            } else {
+            } 
+            // 挖矿逻辑
+            else {
                 
                 (uint minedBlocks, uint count) = calcMinedBlocks(sheets, index, uint(sheet.height));
                 // nest挖矿
@@ -742,7 +769,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
                         // 解冻抵押的nest和挖矿的nest
                         uint(sheet.nestNum1k) * 1000 ether + minedBlocks * redution(block.number - NEST_GENESIS_BLOCK) * 1 ether * uint(config.minerNestReward) / 10000 / count
                     );
-                } else {
+                } 
+                // ntoken挖矿
+                else {
 
                     // 最多挖到100区块
                     if (minedBlocks > MINING_NTOKEN_YIELD_BLOCK_LIMIT) {
@@ -815,7 +844,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             sheets[index] = sheet;
         }
 
-        _stat(channel);
+        _stat(channel, sheets, uint(config.priceEffectSpan));
     }
 
     function calcMinedBlocks(PriceSheetV36[] storage sheets, uint index, uint height) private view returns (uint minedBlocks, uint count) {
@@ -845,6 +874,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 ++count;
             }
         }
+
         //uint minedBlocks;
         if (i == 0 && sheets[i].height == height) {
             // TODO: 考虑第一笔挖矿的出矿量如何计算
@@ -860,19 +890,15 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
     /// @param tokenAddress The address of TOKEN contract
     /// @param indices A list of indices of sheets w.r.t. `token`
-    function closeList(address tokenAddress, uint32[] memory indices) override external {
+    function closeList(address tokenAddress, uint32[] memory indices) override external noContract {
         // // TODO: 考虑同时支持token和ntoken的关闭
     }
 
-    function _stat(PriceChannel storage channel) private {
-
-        Config memory config = _config;
+    function _stat(PriceChannel storage channel, PriceSheetV36[] storage sheets, uint priceEffectSpan) private {
 
         // 找到token的价格信息
         PriceInfoV36 memory p0 = channel.price;
-        // 找到token的报价单数组
-        PriceSheetV36[] storage sheets = channel.sheets;
-
+        
         // 报价单数组长度
         uint length = sheets.length;
         // 即将处理的报价单在报价数组里面的索引
@@ -880,10 +906,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 已经计算价格的最新区块高度
         uint prev = uint(p0.height);
         // 用于计算价格的eth基数变量
-        uint totalEth = uint(p0.remainNum);
+        uint totalEth = 0; //uint(p0.remainNum);
         // 用于计算价格的token计数变量
-        //uint totalTokenValue = uint(p0.tokenAmount);
-        uint totalTokenValue = decodeFloat(p0.tokenFraction, p0.tokenExponent);
+        uint totalTokenValue = 0; //decodeFloat(p0.priceFraction, p0.priceExponent) * totalEth;
         // 当前报价单所在的区块高度
         uint height;
         // 当前价格
@@ -891,22 +916,22 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 遍历报价单，找到生效价格
         PriceSheetV36 memory sheet;
-        while (index < length && (height = uint((sheet = sheets[index]).height)) + uint(config.priceEffectSpan) < block.number) {
-        // while (index < length && (uint(sheets[index].height)) + PRICE_EFFECT_SPAN < block.number) {
-        //     sheet = sheets[index];
-        //     height = uint(sheet.height);
+        for (;;) {
+            
+            // 从当前位置遍历已经达到生效间隔的报价单
+            bool flag = index < length && (height = uint((sheet = sheets[index]).height)) + priceEffectSpan < block.number;
 
-            // 同一区块, 累计计数
-            if (prev == height) {
+            // 同一区块, 并且flag为true, 累计计数
+            if (prev == height && flag) {
                 totalEth += uint(sheet.remainNum);
                 totalTokenValue += decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.remainNum);
             }
-            // 不是同一个区块，计算价格
+            // 不是同一个区块（或者flag为false），计算价格并更新
             else {
                 // totalEth > 0 可以计算价格
                 if (totalEth > 0) {
 
-                    // 计算价格
+                    // 新产生的价格
                     price = totalTokenValue / totalEth;
 
                     // 计算平均价格和波动率
@@ -914,51 +939,46 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     if (prev > 0) {
                         // 计算平均价格
                         // avgPrice[i + 1] = avgPrice[i] * 95% + price[i] * 5%
-                        (p0.avgFraction, p0.avgExponent) = encodeFloat40((decodeFloat(p0.avgFraction, p0.avgExponent) * 19 + price) / 20);
+                        (p0.avgFraction, p0.avgExponent) = encodeFloat((decodeFloat(p0.avgFraction, p0.avgExponent) * 19 + price) / 20);
 
-                        // _ut_sq_2 = _ut_sq / (_interval * ETHEREUM_BLOCK_TIMESPAN);
-                        // _new_ut_sq = (tokenA1 / tokenA0 - 1) ^ 2;
+                        //if (height > uint(p0.height)) 
+                        {
+                            uint tmp = (price << 24) / decodeFloat(p0.priceFraction, p0.priceExponent);
+                            if (tmp > 0x1000000) {
+                                tmp = tmp - 0x1000000;
+                            } else {
+                                tmp = 0x1000000 - tmp;
+                            }
 
-                        // 计算波动率
-                        // TODO: 考虑p0.tokenAmount是否可能为0
-                        //uint _new_ut_sq = price * 1 ether * uint(p0.remainNum) / uint(p0.tokenAmount) - 1 ether;
-                        // _new_ut_sq = price[i] / price[i - 1] - 1;
-                        // 按照price[i] / price[i - 1]范围在0.01 ~ 100之间，即两个相邻的价格之间的波动达到100倍，设置波动率范围
-                        // _new_ut_sq的取值可能在[-0.99, 99]之间
-                        // _new_ut_sq ^ 2 的取值可能在[0, 9801]之间
-                        // uint32可以表示的范围是[0, 4294967295]
-                        uint tmp = uint(p0.volatility_ut_sq);
-                        //uint _new_ut_sq = price * 1 ether * uint(p0.remainNum) / decodeFloat(p0.tokenFraction, p0.tokenExponent) - 1 ether;
-                        //_new_ut_sq = _new_ut_sq * _new_ut_sq;
+                            // earn = price[i] / price[i - 1] - 1;
+                            // seconds = time[i] - time[i - 1];
+                            // sigmaSQ[i + 1] = sigmaSQ[i] * 95% + (earn ^ 2 / seconds) * 5%
+                            tmp = (uint(p0.sigmaSQ) * 19 + tmp * tmp / ETHEREUM_BLOCK_TIMESPAN / (height - uint(p0.height))) / 20;
 
-                        // _new_sigma_sq = _sigma_sq * 0.95 + _ut_sq_2 * 0.5;
-                        //uint _new_sigma_sq = ((uint(p0.volatility_sigma_sq)) * 95 + (uint(p0.volatility_ut_sq) / ETHEREUM_BLOCK_TIMESPAN / (height - prev))) / 100;
-                        tmp = (((uint(p0.volatility_sigma_sq)) * 95 + (tmp * tmp / ETHEREUM_BLOCK_TIMESPAN / (height - prev)) * 5) / 100) >> 26;
-                        if (tmp > 0xFFFFFFFF) tmp = 0xFFFFFFFF;
-                        p0.volatility_sigma_sq = uint32(tmp);
-                        //uint32(((uint(p0.volatility_sigma_sq)) * 95 + (uint(p0.volatility_ut_sq) / ETHEREUM_BLOCK_TIMESPAN / (height - prev)) * 5) / 100);
-                        //p0.volatility_ut_sq = uint32(_new_ut_sq * _new_ut_sq);
-                        tmp = (price << 24) * uint(p0.remainNum) / decodeFloat(p0.tokenFraction, p0.tokenExponent) - 0x1000000;
-                        if (tmp > 0xFFFFFFFF) tmp = 0xFFFFFFFF;
-                        p0.volatility_ut_sq = uint32(tmp);
+                            // 当前实现假定波动率不可能超过1，与此对应的，当计算值超过0xFFFFFFFFFFFF时
+                            // 表示波动率已经超过可以表示的范围，用0xFFFFFFFFFFFF表示
+                            if (tmp > 0xFFFFFFFFFFFF) {
+                                tmp = 0xFFFFFFFFFFFF;
+                            }
+                            p0.sigmaSQ = uint48(tmp);
+                        }
                     } 
                     // 第一个价格，平均价格、波动率计算方式有所不同
                     else {
                         // 平均价格等于价格
                         //p0.avgTokenAmount = uint64(price);
-                        (p0.avgFraction, p0.avgExponent) = encodeFloat40(price);
+                        (p0.avgFraction, p0.avgExponent) = encodeFloat(price);
 
                         // 波动率为0
-                        p0.volatility_sigma_sq = uint32(0);
-                        p0.volatility_ut_sq = uint32(0);                        
+                        p0.sigmaSQ = uint48(0);
                     }
 
                     // 更新价格区块高度
-                    p0.height = uint32(height);
+                    p0.height = uint32(prev);
                     // 更新价格
                     p0.remainNum = uint32(totalEth);
                     //p0.tokenAmount = uint64(totalTokenValue);
-                    (p0.tokenFraction, p0.tokenExponent) = encodeFloat40(totalTokenValue);
+                    (p0.priceFraction, p0.priceExponent) = encodeFloat(totalTokenValue / totalEth);
 
                     // 移动到新的高度
                     prev = height;
@@ -969,65 +989,16 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 totalTokenValue = decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.remainNum);
             }
 
+            if (!flag) {
+                break;
+            }
             ++index;
         }
 
-        // TODO: 提取成方法来计算
-        // totalEth > 0 可以计算价格
-        if (totalEth > 0) {
-            // 计算价格
-            price = totalTokenValue / totalEth;
-            // 计算平均价格和波动率
-            // 后续价格的波动率计算方法
-            if (prev > 0) {
-                // 计算平均价格
-                // avgPrice[i + 1] = avgPrice[i] * 95% + price[i] * 5%
-                (p0.avgFraction, p0.avgExponent) = encodeFloat40((decodeFloat(p0.avgFraction, p0.avgExponent) * 19 + price) / 20);
-                // _ut_sq_2 = _ut_sq / (_interval * ETHEREUM_BLOCK_TIMESPAN);
-                // _new_ut_sq = (tokenA1 / tokenA0 - 1) ^ 2;
-                // 计算波动率
-                // TODO: 考虑p0.tokenAmount是否可能为0
-                //uint _new_ut_sq = price * 1 ether * uint(p0.remainNum) / uint(p0.tokenAmount) - 1 ether;
-                // _new_ut_sq = price[i] / price[i - 1] - 1;
-                // 按照price[i] / price[i - 1]范围在0.01 ~ 100之间，即两个相邻的价格之间的波动达到100倍，设置波动率范围
-                // _new_ut_sq的取值可能在[-0.99, 99]之间
-                // _new_ut_sq ^ 2 的取值可能在[0, 9801]之间
-                // uint32可以表示的范围是[0, 4294967295]
-                uint tmp = uint(p0.volatility_ut_sq);
-                //uint _new_ut_sq = price * 1 ether * uint(p0.remainNum) / decodeFloat(p0.tokenFraction, p0.tokenExponent) - 1 ether;
-                //_new_ut_sq = _new_ut_sq * _new_ut_sq;
-                // _new_sigma_sq = _sigma_sq * 0.95 + _ut_sq_2 * 0.5;
-                //uint _new_sigma_sq = ((uint(p0.volatility_sigma_sq)) * 95 + (uint(p0.volatility_ut_sq) / ETHEREUM_BLOCK_TIMESPAN / (height - prev))) / 100;
-                tmp = (((uint(p0.volatility_sigma_sq)) * 95 + (tmp * tmp / ETHEREUM_BLOCK_TIMESPAN / (height - prev)) * 5) / 100) >> 26;
-                if (tmp > 0xFFFFFFFF) tmp = 0xFFFFFFFF;
-                p0.volatility_sigma_sq = uint32(tmp);
-                //uint32(((uint(p0.volatility_sigma_sq)) * 95 + (uint(p0.volatility_ut_sq) / ETHEREUM_BLOCK_TIMESPAN / (height - prev)) * 5) / 100);
-                //p0.volatility_ut_sq = uint32(_new_ut_sq * _new_ut_sq);
-                tmp = (price << 24) * uint(p0.remainNum) / decodeFloat(p0.tokenFraction, p0.tokenExponent) - 0x1000000;
-                if (tmp > 0xFFFFFFFF) tmp = 0xFFFFFFFF;
-                p0.volatility_ut_sq = uint32(tmp);
-            } 
-            // 第一个价格，平均价格、波动率计算方式有所不同
-            else {
-                // 平均价格等于价格
-                //p0.avgTokenAmount = uint64(price);
-                (p0.avgFraction, p0.avgExponent) = encodeFloat40(price);
-                // 波动率为0
-                p0.volatility_sigma_sq = uint32(0);
-                p0.volatility_ut_sq = uint32(0);                        
-            }
-            // 更新价格区块高度
-            p0.height = uint32(height);
-            // 更新价格
-            p0.remainNum = uint32(totalEth);
-            //p0.tokenAmount = uint64(totalTokenValue);
-            (p0.tokenFraction, p0.tokenExponent) = encodeFloat40(totalTokenValue);
-            // 移动到新的高度
-            prev = height;
-        }
-
+        // 更新价格信息
         if (index > uint(p0.index)) {
             p0.index = uint32(index);
+            p0.height = uint32(prev);
             channel.price = p0;
         }
     }
@@ -1035,9 +1006,33 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev The function updates the statistics of price sheets
     ///     It calculates from priceInfo to the newest that is effective.
     ///     Different from `_statOneBlock()`, it may cross multiple blocks.
-    function stat(address tokenAddress) override public 
-    {
-        _stat(_channels[tokenAddress]);
+    function stat(address tokenAddress) override external {
+        PriceChannel storage channel = _channels[tokenAddress];
+        _stat(channel, channel.sheets, uint(_config.priceEffectSpan));
+    }
+
+    // 将累计的分红转入到nest账本
+    function collect(PriceChannel storage channel, address ntokenAddress, uint length, uint currentFee, uint newFee) private {
+
+        uint feeInfo = channel.feeInfo;
+        uint oldFee = feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+        if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK) {
+            INestLedger(_nestLedgerAddress).carveReward { 
+                value: currentFee + oldFee * (COLLECT_REWARD_MASK - (feeInfo >> 128)) 
+            } (ntokenAddress);
+            // 更新佣金信息
+            // 当前累计的不需要收佣金的报价单数量清零，因此无需给高128位赋值
+            channel.feeInfo = newFee;
+        } else if (newFee != oldFee) {
+            INestLedger(_nestLedgerAddress).carveReward { 
+                value: currentFee + oldFee * (COLLECT_REWARD_MASK - (feeInfo >> 128)) 
+            } (ntokenAddress);
+            // 更新佣金信息
+            // 当前累计的不需要收佣金的报价单数量清零，因此无需给高128位赋值
+            channel.feeInfo = newFee | (((length & COLLECT_REWARD_MASK) + 1)<< 128);
+        } else if (currentFee == 0) {
+            channel.feeInfo = newFee | (((feeInfo >> 128) + 1) << 128);
+        }
     }
 
     /// @dev 结算佣金
@@ -1046,15 +1041,18 @@ contract NestMining is NestBase, INestMining, INestQuery {
         
         address ntokenAddress = getNTokenAddress(tokenAddress);
         if (tokenAddress != ntokenAddress) {
-            Config memory config = _config;
+
             PriceChannel storage channel = _channels[tokenAddress];
             uint count = channel.sheets.length & COLLECT_REWARD_MASK;
-            
+            uint feeInfo = channel.feeInfo;
+
             INestLedger(_nestLedgerAddress).carveReward { 
-                value: uint(config.postEthUnit) * uint(config.postFeeRate) * (count - channel.biteCount) * DIMI_ETHER 
+                value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (count - (feeInfo >> 128)) 
             } (ntokenAddress);
 
-            channel.biteCount = count;
+            // 手动结算不需要更新佣金变量
+            //Config memory config = _config;
+            channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (count << 128);
         }
     }
 
@@ -1236,7 +1234,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /* ========== 资产管理 ========== */
 
-    // TODO: 删除此方法
     /// @dev 解冻token
     /// @param balances 账本
     /// @param tokenAddress token地址
@@ -1263,13 +1260,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
     }
 
     /// @dev 冻结token和nest
+    /// @param balances 账本
     /// @param tokenAddress token地址
     /// @param tokenValue token数量
     /// @param nestValue nest数量
-    function freeze2(address tokenAddress, uint tokenValue, uint nestValue) private {
+    function freeze2(mapping(address=>UINT) storage balances, address tokenAddress, uint tokenValue, uint nestValue) private {
 
-        mapping(address=>UINT) storage balances = _accounts[addressIndex(msg.sender)].balances;
-        
         UINT storage balance = balances[tokenAddress];
         uint balanceValue = balance.value;
         if (balanceValue < tokenValue) {
@@ -1280,6 +1276,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
 
         balance = balances[NEST_TOKEN_ADDRESS];
+        balanceValue = balance.value;
         if (balanceValue < nestValue) {
             TransferHelper.safeTransferFrom(NEST_TOKEN_ADDRESS, msg.sender, address(this), nestValue - balanceValue);
             balance.value = 0;
@@ -1288,7 +1285,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
     }
 
-    // TODO: 删除此方法
     /// @dev 解冻token和nest
     /// @param balances 账本
     /// @param tokenAddress token地址
@@ -1296,12 +1292,48 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param nestValue nest数量
     function unfreeze2(mapping(address=>UINT) storage balances, address tokenAddress, uint tokenValue, uint nestValue) private {
 
-        //mapping(address=>UINT) storage balances = accounts[addressIndex(msg.sender)].balances;
         UINT storage balance = balances[tokenAddress];
         balance.value = balance.value + tokenValue;
 
         balance = balances[NEST_TOKEN_ADDRESS];
         balance.value = balance.value + nestValue;
+    }
+
+    /// @dev 冻结token和nest
+    /// @param balances 账本
+    /// @param tokenAddress token地址
+    /// @param tokenValue token数量
+    /// @param ntokenAddress ntoken地址
+    /// @param ntokenValue ntoken数量
+    /// @param nestValue nest数量
+    function freeze3(mapping(address=>UINT) storage balances, address tokenAddress, uint tokenValue, address ntokenAddress, uint ntokenValue, uint nestValue) private {
+
+        UINT storage balance = balances[tokenAddress];
+        uint balanceValue = balance.value;
+        if (balanceValue < tokenValue) {
+            TransferHelper.safeTransferFrom(tokenAddress, msg.sender, address(this), tokenValue - balanceValue);
+            balance.value = 0;
+        } else {
+            balance.value = balanceValue - tokenValue;
+        }
+
+        balance = balances[ntokenAddress];
+        balanceValue = balance.value;
+        if (balanceValue < ntokenValue) {
+            TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, address(this), ntokenValue - balanceValue);
+            balance.value = 0;
+        } else {
+            balance.value = balanceValue - ntokenValue;
+        }
+
+        balance = balances[NEST_TOKEN_ADDRESS];
+        balanceValue = balance.value;
+        if (balanceValue < nestValue) {
+            TransferHelper.safeTransferFrom(NEST_TOKEN_ADDRESS, msg.sender, address(this), nestValue - balanceValue);
+            balance.value = 0;
+        } else {
+            balance.value = balanceValue - nestValue;
+        }
     }
 
     /// @dev 解冻token和nest
@@ -1335,7 +1367,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
         PriceInfoV36 memory priceInfo = _channels[tokenAddress].price;
         if (uint(priceInfo.remainNum) > 0) {
-            return (uint(priceInfo.height), decodeFloat(priceInfo.tokenFraction, priceInfo.tokenExponent) / uint(priceInfo.remainNum));
+            return (uint(priceInfo.height), decodeFloat(priceInfo.priceFraction, priceInfo.priceExponent));
         }
         return (0, 0);
     }
@@ -1345,8 +1377,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return blockNumber 价格所在区块号
     /// @return price 价格（1eth可以兑换多少token）
     /// @return avgPrice 平均价格
-    /// @return sigma 波动率的平方（18位小数）
-    function triggeredPriceInfo(address tokenAddress) override public view returns (uint blockNumber, uint price, uint avgPrice, uint sigma) {
+    /// @return sigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    function triggeredPriceInfo(address tokenAddress) override public view returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ) {
         
         require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
         PriceInfoV36 memory priceInfo = _channels[tokenAddress].price;
@@ -1359,9 +1391,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         return (
             uint(priceInfo.height), 
-            decodeFloat(priceInfo.tokenFraction, priceInfo.tokenExponent) / uint(priceInfo.remainNum),
+            decodeFloat(priceInfo.priceFraction, priceInfo.priceExponent),
             decodeFloat(priceInfo.avgFraction, priceInfo.avgExponent),
-            (uint(priceInfo.volatility_sigma_sq) * 1 ether) >> 12 // 波动率的平方
+            (uint(priceInfo.sigmaSQ) * 1 ether) >> 48 // 波动率的平方
         );
     }
 
@@ -1419,7 +1451,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return triggeredPriceBlockNumber 价格所在区块号
     /// @return triggeredPriceValue 价格(1eth可以兑换多少token)
     /// @return triggeredAvgPrice 平均价格
-    /// @return triggeredSigma 波动率的平方
+    /// @return triggeredSigmaSQ 波动率的平方
     function latestPriceAndTriggeredPriceInfo(address tokenAddress) override external view 
     returns (
         uint latestPriceBlockNumber, 
@@ -1427,28 +1459,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint triggeredPriceBlockNumber,
         uint triggeredPriceValue,
         uint triggeredAvgPrice,
-        uint triggeredSigma
+        uint triggeredSigmaSQ
     ) {
         (latestPriceBlockNumber, latestPriceValue) = latestPrice(tokenAddress);
-        (triggeredPriceBlockNumber, triggeredPriceValue, triggeredAvgPrice, triggeredSigma) = triggeredPriceInfo(tokenAddress);
+        (triggeredPriceBlockNumber, triggeredPriceValue, triggeredAvgPrice, triggeredSigmaSQ) = triggeredPriceInfo(tokenAddress);
     }
 
     /* ========== 工具方法 ========== */
-
-    /// @dev 将uint值编码成fraction * 16 ^ exponent形式的浮点表示形式
-    /// @param value 目标uint值
-    /// @return fraction 分数值
-    /// @return exponent 指数值
-    function encodeFloat40(uint value) public pure returns (uint40 fraction, uint8 exponent) {
-        
-        uint decimals = 0; 
-        while (value > 0xFFFFFFFFFF) {
-            value >>= 4;
-            ++decimals;
-        }
-
-        return (uint40(value), uint8(decimals));
-    }
 
     /// @dev 将uint值编码成fraction * 16 ^ exponent形式的浮点表示形式
     /// @param value 目标uint值

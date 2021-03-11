@@ -34,8 +34,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
-        super.update(nestGovernanceAddress);
 
+        super.update(nestGovernanceAddress);
         (
             //address nestTokenAddress
             , 
@@ -82,8 +82,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     /// @return blockNumber 价格所在区块号
     /// @return price 价格(1eth可以兑换多少token)
     /// @return avgPrice 平均价格
-    /// @return sigma 波动率的平方
-    function triggeredPriceInfo(address tokenAddress) override external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigma) {
+    /// @return sigmaSQ 波动率的平方。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    function triggeredPriceInfo(address tokenAddress) override external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ) {
         pay(tokenAddress);
         return INestQuery(_nestQueryAddress).triggeredPriceInfo(tokenAddress);
     }
@@ -104,7 +104,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     /// @return triggeredPriceBlockNumber 价格所在区块号
     /// @return triggeredPriceValue 价格(1eth可以兑换多少token)
     /// @return triggeredAvgPrice 平均价格
-    /// @return triggeredSigma 波动率的平方
+    /// @return triggeredSigmaSQ 波动率的平方。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
     function latestPriceAndTriggeredPriceInfo(address tokenAddress) 
     override
     external 
@@ -115,7 +115,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         uint triggeredPriceBlockNumber,
         uint triggeredPriceValue,
         uint triggeredAvgPrice,
-        uint triggeredSigma
+        uint triggeredSigmaSQ
     ) {
         pay(tokenAddress);
         return INestQuery(_nestQueryAddress).latestPriceAndTriggeredPriceInfo(tokenAddress);
