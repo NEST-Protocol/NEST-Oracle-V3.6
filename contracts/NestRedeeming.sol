@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-//import "@openzeppelin/contracts/math/SafeMath.sol";
-//import "./lib/SafeMath.sol";
 import "./lib/IERC20.sol";
 import "./interface/INestLedger.sol";
 import "./interface/INestQuery.sol";
@@ -25,11 +23,14 @@ contract NestRedeeming is NestBase, INestRedeeming {
 
     /// @dev 回购信息
     struct RedeemInfo {
+        
         // 已经消耗的回购额度
         // block.number * quotaPerBlock - quota
         uint128 quota;
-        // 回购状态，1表示正在回购
-        uint8 state;
+
+        // 回购发行量阈值，当此值和config.activeThreshold相等时，启用回购，无需检查ntoken的发行量
+        // 当config.activeThreshold修改时，会重新根据发行量检查是否启用回购
+        uint32 threshold;
     }
 
     Config _config;
@@ -58,6 +59,8 @@ contract NestRedeeming is NestBase, INestRedeeming {
         (
             //address nestTokenAddress
             ,
+            //address nestNodeAddress
+            ,
             //address nestLedgerAddress
             _nestLedgerAddress, 
             //address nestMiningAddress
@@ -78,17 +81,21 @@ contract NestRedeeming is NestBase, INestRedeeming {
     /// @dev Redeem ntokens for ethers
     /// @notice Ethfee will be charged
     /// @param ntokenAddress The address of ntoken
-    /// @param amount  The amount of ntoken
+    /// @param amount The amount of ntoken
     function redeem(address ntokenAddress, uint amount) override external payable {
-        //require(ntokenAddress == address(0) && amount == 0 && false, "NestDAO:not implement");
+        
+        // 1. 加载配置
+        Config memory config = _config;
+        require(msg.value == uint(config.fee), "NestDAO:!fee");
 
-        require(msg.value == 0.01 ether, "NestDAO:!fee");
+        // 2. 检查回购状态
         RedeemInfo storage redeemInfo = redeemLedger[ntokenAddress];
-        if (uint(redeemInfo.state) == 0) {
-            require(IERC20(ntokenAddress).totalSupply() >= 5000000 ether, "NestDAO:!totalSupply");
-            redeemInfo.state = 1;
+        if (redeemInfo.threshold != config.activeThreshold) {
+            require(IERC20(ntokenAddress).totalSupply() >= uint(config.activeThreshold) * 10000 ether, "NestDAO:!totalSupply");
+            redeemInfo.threshold = config.activeThreshold;
         }
 
+        // 3. 查询价格
         (
             /* uint latestPriceBlockNumber */, 
             uint latestPriceValue,
@@ -98,33 +105,43 @@ contract NestRedeeming is NestBase, INestRedeeming {
             /* uint triggeredSigma */
         ) = INestQuery(_nestQueryAddress).latestPriceAndTriggeredPriceInfo(ntokenAddress);
 
+        // 4. 计算回购可以换得的eth数量
         uint value = amount * 1 ether / latestPriceValue;
-        //uint prevQuota = redeemInfo.quota;
-        //uint quota = _quotaOf(prevQuota, ntokenAddress);
         uint quota;
+
+        // 5. 计算回购额度
+        // nest回购额度
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-            quota = block.number * 1000 ether - redeemInfo.quota;
-            if (quota > 300000 ether) {
-                quota = 300000 ether;
+            quota = block.number * uint(config.nestPerBlock) * 1 ether - redeemInfo.quota;
+            if (quota > uint(config.nestLimit) * 1 ether) {
+                quota = uint(config.nestLimit) * 1 ether;
             }
-            redeemInfo.quota = uint128(block.number * 1000 ether - (quota - amount));
+            redeemInfo.quota = uint128(block.number * uint(config.nestPerBlock) * 1 ether - (quota - amount));
             //nestLedger = nestLedger + msg.value - value;
-        } else {
-            quota = block.number * 10 ether - redeemInfo.quota;
-            if (quota > 3000 ether) {
-                quota = 3000 ether;
+        } 
+        // ntoken回购额度
+        else {
+            quota = block.number * uint(config.ntokenPerBlock) * 1 ether - redeemInfo.quota;
+            if (quota > uint(config.ntokenLimit) * 1 ether) {
+                quota = uint(config.ntokenLimit) * 1 ether;
             }
-            redeemInfo.quota = uint128(block.number * 10 ether - (quota - amount));
+            redeemInfo.quota = uint128(block.number * uint(config.ntokenPerBlock) * 1 ether - (quota - amount));
             //UINT storage balance = ntokenLedger[ntokenAddress];
             //balance.value = balance.value + msg.value - value;
         }
+
+        // 6. 检查回购额度和价格偏差
         require(quota >= amount, "NestDAO:!amount");
-        require(latestPriceValue <= triggeredAvgPrice * 105 / 100 && latestPriceValue >= triggeredAvgPrice * 95 / 100, "NestDAO:!price");
+        require(
+            latestPriceValue <= triggeredAvgPrice * (10000 + uint(config.priceDeviationLimit)) / 10000 && 
+            latestPriceValue >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)) / 10000, "NestDAO:!price");
         
+        // 7. 转入回购的ntoken
         address nestLedgerAddress = _nestLedgerAddress;
         TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, address(nestLedgerAddress), amount);
         //payable(msg.sender).transfer(value);
         
+        // 8. 结算资金
         // TODO: 考虑改为一个结算方法（settle）
         INestLedger(nestLedgerAddress).addReward { value: msg.value } (ntokenAddress);
         INestLedger(nestLedgerAddress).pay(ntokenAddress, address(0), msg.sender, value);
@@ -134,21 +151,26 @@ contract NestRedeeming is NestBase, INestRedeeming {
     /// @param ntokenAddress The address of ntoken
     function quotaOf(address ntokenAddress) override public view returns (uint) {
 
+        // 1. 加载配置
+        Config memory config = _config;
+
+        // 2. 检查回购状态
         RedeemInfo storage redeemInfo = redeemLedger[ntokenAddress];
-        if (uint(redeemInfo.state) == 0) {
-            if (IERC20(ntokenAddress).totalSupply() < 5000000 ether) return 0;
+        if (redeemInfo.threshold != config.activeThreshold) {
+            if (IERC20(ntokenAddress).totalSupply() < uint(config.activeThreshold) * 10000 ether) return 0;
         }
 
+        // 3. 计算回购额度
         uint quota;
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-            quota = block.number * 1000 ether - quota;
-            if (quota > 300000 ether) {
-                quota = 300000 ether;
+            quota = block.number * uint(config.nestPerBlock) * 1 ether - quota;
+            if (quota > uint(config.nestLimit) * 1 ether) {
+                quota = uint(config.nestLimit) * 1 ether;
             }
         } else {
-            quota = block.number * 10 ether - quota;
-            if (quota > 3000 ether) {
-                quota = 3000 ether;
+            quota = block.number * uint(config.ntokenPerBlock) * 1 ether - quota;
+            if (quota > uint(config.ntokenLimit) * 1 ether) {
+                quota = uint(config.ntokenLimit) * 1 ether;
             }
         } 
 

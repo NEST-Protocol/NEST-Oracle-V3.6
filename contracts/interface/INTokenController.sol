@@ -5,14 +5,18 @@ pragma solidity ^0.8.0;
 interface INTokenController {
     
     /// @notice when the auction of a token gets started
-    /// @param token    The address of the (ERC20) token
-    /// @param ntoken   The address of the ntoken w.r.t. token for incentives
-    /// @param owner    The address of miner who opened the oracle
-    event NTokenOpened(address token, address ntoken, address owner);
+    /// @param tokenAddress The address of the (ERC20) token
+    /// @param ntokenAddress The address of the ntoken w.r.t. token for incentives
+    /// @param owner The address of miner who opened the oracle
+    event NTokenOpened(address tokenAddress, address ntokenAddress, address owner);
     
-    event NTokenDisabled(address token);
+    /// @notice ntoken禁用事件
+    /// @param tokenAddress token地址
+    event NTokenDisabled(address tokenAddress);
     
-    event NTokenEnabled(address token);
+    /// @notice ntoken启用事件
+    /// @param tokenAddress token地址
+    event NTokenEnabled(address tokenAddress);
 
     /// @dev 配置结构体
     struct Config {
@@ -23,22 +27,19 @@ interface INTokenController {
     }
 
     /// @dev A struct for an ntoken
-    ///     size: 2 x 256bit
     struct NTokenTag {
-        address owner;          // the owner with the highest bid
-        uint128 nestFee;        // NEST amount staked for opening a NToken
-        uint64  startTime;      // the start time of service
-        uint8   state;          // =0: disabled | =1 normal
-        uint56  _reserved;      // padding space
+
+        address ntokenAddress;
+        uint96 nestFee;
+        address tokenAddress;
+        uint40 index;
+        uint48 startTime;
+        uint8 state;                // =0: disabled | =1 normal
     }
 
-    /* ========== 系统配置 ========== */
-    
-    /// @dev 设置ntokenCounter
-    /// @param ntokenCounter 当前已经创建的ntoken数量
-    function setNTokenCounter(uint ntokenCounter) external;
+    /* ========== 治理相关 ========== */
 
-    /// @dev 修改配置
+    /// @dev 修改配置。
     /// @param config 配置对象
     function setConfig(Config memory config) external;
 
@@ -46,10 +47,11 @@ interface INTokenController {
     /// @return 配置对象
     function getConfig() external view returns (Config memory);
 
-    /// @dev 添加ntoken映射
+    /// @dev 设置ntoken映射（对应的ntoken必须已经存在）
     /// @param tokenAddress token地址
     /// @param ntokenAddress ntoken地址
-    function addNTokenMapping(address tokenAddress, address ntokenAddress) external;
+    /// @param state 状态
+    function setNTokenMapping(address tokenAddress, address ntokenAddress, uint state) external;
 
     /// @dev 获取ntoken对应的token地址
     /// @param ntokenAddress ntoken地址
@@ -60,6 +62,8 @@ interface INTokenController {
     /// @param tokenAddress token地址
     /// @return ntoken地址
     function getNTokenAddress(address tokenAddress) external view returns (address);
+
+    /* ========== ntoken管理 ========== */
     
     /// @dev Bad tokens should be banned 
     function disable(address tokenAddress) external;
@@ -67,7 +71,26 @@ interface INTokenController {
     /// @dev 启用ntoken
     function enable(address tokenAddress) external;
 
-    function open(address token) external;
-    
-    function getNTokenTag(address token) external view returns (NTokenTag memory);
+    /// @notice Open a NToken for a token by anyone (contracts aren't allowed)
+    /// @dev Create and map the (Token, NToken) pair in NestPool
+    /// @param tokenAddress The address of token contract
+    function open(address tokenAddress) external;
+
+    /* ========== VIEWS ========== */
+
+    /// @dev 获取ntoken信息
+    /// @param tokenAddress token地址
+    /// @return ntoken信息结构体
+    function getNTokenTag(address tokenAddress) external view returns (NTokenTag memory);
+
+    /// @dev 获取ntoken数量
+    /// @return ntoken数量
+    function getNTokenCount() external view returns (uint);
+
+    /// @dev 分页列出ntoken列表
+    /// @param offset 跳过前面offset条记录
+    /// @param count 返回count条记录
+    /// @param order 排序方式. 0倒序, 非0正序
+    /// @return ntoken列表
+    function list(uint offset, uint count, uint order) external view returns (NTokenTag[] memory);
 }

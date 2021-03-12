@@ -7,6 +7,7 @@ interface INestMapping {
 
     /// @dev 获取系统内置的合约地址
     /// @param nestTokenAddress nest代币合约地址
+    /// @param nestNodeAddress nest node合约地址
     /// @param nestLedgerAddress nest账本合约
     /// @param nestMiningAddress 挖矿合约地址
     /// @param nestPriceFacadeAddress 价格调用入口合约地址
@@ -16,6 +17,7 @@ interface INestMapping {
     /// @param nTokenControllerAddress nToken管理合约地址
     function setBuiltinAddress(
         address nestTokenAddress,
+        address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
         address nestPriceFacadeAddress,
@@ -27,6 +29,7 @@ interface INestMapping {
 
     /// @dev 获取系统内置的合约地址
     /// @return nestTokenAddress nest代币合约地址
+    /// @return nestNodeAddress nest node合约地址
     /// @return nestLedgerAddress nest账本合约
     /// @return nestMiningAddress 挖矿合约地址
     /// @return nestPriceFacadeAddress 价格调用入口合约地址
@@ -36,6 +39,7 @@ interface INestMapping {
     /// @return nTokenControllerAddress nToken管理合约地址
     function getBuiltinAddress() external view returns (
         address nestTokenAddress,
+        address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
         address nestPriceFacadeAddress,
@@ -46,11 +50,15 @@ interface INestMapping {
     );
 
     /// @dev 获取nest代币合约地址
-    /// @return 挖矿合约地址
+    /// @return nest代币合约地址
     function getNestTokenAddress() external view returns (address);
 
+    /// @dev 获取nest node合约地址
+    /// @return nest node合约地址
+    function getNestNodeAddress() external view returns (address);
+
     /// @dev 获取nest账本合约地址
-    /// @return 账本合约地址
+    /// @return nest账本合约地址
     function getNestLedgerAddress() external view returns (address);
 
     /// @dev 获取挖矿合约地址

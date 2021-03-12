@@ -2,9 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-//import "@openzeppelin/contracts/math/SafeMath.sol";
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-//import "./lib/SafeMath.sol";
 import "./lib/IERC20.sol";
 import './lib/TransferHelper.sol';
 import "./interface/INestMining.sol";
@@ -13,10 +10,7 @@ import "./interface/IVotePropose.sol";
 import "./interface/INestGovernance.sol";
 import "./NestBase.sol";
 
-/// @title NestVote
-/// @author Inf Loop - <inf-loop@nestprotocol.org>
-/// @author Paradox  - <paradox@nestprotocol.org>
-
+/// @dev nest投票合约
 contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     
     // NOTE: to support open-zeppelin/upgrades, leave it blank
@@ -28,7 +22,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         uint value;
     }
 
-    // 提案
+    /// @dev 提案
     struct Proposal {
 
         // 将固定字段和变动字段分开存储，
@@ -81,17 +75,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
     uint constant NEST_TOTAL_SUPPLY = 1000000000 ether;
 
-    /* ========== EVENTS ========== */
-
-    event NIPSubmitted(address proposer, uint id);
-    event NIPVoted(address voter, uint id, uint amount);
-    event NIPWithdraw(address voter, uint id, uint blnc);
-    event NIPRevoke(address voter, uint id, uint amount);
-    event NIPExecute(address executor, uint id);
-
-    /* ========== CONSTRUCTOR ========== */
-
-    receive() external payable {}
+    //receive() external payable {}
 
     /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
@@ -101,6 +85,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         (
             //address nestTokenAddress
             _nestTokenAddress, 
+            //address nestNodeAddress
+            ,
             //address nestLedgerAddress
             _nestLedgerAddress, 
             //address nestMiningAddress
@@ -178,11 +164,11 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         // 抵押nest
         IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking));
 
-        emit NIPSubmitted(msg.sender, index);
+        emit NIPSubmitted(msg.sender, contractAddress, index);
     }
 
     /// @dev 投票
-    /// @param index 投票编号
+    /// @param index 提案编号
     /// @param value 投票的nest数量
     function vote(uint index, uint value) override external noContract
     {
@@ -207,10 +193,11 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         // 5. 抵押nest
         IERC20(_nestTokenAddress).transferFrom(msg.sender, address(this), value);
 
-        emit NIPVoted(msg.sender, index, value);
+        emit NIPVote(msg.sender, index, value);
     }
 
-    // 取回投票的nest
+    /// @dev 取回投票的nest，如果目标投票处于投票中的状态，则会取消相应的得票量
+    /// @param index 提案编号
     function withdraw(uint index) override external noContract
     {
         // 1. 加载投票结构
@@ -232,36 +219,10 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
         // 4. 退回抵押的nest
         IERC20(_nestTokenAddress).transfer(address(msg.sender), balanceValue);
-
-        emit NIPWithdraw(msg.sender, index, balanceValue);
     }
 
-    // // 撤销投票
-    // function revoke(uint index, uint value) override external noContract
-    // {
-    //     // 1. 加载投票结构
-    //     Proposal memory p = _proposalList[index];
-
-    //     // 2. 检查
-    //     require(block.timestamp >= uint(p.stopTime) && block.timestamp < uint(p.stopTime), "NestVote:!time");
-    //     require(uint(p.state) == 0, "NestVote:!state");
-
-    //     // 3. 更新账本
-    //     UINT storage balance = _stakedLedger[index][msg.sender];
-    //     uint balanceValue = balance.value;
-    //     require(balanceValue >= value, "NestVote:!value"); 
-    //     //p.gainValue = uint128(uint(p.gainValue) - value);
-    //     balance.value = balanceValue - value;
-
-    //     _proposalList[index].gainValue = uint96(uint(p.gainValue) - value);
-
-    //     // 4. 退回抵押的nest
-    //     IERC20(_nestTokenAddress).transfer(address(msg.sender), value);
-
-    //     emit NIPRevoke(msg.sender, index, value);
-    // }
-
-    // 执行投票
+    /// @dev 执行投票
+    /// @param index 提案编号
     function execute(uint index) override external noContract
     {
         Config memory config = _config;
@@ -306,7 +267,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         emit NIPExecute(msg.sender, index);
     }
 
-    // 取消投票
+    /// @dev 取消投票
+    /// @param index 提案编号
     function calcel(uint index) override external noContract {
         // 1. 加载投票结构
         Proposal memory p = _proposalList[index];
@@ -323,7 +285,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     }
 
     /// @dev 获取投票信息
-    /// @param index 投票编号
+    /// @param index 提案编号
     /// @return 投票信息结构体
     function getProposeInfo(uint index) override external view returns (ProposalView memory) {
         

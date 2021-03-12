@@ -7,11 +7,27 @@ interface INestRedeeming {
 
     /// @dev 配置结构体
     struct Config {
-        // // 开通ntoken需要支付的nest数量。10000 ether
-        // uint96 openFeeNestAmount;
-        // // ntoken管理功能启用状态。0：未启用，1：已启用
-        // uint8 state;
-        uint _unused;
+
+        // 单轨询价费用。0.01ether
+        uint96 fee;
+
+        // 激活回购阈值，当ntoken的发行量超过此阈值时，激活回购（单位：10000 ether）。500
+        uint32 activeThreshold;
+
+        // 每区块回购nest数量。1000
+        uint16 nestPerBlock;
+
+        // 单次回购nest数量上限。300000
+        uint32 nestLimit;
+
+        // 每区块回购ntoken数量。10
+        uint16 ntokenPerBlock;
+
+        // 单次回购ntoken数量上限。3000
+        uint32 ntokenLimit;
+
+        // 价格偏差上限，超过此上限停止回购（万分制）。500
+        uint16 priceDeviationLimit;
     }
 
     /// @dev 修改配置
@@ -25,7 +41,7 @@ interface INestRedeeming {
     /// @dev Redeem ntokens for ethers
     /// @notice Ethfee will be charged
     /// @param ntokenAddress The address of ntoken
-    /// @param amount  The amount of ntoken
+    /// @param amount The amount of ntoken
     function redeem(address ntokenAddress, uint amount) external payable;
 
     /// @dev Get the current amount available for repurchase

@@ -17,35 +17,49 @@ interface INestMining {
     /// @dev 配置结构体
     struct Config {
         
-        // TODO: token和ntoken配置分开
-
-        // 报价的eth单位。30
+        // -- nest相关配置
+        // nest报价的eth单位。30
         // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
         uint32 postEthUnit;
 
-        // 报价的手续费比例（万分制，DIMI_ETHER）。33
+        // nest报价的手续费比例（万分制，DIMI_ETHER）。33
         uint16 postFeeRate;
 
-        // 吃单的手续费比例（万分制，DIMI_ETHER）。0
+        // nest吃单的手续费比例（万分制，DIMI_ETHER）。0
         uint16 biteFeeRate;
         
-        // 报价抵押nest数量单位（千）。100
-        uint32 nestPledgeNest;
-        
-        // 吃单资产翻倍次数。4
-        uint32 maxBiteNestedLevel;
-        
-        // 价格生效区块间隔。20
-        uint32 priceEffectSpan;
-        
+        // -- ntoken相关配置
+        // ntoken报价的eth单位。30
+        // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
+        uint32 ntokenPostEthUnit;
+
+        // ntoken报价的手续费比例（万分制，DIMI_ETHER）。33
+        uint16 ntokenPostFeeRate;
+
+        // ntoken吃单的手续费比例（万分制，DIMI_ETHER）。0
+        uint16 ntokenBiteFeeRate;
+
         // 矿工挖到nest的比例（万分制）。8000
-        uint32 minerNestReward;// MINER_NEST_REWARD_PERCENTAGE
+        uint16 minerNestReward;// MINER_NEST_REWARD_PERCENTAGE
         
         // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分之）。9500
-        uint32 minerNTokenReward;
+        uint16 minerNTokenReward;
 
         // 双轨报价阈值，当ntoken的发行量超过此阈值时，禁止单轨报价（单位：10000 ether）。500
         uint32 doublePostThreshold;
+        
+        // ntoken最多可以挖到多少区块。100
+        uint16 ntokenMinedBlockLimit;
+
+        // -- 公共配置
+        // 吃单资产翻倍次数。4
+        uint16 maxBiteNestedLevel;
+        
+        // 价格生效区块间隔。20
+        uint16 priceEffectSpan;
+
+        // 报价抵押nest数量（单位千）。100
+        uint16 nestPledgeNest;
     }
 
     /// @dev 报价单视图

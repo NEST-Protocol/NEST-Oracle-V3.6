@@ -15,6 +15,8 @@ abstract contract NestMapping is NestBase, INestMapping {
 
     /// @dev nest代币合约地址
     address _nestTokenAddress;
+    /// @dev nest node合约地址
+    address _nestNodeAddress;
     /// @dev nest账本合约
     address _nestLedgerAddress;
     /// @dev 挖矿合约地址
@@ -35,6 +37,7 @@ abstract contract NestMapping is NestBase, INestMapping {
 
     /// @dev 获取系统内置的合约地址
     /// @param nestTokenAddress nest代币合约地址
+    /// @param nestNodeAddress nest node合约地址
     /// @param nestLedgerAddress nest账本合约
     /// @param nestMiningAddress 挖矿合约地址
     /// @param nestPriceFacadeAddress 价格调用入口合约地址
@@ -44,6 +47,7 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @param nTokenControllerAddress nToken管理合约地址
     function setBuiltinAddress(
         address nestTokenAddress,
+        address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
         address nestPriceFacadeAddress,
@@ -55,6 +59,9 @@ abstract contract NestMapping is NestBase, INestMapping {
         
         if (nestTokenAddress != address(0)) {
             _nestTokenAddress = nestTokenAddress;
+        }
+        if (nestNodeAddress != address(0)) {
+            _nestNodeAddress = nestNodeAddress;
         }
         if (nestLedgerAddress != address(0)) {
             _nestLedgerAddress = nestLedgerAddress;
@@ -81,6 +88,7 @@ abstract contract NestMapping is NestBase, INestMapping {
 
     /// @dev 获取系统内置的合约地址
     /// @return nestTokenAddress nest代币合约地址
+    /// @return nestNodeAddress nest node合约地址
     /// @return nestLedgerAddress nest账本合约
     /// @return nestMiningAddress 挖矿合约地址
     /// @return nestPriceFacadeAddress 价格调用入口合约地址
@@ -90,6 +98,7 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @return nTokenControllerAddress nToken管理合约地址
     function getBuiltinAddress() override external view returns (
         address nestTokenAddress,
+        address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
         address nestPriceFacadeAddress,
@@ -100,6 +109,7 @@ abstract contract NestMapping is NestBase, INestMapping {
     ) {
         return (
             _nestTokenAddress,
+            _nestNodeAddress,
             _nestLedgerAddress,
             _nestMiningAddress,
             _nestPriceFacadeAddress,
@@ -111,11 +121,15 @@ abstract contract NestMapping is NestBase, INestMapping {
     }
 
     /// @dev 获取nest代币合约地址
-    /// @return 挖矿合约地址
+    /// @return nest代币合约地址
     function getNestTokenAddress() override external view returns (address) { return _nestTokenAddress; }
 
+    /// @dev 获取nest node合约地址
+    /// @return nest node合约地址
+    function getNestNodeAddress() override external view returns (address) { return _nestNodeAddress; }
+
     /// @dev 获取nest账本合约地址
-    /// @return 账本合约地址
+    /// @return nest账本合约地址
     function getNestLedgerAddress() override external view returns (address) { return _nestLedgerAddress; }
 
     /// @dev 获取挖矿合约地址
@@ -132,7 +146,7 @@ abstract contract NestMapping is NestBase, INestMapping {
 
     /// @dev 获取提供价格的合约地址
     /// @return 提供价格的合约地址
-    function getNestQueryAddress() override public view returns (address) { return _nestQueryAddress; }
+    function getNestQueryAddress() override external view returns (address) { return _nestQueryAddress; }
 
     /// @dev 获取NN挖矿合约
     /// @return NN挖矿合约

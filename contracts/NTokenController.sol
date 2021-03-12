@@ -2,19 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-//import "@openzeppelin/contracts/math/SafeMath.sol";
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-//import "./lib/SafeMath.sol";
 import "./lib/IERC20.sol";
 import './lib/TransferHelper.sol';
 import "./interface/INTokenController.sol";
 import "./interface/INToken.sol";
 import "./NToken.sol";
 import "./NestBase.sol";
-
-/// @title NTokenController
-/// @author Inf Loop - <inf-loop@nestprotocol.org>
-/// @author Paradox  - <paradox@nestprotocol.org>
 
 /// @dev NToken控制器
 contract NTokenController is NestBase, INTokenController {
@@ -25,34 +18,17 @@ contract NTokenController is NestBase, INTokenController {
     }
 
     Config _config;
+    NTokenTag[] _nTokenTagList;
 
-    /// @dev ntoken->token映射
-    mapping(address=>address) _tokenMapping;
+    /// @dev A mapping for all ntoken
+    mapping(address=>uint) public _nTokenTags;
 
-    /// @dev token->ntoken映射
-    mapping(address=>address) _ntokenMapping;
-
-    /// @dev A mapping for all auctions
-    ///     token(address) => NTokenTag
-    mapping(address => NTokenTag) public _nTokenTagList;
-
-    /* ========== ADDRESSES ============== */
-    
-    /// @dev A number counter for generating ntoken name
-    uint public _ntokenCounter;
-
-    /// @dev Contract address of NestToken
+    /// @dev Contract address of NestMining
     address public _nestMiningAddress;
     
     address immutable NEST_TOKEN_ADDRESS;
     
     /* ========== 治理相关 ========== */
-
-    /// @dev 设置ntokenCounter
-    /// @param ntokenCounter 当前已经创建的ntoken数量
-    function setNTokenCounter(uint ntokenCounter) override external onlyGovernance {
-        _ntokenCounter = ntokenCounter;
-    }
 
     /// @dev 修改配置。
     /// @param config 配置对象
@@ -73,73 +49,88 @@ contract NTokenController is NestBase, INTokenController {
         _nestMiningAddress = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
     }
 
-    /// @dev 添加ntoken映射
+    /// @dev 设置ntoken映射（对应的ntoken必须已经存在）
     /// @param tokenAddress token地址
     /// @param ntokenAddress ntoken地址
-    function addNTokenMapping(address tokenAddress, address ntokenAddress) override external onlyGovernance {
-        _ntokenMapping[tokenAddress] = _ntokenMapping[ntokenAddress] = ntokenAddress;
-        _tokenMapping[ntokenAddress] = tokenAddress;
+    /// @param state 状态
+    function setNTokenMapping(address tokenAddress, address ntokenAddress, uint state) override external onlyGovernance {
+        
+        uint index = _nTokenTags[tokenAddress];
+        if (index == 0) {
+            _nTokenTagList.push(NTokenTag(
+                // address ntokenAddress;
+                ntokenAddress,
+                // uint96 nestFee;
+                uint96(0),
+                // address tokenAddress;
+                tokenAddress,
+                // uint40 index;
+                uint40(_nTokenTagList.length),
+                // uint48 startTime;
+                uint48(block.timestamp),
+                // uint8 state;  
+                uint8(state)
+            ));
+            _nTokenTags[tokenAddress] = _nTokenTags[ntokenAddress] = _nTokenTagList.length;
+        } else {
+            NTokenTag memory tag = _nTokenTagList[index - 1];
+            tag.ntokenAddress = ntokenAddress;
+            tag.tokenAddress = tokenAddress;
+            tag.index = uint40(index - 1);
+            tag.startTime = uint48(block.timestamp);
+            tag.state = uint8(state);
+
+            _nTokenTagList[index - 1] = tag;
+        }
     }
 
     /// @dev 获取ntoken对应的token地址
     /// @param ntokenAddress ntoken地址
     /// @return token地址
-    function getTokenAddress(address ntokenAddress) override public view returns (address) {
-        return _tokenMapping[ntokenAddress];
+    function getTokenAddress(address ntokenAddress) override external view returns (address) {
+        return _nTokenTagList[_nTokenTags[ntokenAddress] - 1].tokenAddress;
     }
 
     /// @dev 获取token对应的ntoken地址
     /// @param tokenAddress token地址
     /// @return ntoken地址
     function getNTokenAddress(address tokenAddress) override public view returns (address) {
-        return _ntokenMapping[tokenAddress];
+        return _nTokenTagList[_nTokenTags[tokenAddress] - 1].ntokenAddress;
     }
 
-    /* ========== OPEN ========== */
+    /* ========== ntoken管理 ========== */
     
     /// @dev Bad tokens should be banned 
     function disable(address tokenAddress) override external onlyGovernance
     {
-        NTokenTag storage _to = _nTokenTagList[tokenAddress];
-        _to.state = 0;
+        _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = 0;
         emit NTokenDisabled(tokenAddress);
     }
 
     /// @dev 启用ntoken
     function enable(address tokenAddress) override external onlyGovernance
     {
-        NTokenTag storage _to = _nTokenTagList[tokenAddress];
-        _to.state = 1;
+        _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = 1;
         emit NTokenEnabled(tokenAddress);
     }
 
     /// @notice Open a NToken for a token by anyone (contracts aren't allowed)
     /// @dev Create and map the (Token, NToken) pair in NestPool
-    /// @param tokenAddress  The address of token contract
+    /// @param tokenAddress The address of token contract
     function open(address tokenAddress) override external noContract
     {
         Config memory config = _config;
         require(config.state == 1, "NTokenController:!state");
 
         // token必须没有对应的nToken
-        //require(getNTokenAddress(tokenAddress) == address(0), "NTokenController:!exists");
+        require(getNTokenAddress(tokenAddress) == address(0), "NTokenController:!exists");
 
-        // token的标记为0
-        require(_nTokenTagList[tokenAddress].state == 0, "NTokenController:!active");
+        // token的标记为0，3.5的代码中定义的状态存在问题，因为state默认值为0
+        require(_nTokenTagList[_nTokenTags[tokenAddress] - 1].state == 0, "NTokenController:!active");
 
-        _nTokenTagList[tokenAddress] = NTokenTag(
-            address(msg.sender),                                // owner
-            uint128(0),                                         // nestFee
-            uint64(block.timestamp),                            // startTime
-            // 3.5的代码中定义的状态存在问题，因为state默认值为0
-            1,                                                  // state
-            0                                                   // _reserved
-        );
-        
-        uint ntokenCounter = _ntokenCounter;
+        uint ntokenCounter = _nTokenTagList.length;
 
         // 创建nToken代币合约
-        // create ntoken
         NToken ntoken = new NToken(strConcat("NToken",
                 getAddressStr(ntokenCounter)),
                 strConcat("N", getAddressStr(ntokenCounter))
@@ -148,12 +139,6 @@ contract NTokenController is NestBase, INTokenController {
         address governance = _governance;
         ntoken.update(governance);
 
-        // 计数
-        // increase the counter
-        _ntokenCounter = ntokenCounter + 1;  // safe math
-        _ntokenMapping[tokenAddress] = _ntokenMapping[address(ntoken)] = address(ntoken);
-        _tokenMapping[address(ntoken)] = tokenAddress;
-
         // is token valid ?
         IERC20 tokenERC20 = IERC20(tokenAddress);
         TransferHelper.safeTransferFrom(tokenAddress, address(msg.sender), address(this), 1);
@@ -161,18 +146,76 @@ contract NTokenController is NestBase, INTokenController {
         TransferHelper.safeTransfer(tokenAddress, address(msg.sender), 1);
 
         // 支付nest
-        // charge nest
         IERC20(NEST_TOKEN_ADDRESS).transferFrom(address(msg.sender), address(governance), uint(config.openFeeNestAmount));
 
-        // raise an event
+        // TODO: 考虑如何将已经有的ntoken信息迁移过来
+        _nTokenTags[tokenAddress] = _nTokenTags[address(ntoken)] = ntokenCounter + 1;
+        _nTokenTagList.push(NTokenTag(
+            // address ntokenAddress;
+            address(ntoken),
+            // uint96 nestFee;
+            config.openFeeNestAmount,
+            // address tokenAddress;
+            tokenAddress,
+            // uint40 index;
+            uint40(_nTokenTagList.length),
+            // uint48 startTime;
+            uint48(block.timestamp),
+            // uint8 state;  
+            1
+        ));
+
         emit NTokenOpened(tokenAddress, address(ntoken), address(msg.sender));
     }
 
     /* ========== VIEWS ========== */
 
-    function getNTokenTag(address token) override public view returns (NTokenTag memory) 
+    /// @dev 获取ntoken信息
+    /// @param tokenAddress token地址
+    /// @return ntoken信息结构体
+    function getNTokenTag(address tokenAddress) override external view returns (NTokenTag memory) 
     {
-        return _nTokenTagList[token];
+        return _nTokenTagList[_nTokenTags[tokenAddress]];
+    }
+
+    /// @dev 获取ntoken数量
+    /// @return ntoken数量
+    function getNTokenCount() override external view returns (uint) {
+        return _nTokenTagList.length;
+    }
+
+    /// @dev 分页列出ntoken列表
+    /// @param offset 跳过前面offset条记录
+    /// @param count 返回count条记录
+    /// @param order 排序方式. 0倒序, 非0正序
+    /// @return ntoken列表
+    function list(uint offset, uint count, uint order) override external view returns (NTokenTag[] memory) {
+        
+        NTokenTag[] storage nTokenTagList = _nTokenTagList;
+        NTokenTag[] memory result = new NTokenTag[](count);
+
+        // 倒序
+        if (order == 0) {
+
+            uint index = nTokenTagList.length - offset;
+            uint end = index - count;
+            uint i = 0;
+            while (index > end) {
+                result[i++] = nTokenTagList[--index];
+            }
+        } 
+        // 正序
+        else {
+            
+            uint index = offset;
+            uint end = index + count;
+            uint i = 0;
+            while (index < end) {
+                result[i++] = nTokenTagList[index];
+            }
+        }
+
+        return result;
     }
 
     /* ========== HELPERS ========== */

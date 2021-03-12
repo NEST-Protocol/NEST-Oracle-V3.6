@@ -49,12 +49,13 @@ contract("NestMining", async accounts => {
         // 创建NTokenController合约
         let nTokenController = await NTokenController.new(nest.address);
         // 创建nest挖矿合约
-        let nestMining = await NestMining.new(nest.address);
+        let nestMining = await NestMining.new(nest.address, 0);
         //await nTokenController.initialize(nestDao.address);
         //await nestMining.initialize(nestDao.address);
         
         await nestGovernance.setBuiltinAddress(
             nest.address,
+            '0x0000000000000000000000000000000000000000', //nestNodeAddress,
             nestLedger.address,
             nestMining.address,
             '0x0000000000000000000000000000000000000000', //nestPriceFacadeAddress,
@@ -71,30 +72,55 @@ contract("NestMining", async accounts => {
         await nhbtc.changeMapping(nest_3_VoteFactory.address);
 
         await nestMining.setConfig({
-            // 报价的eth单位。30
-            postEthUnit: 30, 
-            // 报价的手续费比例（万分制，DIMI_ETHER）。33
+            // -- nest相关配置
+            // nest报价的eth单位。30
+            // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
+            postEthUnit: 30,
+
+            // nest报价的手续费比例（万分制，DIMI_ETHER）。33
             postFeeRate: 33,
-            // 吃单的手续费比例（万分制，DIMI_ETHER）。0
+
+            // nest吃单的手续费比例（万分制，DIMI_ETHER）。0
             biteFeeRate: 0,
-            // 报价抵押nest数量单位（千）。100
-            nestPledgeNest: 100,
-            // 吃单资产翻倍次数。4
-            maxBiteNestedLevel: 4,
-            // 价格生效区块间隔。20
-            priceEffectSpan: 20,
+            
+            // -- ntoken相关配置
+            // ntoken报价的eth单位。30
+            // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
+            ntokenPostEthUnit: 30,
+
+            // ntoken报价的手续费比例（万分制，DIMI_ETHER）。33
+            ntokenPostFeeRate: 33,
+
+            // ntoken吃单的手续费比例（万分制，DIMI_ETHER）。0
+            ntokenBiteFeeRate: 0,
+
             // 矿工挖到nest的比例（万分制）。8000
             minerNestReward: 8000, // MINER_NEST_REWARD_PERCENTAGE
+            
             // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分之）。9500
             minerNTokenReward: 9500,
+
             // 双轨报价阈值，当ntoken的发行量超过此阈值时，禁止单轨报价（单位：10000 ether）。500
-            doublePostThreshold: 500
+            doublePostThreshold: 500,
+            
+            // ntoken最多可以挖到多少区块。100
+            ntokenMinedBlockLimit: 100,
+
+            // -- 公共配置
+            // 吃单资产翻倍次数。4
+            maxBiteNestedLevel: 4,
+            
+            // 价格生效区块间隔。20
+            priceEffectSpan: 20,
+
+            // 报价抵押nest数量（单位千）。100
+            nestPledgeNest: 100
         });
 
         //console.log(await nestMining.getConfig());
 
         // 添加ntoken映射
-        await nTokenController.addNTokenMapping(hbtc.address, nhbtc.address);
+        await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
         // 初始化usdt余额
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
@@ -102,7 +128,11 @@ contract("NestMining", async accounts => {
         await nest.transfer(nestMining.address, ETHER('8000000000'));
 
         //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
-
+        const skipBlocks = async function(blockCount) {
+            for (var i = 0; i < blockCount; ++i) {
+                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
+            }
+        };
         // 显示余额
         const getBalance = async function(account) {
             let balances = {
@@ -176,6 +206,8 @@ contract("NestMining", async accounts => {
             mined = nHBTC(10 * 4 * 0.95);
             prevBlockNumber = receipt.receipt.blockNumber;
 
+            await skipBlocks(20);
+
             // 关闭报价单
             receipt = await nestMining.close(hbtc.address, 0);
 
@@ -217,9 +249,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, balance0.pool.nhbtc.cmp(nHBTC(0)));
 
             LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            for (var i = 0; i < 18; ++i) {
-                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
-            }
+            await skipBlocks(18);
             LOG('blockNumber: ' + await web3.eth.getBlockNumber());
 
             // 查看价格
@@ -243,9 +273,7 @@ contract("NestMining", async accounts => {
             receipt = await nestMining.post(hbtc.address, 30, HBTC(2570), { value: ETHER(30.099) });
             console.log(receipt);
 
-            for (var i = 0; i < 25; ++i) {
-                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
-            }
+            await skipBlocks(20);
             await nestMining.stat(hbtc.address);
             // 查看价格
             {

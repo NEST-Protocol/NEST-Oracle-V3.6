@@ -74,6 +74,7 @@ contract NestLedger is NestBase, INestLedger {
         } else {
             Config memory config = _config;
             UINT storage balance = _ntokenLedger[ntokenAddress];
+            // TODO: 使用减法看是否可以节省gas
             balance.value = balance.value + msg.value * uint(config.nestRewardScale) / 10000;
             _nestLedger = _nestLedger + msg.value * uint(config.ntokenRedardScale) / 10000;
         }
