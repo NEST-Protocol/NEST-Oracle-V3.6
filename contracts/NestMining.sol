@@ -324,7 +324,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(ntokenAddress != address(0) && ntokenAddress != tokenAddress, "NM:!tokenAddress");
 
         // nest单位不同，但是也早已经超过此发行数量，不再做额外判断
-        //require(IERC20(ntokenAddress).totalSupply() < uint(config.doublePostThreshold) * 10000 ether, "NM:!post2");        
+        require(IERC20(ntokenAddress).totalSupply() < uint(config.doublePostThreshold) * 10000 ether, "NM:!post2");        
 
         // 4. 存入佣金
         PriceChannel storage channel = _channels[tokenAddress];
