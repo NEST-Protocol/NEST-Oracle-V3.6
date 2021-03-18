@@ -43,9 +43,9 @@ contract SetQueryPrice is IVotePropose {
 
         INestPriceFacade(nestPriceFacadeAddress).setConfig(INestPriceFacade.Config(
             // 单轨询价费用。0.01ether
-            uint96(0.02 ether),
+            uint16(200),
             // 双轨询价费用。0.01ether
-            uint96(0.04 ether),
+            uint16(400),
             // 调用地址的正常状态标记。0
             uint8(0)
         ));

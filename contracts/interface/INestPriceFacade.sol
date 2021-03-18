@@ -7,10 +7,13 @@ interface INestPriceFacade {
     
     /// @dev 价格调用入口配置结构体
     struct Config {
-        // 单轨询价费用。0.01ether
-        uint96 singleFee;
-        // 双轨询价费用。0.01ether
-        uint96 doubleFee;
+
+        // 单轨询价费用（万分之一eth，DIMI_ETHER）。100
+        uint16 singleFee;
+
+        // 双轨询价费用（万分之一eth，DIMI_ETHER）。100
+        uint16 doubleFee;
+        
         // 调用地址的正常状态标记。0
         uint8 normalFlag;
     }

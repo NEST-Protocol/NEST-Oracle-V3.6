@@ -14,7 +14,7 @@ interface INestMining {
 
     /* ========== 数据定义 ========== */
     
-    /// @dev 配置结构体
+    /// @dev nest挖矿配置结构体
     struct Config {
         
         // -- nest相关配置
@@ -22,20 +22,22 @@ interface INestMining {
         // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
         uint32 postEthUnit;
 
-        // nest报价的手续费比例（万分制，DIMI_ETHER）。33
-        uint16 postFeeRate;
+        // nest报价的手续费（万分之一eth，DIMI_ETHER）。1000
+        uint16 postFee;
 
+        // 废弃
         // nest吃单的手续费比例（万分制，DIMI_ETHER）。0
         uint16 biteFeeRate;
         
         // -- ntoken相关配置
-        // ntoken报价的eth单位。30
+        // ntoken报价的eth单位。10
         // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
         uint32 ntokenPostEthUnit;
 
-        // ntoken报价的手续费比例（万分制，DIMI_ETHER）。33
-        uint16 ntokenPostFeeRate;
+        // ntoken报价的手续费（万分之一eth，DIMI_ETHER）。1000
+        uint16 ntokenPostFee;
 
+        // 废弃
         // ntoken吃单的手续费比例（万分制，DIMI_ETHER）。0
         uint16 ntokenBiteFeeRate;
 
@@ -59,7 +61,7 @@ interface INestMining {
         uint16 priceEffectSpan;
 
         // 报价抵押nest数量（单位千）。100
-        uint16 nestPledgeNest;
+        uint16 pledgeNest;
     }
 
     /// @dev 报价单视图

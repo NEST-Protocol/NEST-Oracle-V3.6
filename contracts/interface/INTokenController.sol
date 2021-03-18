@@ -20,8 +20,10 @@ interface INTokenController {
 
     /// @dev ntoken控制器配置结构体
     struct Config {
+
         // 开通ntoken需要支付的nest数量。10000 ether
         uint96 openFeeNestAmount;
+        
         // ntoken管理功能启用状态。0：未启用，1：已启用
         uint8 state;
     }

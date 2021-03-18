@@ -229,15 +229,19 @@ contract("NestMining", async accounts => {
         // 初始化usdt余额
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
+        await usdt.transfer(account0, USDT('10000000'), { from: account1 });
+        await usdt.transfer(account1, USDT('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
-        await nest.transfer(nestMining.address, ETHER('8000000000'));
+        await nest.transfer(nestMining.address, ETHER('6000000000'));
+        await nest.transfer(nnIncome.address, ETHER('2000000000'));
+        await nn.transfer(account1, 300);
 
-        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
         const skipBlocks = async function(blockCount) {
             for (var i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
             }
         };
+
         // 显示余额
         const getBalance = async function(account) {
             let balances = {
@@ -267,130 +271,19 @@ contract("NestMining", async accounts => {
             return balances;
         };
 
-        let balance0 = await showBalance(account0, 'account0');
-        let balance1 = await showBalance(account1, 'account1');
-        assert.equal(0, balance1.balance.hbtc.cmp(HBTC('10000000')));
-
-        // account0余额
-        assert.equal(0, balance0.balance.hbtc.cmp(HBTC('10000000')));
-        assert.equal(0, balance0.balance.nest.cmp(ETHER('1000000000')));
-        assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
-        assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
-
-        // nestMining余额
-        assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
-        assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(0)));
-        assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
-
+        // 发起报价
+        await usdt.approve(nestMining.address, USDT('10000000'));
         await nest.approve(nestMining.address, ETHER('1000000000'));
-        await hbtc.approve(nestMining.address, HBTC('10000000'));
-        await nest.approve(nestMining.address, ETHER('1000000000'), { from: account1 });
-        await hbtc.approve(nestMining.address, HBTC('10000000'), { from: account1 });
+        await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.1)});
+        //await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.099) });
+        await skipBlocks(20);
+        await nestMining.close(usdt.address, 0);
+        await nestMining.close(nest.address, 0);
 
-        let prevBlockNumber = 0;
-        let mined = nHBTC(0);
-        
-        {
-            // 发起报价
-            console.log('发起报价');
-            let receipt = await nestMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.1) });
-            console.log(receipt);
-            balance0 = await showBalance(account0, '发起一次报价后');
-            
-            // account0余额
-            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
-            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
-            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
-            assert.equal(0, balance0.pool.nest.cmp(mined));
+        let earned = await nnIncome.earnedNest(account0);
+        console.log("account1 earned nest: " + earned);
 
-            // nestMining余额
-            //assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(30.099 - 0.099)));
-            assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(256 * 30)));
-            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000 + 100000)));
-            
-            mined = nHBTC(10 * 4 * 0.95);
-            prevBlockNumber = receipt.receipt.blockNumber;
-
-            await skipBlocks(20);
-
-            // 关闭报价单
-            receipt = await nestMining.close(hbtc.address, 0);
-
-            console.log(receipt);
-            balance0 = await showBalance(account0, '关闭报价单后');
-
-            // account0余额
-            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
-            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
-            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(256 * 30)));
-            assert.equal(0, balance0.pool.nest.cmp(ETHER(100000)));
-            assert.equal(0, balance0.pool.nhbtc.cmp(mined));
-
-            // nestMining余额
-            //assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0.099 - 0.099)));
-            assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(256 * 30)));
-            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000 + 100000)));
-
-            // nestLedger余额
-            //assert.equal(0, (await ethBalance(nestLedger.address)).cmp(ETHER(0 + 0.099)));
-
-            // 取回
-            await nestMining.withdraw(hbtc.address, await nestMining.balanceOf(hbtc.address, account0));
-            await nestMining.withdraw(nest.address, await nestMining.balanceOf(nest.address, account0));
-            await nestMining.withdraw(nhbtc.address, await nestMining.balanceOf(nhbtc.address, account0));
-            
-            balance0 = await showBalance(account0, '取回后');
-
-            //assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0.099 - 0.099)));
-            assert.equal(0, (await hbtc.balanceOf(nestMining.address)));
-            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
-            
-            // account0余额
-            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000)));
-            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000)));
-            assert.equal(0, balance0.balance.nhbtc.cmp(mined));
-            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
-            assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
-            assert.equal(0, balance0.pool.nhbtc.cmp(nHBTC(0)));
-
-            LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            await skipBlocks(18);
-            LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-
-            // 查看价格
-            {
-                let latestPrice = await nestMining.latestPrice(hbtc.address);
-                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
-                let triggeredPrice = await nestMining.triggeredPrice(hbtc.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}', triggeredPrice);
-                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            }
-            await nestMining.stat(hbtc.address);
-            // 查看价格
-            {
-                let latestPrice = await nestMining.latestPrice(hbtc.address);
-                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
-                let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
-                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            }
-
-            receipt = await nestMining.post(hbtc.address, 30, HBTC(2570), { value: ETHER(30.1) });
-            console.log(receipt);
-
-            await skipBlocks(20);
-            await nestMining.stat(hbtc.address);
-            // 查看价格
-            {
-                let latestPrice = await nestMining.latestPrice(hbtc.address);
-                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
-                let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
-                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            }
-
-            receipt = await nestMining.close(hbtc.address, 1);
-            console.log(receipt);
-        }
+        earned = await nnIncome.earnedNest(account1);
+        console.log("account1 earned nest: " + earned);
     });
 });

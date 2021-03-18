@@ -95,7 +95,12 @@ contract NTokenController is NestBase, INTokenController {
     /// @param tokenAddress token地址
     /// @return ntoken地址
     function getNTokenAddress(address tokenAddress) override public view returns (address) {
-        return _nTokenTagList[_nTokenTags[tokenAddress] - 1].ntokenAddress;
+
+        uint index = _nTokenTags[tokenAddress];
+        if (index > 0) {
+            return _nTokenTagList[index - 1].ntokenAddress;
+        }
+        return address(0);
     }
 
     /* ========== ntoken管理 ========== */
@@ -126,7 +131,8 @@ contract NTokenController is NestBase, INTokenController {
         require(getNTokenAddress(tokenAddress) == address(0), "NTokenController:!exists");
 
         // token的标记为0，3.5的代码中定义的状态存在问题，因为state默认值为0
-        require(_nTokenTagList[_nTokenTags[tokenAddress] - 1].state == 0, "NTokenController:!active");
+        uint index = _nTokenTags[tokenAddress];
+        require(index == 0 || _nTokenTagList[index - 1].state == 0, "NTokenController:!active");
 
         uint ntokenCounter = _nTokenTagList.length;
 

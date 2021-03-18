@@ -76,13 +76,13 @@ contract("NestMining", async accounts => {
         // 设置内置合约地址
         await nestGovernance.setBuiltinAddress(
             nest.address,
-            '0x0000000000000000000000000000000000000000', //nestNodeAddress,
+            nn.address, //nestNodeAddress,
             nestLedger.address,
             nestMining.address,
             nestPriceFacade.address,
             nestVote.address,
             nestMining.address, //nestQueryAddress,
-            '0x0000000000000000000000000000000000000000', //nnIncomeAddress,
+            nnIncome.address, //nnIncomeAddress,
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
@@ -105,59 +105,65 @@ contract("NestMining", async accounts => {
         });
         
         await nestMining.setConfig({
+        
             // -- nest相关配置
             // nest报价的eth单位。30
             // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
             postEthUnit: 30,
-
-            // nest报价的手续费比例（万分制，DIMI_ETHER）。33
-            postFeeRate: 33,
-
+    
+            // nest报价的手续费（万分之一eth，DIMI_ETHER）。1000
+            postFee: 1000,
+    
+            // 废弃
             // nest吃单的手续费比例（万分制，DIMI_ETHER）。0
             biteFeeRate: 0,
             
             // -- ntoken相关配置
-            // ntoken报价的eth单位。30
+            // ntoken报价的eth单位。10
             // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
-            ntokenPostEthUnit: 30,
-
-            // ntoken报价的手续费比例（万分制，DIMI_ETHER）。33
-            ntokenPostFeeRate: 33,
-
+            ntokenPostEthUnit: 10,
+    
+            // ntoken报价的手续费（万分之一eth，DIMI_ETHER）。1000
+            ntokenPostFee: 1000,
+    
+            // 废弃
             // ntoken吃单的手续费比例（万分制，DIMI_ETHER）。0
             ntokenBiteFeeRate: 0,
-
+    
             // 矿工挖到nest的比例（万分制）。8000
             minerNestReward: 8000, // MINER_NEST_REWARD_PERCENTAGE
             
-            // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分之）。9500
+            // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分制）。9500
             minerNTokenReward: 9500,
-
+    
             // 双轨报价阈值，当ntoken的发行量超过此阈值时，禁止单轨报价（单位：10000 ether）。500
             doublePostThreshold: 500,
             
             // ntoken最多可以挖到多少区块。100
             ntokenMinedBlockLimit: 100,
-
+    
             // -- 公共配置
             // 吃单资产翻倍次数。4
             maxBiteNestedLevel: 4,
             
             // 价格生效区块间隔。20
             priceEffectSpan: 20,
-
+    
             // 报价抵押nest数量（单位千）。100
-            nestPledgeNest: 100
+            pledgeNest: 100
         });
 
         console.log(await nestMining.getConfig());
         //return;
 
         await nestPriceFacade.setConfig({
-            // 单轨询价费用。0.01ether
-            singleFee: '10000000000000000',
-            // 双轨询价费用。0.01ether
-            doubleFee: '10000000000000000',
+
+            // 单轨询价费用（万分之一eth，DIMI_ETHER）。100
+            singleFee: 100,
+    
+            // 双轨询价费用（万分之一eth，DIMI_ETHER）。100
+            doubleFee: 100,
+            
             // 调用地址的正常状态标记。0
             normalFlag: 0
         });
@@ -200,8 +206,10 @@ contract("NestMining", async accounts => {
         });
 
         await nTokenController.setConfig({
+
             // 开通ntoken需要支付的nest数量。10000 ether
             openFeeNestAmount: 10000,
+
             // ntoken管理功能启用状态。0：未启用，1：已启用
             state: 1
         });
@@ -217,9 +225,7 @@ contract("NestMining", async accounts => {
         await nest_3_VoteFactory.addContractAddress("nest.nToken.offerMain", nestMining.address);
         await nhbtc.changeMapping(nest_3_VoteFactory.address);
         await nn.setContracts(nnIncome.address);
-        //await nnIncome.setReduction(10, [400, 320, 256, 204, 160, 128, 108, 80, 64, 48]);
 
-        // 添加ntoken映射
         // 初始化usdt余额
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
@@ -268,7 +274,7 @@ contract("NestMining", async accounts => {
         // 发起报价
         await usdt.approve(nestMining.address, USDT('10000000'));
         await nest.approve(nestMining.address, ETHER('1000000000'));
-        await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.099)});
+        await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.1)});
         //await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.099) });
         await skipBlocks(20);
         await nestMining.close(usdt.address, 0);

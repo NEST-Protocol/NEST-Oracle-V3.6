@@ -64,16 +64,16 @@ contract NNIncome is NestBase {
     // 	_nestNodeAddress = nestNodeAddress;
     // }
 
-    /// @dev 设置出矿衰减参数
-    /// @param nestStableMiningSpeed 稳定出矿量
-    /// @param nestReductionSteps 衰减梯度数组（长度：10）
-    function setReduction(
-        uint nestStableMiningSpeed,
-        uint[NEST_REDUCTION_STEP_COUNT] memory nestReductionSteps
-    ) external onlyGovernance {
-        _nestReductionSteps = nestReductionSteps;
-        _nestStableMiningSpeed = nestStableMiningSpeed;
-    }
+    // /// @dev 设置出矿衰减参数
+    // /// @param nestStableMiningSpeed 稳定出矿量
+    // /// @param nestReductionSteps 衰减梯度数组（长度：10）
+    // function setReduction(
+    //     uint nestStableMiningSpeed,
+    //     uint[NEST_REDUCTION_STEP_COUNT] memory nestReductionSteps
+    // ) external onlyGovernance {
+    //     _nestReductionSteps = nestReductionSteps;
+    //     _nestStableMiningSpeed = nestStableMiningSpeed;
+    // }
 
     //---------transaction---------
 

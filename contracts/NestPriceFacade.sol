@@ -19,6 +19,9 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     address _nestLedgerAddress;
     address _nestQueryAddress;
 
+    /// @dev 万分之一eth，手续费单位
+    uint constant DIMI_ETHER = 1 ether / 10000;
+
     /// @dev 地址标记，只有用户的地址标记和配置标记一致的地址才可以调用价格
     mapping(address=>uint) _addressFlags;
 
@@ -104,6 +107,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     // 支付调用费用
     function _pay(address tokenAddress, uint fee) private {
 
+        fee = fee * DIMI_ETHER;
         if (msg.value > fee) {
             payable(msg.sender).transfer(msg.value - fee);
         } else {

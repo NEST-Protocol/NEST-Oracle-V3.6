@@ -13,11 +13,12 @@ const NToken = artifacts.require("NToken");
 const NTokenController = artifacts.require("NTokenController");
 const TestERC20 = artifacts.require("TestERC20");
 const IBNEST = artifacts.require("IBNEST");
+const NNToken = artifacts.require("NNToken");
 const Nest_NToken = artifacts.require("Nest_NToken");
 const Nest_3_VoteFactory = artifacts.require("Nest_3_VoteFactory");
 const SetQueryPrice = artifacts.require("SetQueryPrice");
 
-//const USDT = function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
+const USDT = function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
 const GWEI = function(value) { return new BN('1000000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
 const ETHER = function(value) { return new BN('1000000000000000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
 const HBTC = function(value) { return new BN('1000000000000000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
@@ -39,11 +40,13 @@ contract("NestMining", async accounts => {
 
         // 部署测试币
         let hbtc = await TestERC20.new('HBTC', 'HBTC', 18);
+        let usdt = await TestERC20.new('USDT', "USDT", 6);
 
         // 部署老版本合约
         let nest = await IBNEST.new();
         let nest_3_VoteFactory = await Nest_3_VoteFactory.new();
         let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nest_3_VoteFactory.address, account1); //(string memory _name, string memory _symbol, address voteFactory, address bidder)
+        let nn = await NNToken.new(1500, 'NN');
 
         // 部署3.6合约
         // const NestGovernance = artifacts.require("NestGovernance");
@@ -64,8 +67,7 @@ contract("NestMining", async accounts => {
         // const NestVote = artifacts.require("NestVote");
         let nestVote = await NestVote.new();
 
-        // const NNIncome = artifacts.require("NNIncome");
-        //let nnIncome = await NNIncome.new();
+        let nnIncome = await NNIncome.new(nn.address, nest.address, 0);
 
         // const NToken = artifacts.require("NToken");
         // const NTokenController = artifacts.require("NTokenController");
@@ -74,13 +76,13 @@ contract("NestMining", async accounts => {
         // 设置内置合约地址
         await nestGovernance.setBuiltinAddress(
             nest.address,
-            '0x0000000000000000000000000000000000000000', //nestNodeAddress,
+            nn.address, //nestNodeAddress,
             nestLedger.address,
             nestMining.address,
             nestPriceFacade.address,
             nestVote.address,
             nestMining.address, //nestQueryAddress,
-            '0x0000000000000000000000000000000000000000', //nnIncomeAddress,
+            nnIncome.address, //nnIncomeAddress,
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
@@ -103,56 +105,65 @@ contract("NestMining", async accounts => {
         });
         
         await nestMining.setConfig({
+        
             // -- nest相关配置
             // nest报价的eth单位。30
             // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
             postEthUnit: 30,
-
-            // nest报价的手续费比例（万分制，DIMI_ETHER）。33
-            postFeeRate: 33,
-
+    
+            // nest报价的手续费（万分之一eth，DIMI_ETHER）。1000
+            postFee: 1000,
+    
+            // 废弃
             // nest吃单的手续费比例（万分制，DIMI_ETHER）。0
             biteFeeRate: 0,
             
             // -- ntoken相关配置
-            // ntoken报价的eth单位。30
+            // ntoken报价的eth单位。10
             // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
-            ntokenPostEthUnit: 30,
-
-            // ntoken报价的手续费比例（万分制，DIMI_ETHER）。33
-            ntokenPostFeeRate: 33,
-
+            ntokenPostEthUnit: 10,
+    
+            // ntoken报价的手续费（万分之一eth，DIMI_ETHER）。1000
+            ntokenPostFee: 1000,
+    
+            // 废弃
             // ntoken吃单的手续费比例（万分制，DIMI_ETHER）。0
             ntokenBiteFeeRate: 0,
-
+    
             // 矿工挖到nest的比例（万分制）。8000
             minerNestReward: 8000, // MINER_NEST_REWARD_PERCENTAGE
             
-            // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分之）。9500
+            // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分制）。9500
             minerNTokenReward: 9500,
-
+    
             // 双轨报价阈值，当ntoken的发行量超过此阈值时，禁止单轨报价（单位：10000 ether）。500
             doublePostThreshold: 500,
             
             // ntoken最多可以挖到多少区块。100
             ntokenMinedBlockLimit: 100,
-
+    
             // -- 公共配置
             // 吃单资产翻倍次数。4
             maxBiteNestedLevel: 4,
             
             // 价格生效区块间隔。20
             priceEffectSpan: 20,
-
+    
             // 报价抵押nest数量（单位千）。100
-            nestPledgeNest: 100
+            pledgeNest: 100
         });
 
+        console.log(await nestMining.getConfig());
+        //return;
+
         await nestPriceFacade.setConfig({
-            // 单轨询价费用。0.01ether
-            singleFee: '10000000000000000',
-            // 双轨询价费用。0.01ether
-            doubleFee: '10000000000000000',
+
+            // 单轨询价费用（万分之一eth，DIMI_ETHER）。100
+            singleFee: 100,
+    
+            // 双轨询价费用（万分之一eth，DIMI_ETHER）。100
+            doubleFee: 100,
+            
             // 调用地址的正常状态标记。0
             normalFlag: 0
         });
@@ -160,7 +171,8 @@ contract("NestMining", async accounts => {
         await nestRedeeming.setConfig({
 
             // 单轨询价费用。0.01ether
-            fee: '10000000000000000',
+            // 调用价格改为在NestPriceFacade里面确定。需要考虑退回的情况
+            //fee: '10000000000000000',
     
             // 激活回购阈值，当ntoken的发行量超过此阈值时，激活回购（单位：10000 ether）。500
             activeThreshold: 500,
@@ -194,20 +206,26 @@ contract("NestMining", async accounts => {
         });
 
         await nTokenController.setConfig({
+
             // 开通ntoken需要支付的nest数量。10000 ether
             openFeeNestAmount: 10000,
+
             // ntoken管理功能启用状态。0：未启用，1：已启用
             state: 1
         });
 
         // 添加ntoken映射
         await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
+        await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
         // 给投票合约授权
         await nestGovernance.setGovernance(nestVote.address, 1);
+        await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // 修改nHBTC信息
         await nest_3_VoteFactory.addContractAddress("nest.nToken.offerMain", nestMining.address);
         await nhbtc.changeMapping(nest_3_VoteFactory.address);
+        await nn.setContracts(nnIncome.address);
+
 
         // 添加ntoken映射
         // 初始化usdt余额
@@ -277,7 +295,7 @@ contract("NestMining", async accounts => {
         {
             // 发起报价
             console.log('发起报价');
-            let receipt = await nestMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.099) });
+            let receipt = await nestMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.1) });
             console.log(receipt);
             balance0 = await showBalance(account0, '发起一次报价后');
             
@@ -359,7 +377,7 @@ contract("NestMining", async accounts => {
                 LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             }
 
-            receipt = await nestMining.post(hbtc.address, 30, HBTC(2570), { value: ETHER(30.099) });
+            receipt = await nestMining.post(hbtc.address, 30, HBTC(2570), { value: ETHER(30.1) });
             console.log(receipt);
 
             await skipBlocks(20);
@@ -375,11 +393,6 @@ contract("NestMining", async accounts => {
 
             receipt = await nestMining.close(hbtc.address, 1);
             console.log(receipt);
-
-            // 调用价格
-            console.log('调用价格：');
-            let callPrice = await nestPriceFacade.triggeredPriceInfo(hbtc.address, { value: new BN('10000000000000000') });
-            console.log(callPrice)
         }
     });
 });

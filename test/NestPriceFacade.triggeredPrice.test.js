@@ -226,18 +226,19 @@ contract("NestMining", async accounts => {
         await nhbtc.changeMapping(nest_3_VoteFactory.address);
         await nn.setContracts(nnIncome.address);
 
+        // 添加ntoken映射
         // 初始化usdt余额
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
         await nest.transfer(nestMining.address, ETHER('8000000000'));
 
-        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
         const skipBlocks = async function(blockCount) {
             for (var i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
             }
         };
+
         // 显示余额
         const getBalance = async function(account) {
             let balances = {
@@ -391,6 +392,11 @@ contract("NestMining", async accounts => {
 
             receipt = await nestMining.close(hbtc.address, 1);
             console.log(receipt);
+
+            // 调用价格
+            console.log('调用价格：');
+            let callPrice = await nestPriceFacade.triggeredPriceInfo(hbtc.address, { value: new BN('10000000000000000') });
+            console.log(callPrice)
         }
     });
 });
