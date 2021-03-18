@@ -11,6 +11,12 @@ contract NNIncome is NestBase {
         NEST_NODE_ADDRESS = nestNodeAddress;
         NEST_TOKEN_ADDRESS = nestTokenAddress;
         NEST_GENESIS_BLOCK = nestGenesisBlock;
+
+        uint full = 400 ether * 15 / 100;
+        for (uint i = 0; i < 10; ++i) {
+            _nestReductionSteps[i] = full;
+            full = full * 8 / 10;
+        }
     }
 
     // NN发行总量

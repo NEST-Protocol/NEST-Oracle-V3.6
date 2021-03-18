@@ -18,7 +18,12 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     Config _config;
     address _nestLedgerAddress;
     address _nestQueryAddress;
+
+    /// @dev 地址标记，只有用户的地址标记和配置标记一致的地址才可以调用价格
     mapping(address=>uint) _addressFlags;
+
+    /// @dev (tokenAddress=>INestQuery)。优先使用此地址映射的INestQuery地址进行价格查询，可以通过此功能来将nest价格查询和ntoken价格查询独立起来
+    mapping(address=>address) _nestQueryMapping;
 
     /// @dev 修改配置
     /// @param config 配置结构体
@@ -44,6 +49,29 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     /// @return 地址标记
     function getAddressFlag(address addr) override external view returns(uint) {
         return _addressFlags[addr];
+    }
+
+    /// @dev 设置NestQuery地址映射
+    /// @param tokenAddress token地址
+    /// @param nestQueryAddress INestQuery地址，0表示删除映射
+    function setNestQuery(address tokenAddress, address nestQueryAddress) override external onlyGovernance {
+        _nestQueryMapping[tokenAddress] = nestQueryAddress;
+    }
+
+    // @dev 获取NestQuery地址映射
+    /// @param tokenAddress token地址
+    /// @return nestQueryAddress INestQuery地址，0表示没有映射
+    function getNestQuery(address tokenAddress) override external view returns (address) {
+        return _nestQueryMapping[tokenAddress];
+    }
+
+    // 获取nestQuery地址
+    function _getNestQuery(address tokenAddress) private view returns (address) {
+        address addr = _nestQueryMapping[tokenAddress];
+        if (addr == address(0)) {
+            return _nestQueryAddress;
+        }
+        return addr;
     }
 
     /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
@@ -93,7 +121,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.singleFee);
-        return INestQuery(_nestQueryAddress).triggeredPrice(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).triggeredPrice(tokenAddress);
     }
 
     /// @dev 获取最新的触发价格完整信息
@@ -107,7 +135,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.singleFee);
-        return INestQuery(_nestQueryAddress).triggeredPriceInfo(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).triggeredPriceInfo(tokenAddress);
     }
 
     /// @dev 获取最新的生效价格
@@ -119,7 +147,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.singleFee);
-        return INestQuery(_nestQueryAddress).latestPrice(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).latestPrice(tokenAddress);
     }
 
     /// @dev 返回latestPrice()和triggeredPriceInfo()两个方法的结果
@@ -146,7 +174,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.singleFee);
-        return INestQuery(_nestQueryAddress).latestPriceAndTriggeredPriceInfo(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).latestPriceAndTriggeredPriceInfo(tokenAddress);
     }
 
     /// @dev 获取最新的触发价格
@@ -160,7 +188,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.doubleFee);
-        return INestQuery(_nestQueryAddress).triggeredPrice2(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).triggeredPrice2(tokenAddress);
     }
 
     /// @dev 获取最新的触发价格完整信息
@@ -178,7 +206,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.doubleFee);
-        return INestQuery(_nestQueryAddress).triggeredPriceInfo2(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).triggeredPriceInfo2(tokenAddress);
     }
 
     /// @dev 获取最新的生效价格
@@ -192,6 +220,6 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.doubleFee);
-        return INestQuery(_nestQueryAddress).latestPrice2(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).latestPrice2(tokenAddress);
     }
 }

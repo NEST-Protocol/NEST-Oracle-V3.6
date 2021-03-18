@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 /// @dev 价格调用入口
 interface INestPriceFacade {
     
-    /// @dev 配置结构体
+    /// @dev 价格调用入口配置结构体
     struct Config {
         // 单轨询价费用。0.01ether
         uint96 singleFee;
@@ -32,6 +32,16 @@ interface INestPriceFacade {
     /// @param addr 目标地址
     /// @return 地址标记
     function getAddressFlag(address addr) external view returns(uint);
+
+    /// @dev 设置NestQuery地址映射
+    /// @param tokenAddress token地址
+    /// @param nestQueryAddress INestQuery地址，0表示删除映射
+    function setNestQuery(address tokenAddress, address nestQueryAddress) external;
+
+    // @dev 获取NestQuery地址映射
+    /// @param tokenAddress token地址
+    /// @return nestQueryAddress INestQuery地址，0表示没有映射
+    function getNestQuery(address tokenAddress) external view returns (address);
 
     /// @dev 获取最新的触发价格
     /// @param tokenAddress 目标token地址

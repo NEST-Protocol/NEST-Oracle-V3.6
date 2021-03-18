@@ -5,11 +5,12 @@ pragma solidity ^0.8.0;
 /// @dev The contract is for redeeming nest token and getting ETH in return
 interface INestRedeeming {
 
-    /// @dev 配置结构体
+    /// @dev 回购配置结构体
     struct Config {
 
         // 单轨询价费用。0.01ether
-        uint96 fee;
+        // 调用价格改为在NestPriceFacade里面确定。需要考虑退回的情况
+        //uint96 fee;
 
         // 激活回购阈值，当ntoken的发行量超过此阈值时，激活回购（单位：10000 ether）。500
         uint32 activeThreshold;

@@ -18,7 +18,7 @@ interface INTokenController {
     /// @param tokenAddress token地址
     event NTokenEnabled(address tokenAddress);
 
-    /// @dev 配置结构体
+    /// @dev ntoken控制器配置结构体
     struct Config {
         // 开通ntoken需要支付的nest数量。10000 ether
         uint96 openFeeNestAmount;

@@ -2,14 +2,16 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev NEST 账本合约
+/// @dev nest账本合约
 interface INestLedger {
 
-    /// @dev 配置结构体
+    /// @dev nest账本合约配置结构体
     struct Config {
-        // NEST分成（万分制）。2000
+        
+        // nest分成（万分制）。2000
         uint32 nestRewardScale;
-        // NTOKEN分成（万分制）。8000
+
+        // ntoken分成（万分制）。8000
         uint32 ntokenRedardScale;
     }
     
@@ -39,9 +41,16 @@ interface INestLedger {
     function totalRewards(address ntokenAddress) external view returns (uint);
 
     /// @dev 支付资金
-    /// @param from 指定从哪个ntoken的账本支出
-    /// @param tokenAddress 目标token地址（0表示eth）
-    /// @param to 转入地址
-    /// @param value 转账金额
-    function pay(address from, address tokenAddress, address to, uint value) external;
+    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
+    /// @param tokenAddress 接收资金的token地址（0表示eth）
+    /// @param to 接收资金的地址
+    /// @param value 接收资金的数量
+    function pay(address ntokenAddress, address tokenAddress, address to, uint value) external;
+
+    /// @dev 结算资金
+    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
+    /// @param tokenAddress 接收资金的token地址（0表示eth）
+    /// @param to 接收资金的地址
+    /// @param value 接收资金的数量
+    function settle(address ntokenAddress, address tokenAddress, address to, uint value) external payable;
 }

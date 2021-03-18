@@ -24,7 +24,7 @@ interface INestVote {
     /// @param index 提案编号
     event NIPExecute(address executor, uint index);
 
-    /// @dev 配置结构体
+    /// @dev 投票合约配置结构体
     struct Config {
 
         // 投票通过需要的比例（万分制）。5100
@@ -75,6 +75,9 @@ interface INestVote {
         address executor;
 
         // 执行时间（如果有，例如区块号或者时间戳）放在合约里面，由合约自行限制
+
+        // nest总流通量
+        uint96 nestCirculation;
     }
     
     /// @dev 修改配置
@@ -124,4 +127,8 @@ interface INestVote {
     /// @param order 排序方式. 0倒序, 非0正序
     /// @return 投票列表
     function list(uint offset, uint count, uint order) external view returns (ProposalView[] memory);
+
+    /// @dev 获取nest流通量
+    /// @return nest流通量
+    function getNestCirculation() external view returns (uint);
 }

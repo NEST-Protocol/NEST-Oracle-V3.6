@@ -73,7 +73,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     uint32 constant PROPOSAL_STATE_ACCEPTED = 1;
     uint32 constant PROPOSAL_STATE_CANCELLED = 2;
 
-    uint constant NEST_TOTAL_SUPPLY = 1000000000 ether;
+    uint constant NEST_TOTAL_SUPPLY = 10000000000 ether;
 
     //receive() external payable {}
 
@@ -232,7 +232,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
         // 2. 检查
         require (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
-        require (block.timestamp >= uint(p.stopTime), "NestVote:!time");
+        require (block.timestamp < uint(p.stopTime), "NestVote:!time");
         // 目标地址不能已经拥有治理权限，防止治理权限被覆盖
         address governance = _governance;
         require(!INestGovernance(governance).checkGovernance(p.contractAddress, 0), "NestVote:!governance");
@@ -242,13 +242,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         IERC20 nest = IERC20(_nestTokenAddress);
 
         // 计算nest流通量
-        uint nestCirculation = NEST_TOTAL_SUPPLY 
-            - nest.balanceOf(_nestMiningAddress)
-            - nest.balanceOf(_nnIncomeAddress)
-            - nest.balanceOf(_nestLedgerAddress)
-            - nest.balanceOf(address(0x1));
-
-        require(uint(p.gainValue) >= nestCirculation * uint(config.acceptance) / 10000, "NestVote:!vote");
+        uint nestCirculation = getNestCirculation();
+        require(uint(p.gainValue) >= nestCirculation * uint(config.acceptance) / 10000, "NestVote:!gainValue");
 
         // 3. 授予执行权限
         INestGovernance(governance).setGovernance(p.contractAddress, 1);
@@ -323,7 +318,10 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             proposal.state,
             // 提案执行者
             //address executor;
-            proposal.executor
+            proposal.executor,
+
+            // nest流通量
+            uint96(getNestCirculation())
         );
     }
 
@@ -343,6 +341,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         Proposal[] storage proposalList = _proposalList;
         ProposalView[] memory result = new ProposalView[](count);
         Proposal memory proposal;
+        uint nestCirculation = getNestCirculation();
 
         // 倒序
         if (order == 0) {
@@ -395,7 +394,10 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
                     // 提案执行者
                     //address executor;
-                    proposal.executor
+                    proposal.executor,
+
+                    // nest流通量
+                    uint96(nestCirculation)
                 );
             }
         } 
@@ -450,11 +452,30 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
                     // 提案执行者
                     //address executor;
-                    proposal.executor
+                    proposal.executor,
+
+                    // nest流通量
+                    uint96(nestCirculation)
                 );
             }
         }
 
         return result;
+    }
+
+    // 获取nest流通量
+    function _getNestCirculation(IERC20 nest) private view returns (uint) {
+        
+        return NEST_TOTAL_SUPPLY 
+            - nest.balanceOf(_nestMiningAddress)
+            - nest.balanceOf(_nnIncomeAddress)
+            - nest.balanceOf(_nestLedgerAddress)
+            - nest.balanceOf(address(0x1));
+    }
+
+    /// @dev 获取nest流通量
+    /// @return nest流通量
+    function getNestCirculation() override public view returns (uint) {
+        return _getNestCirculation(IERC20(_nestTokenAddress));
     }
 }

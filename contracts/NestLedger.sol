@@ -103,18 +103,18 @@ contract NestLedger is NestBase, INestLedger {
     }
 
     /// @dev 支付资金
-    /// @param from 指定从哪个ntoken的账本支出
-    /// @param tokenAddress 目标token地址（0表示eth）
-    /// @param to 转入地址
-    /// @param value 转账金额
-    function pay(address from, address tokenAddress, address to, uint value) override external {
+    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
+    /// @param tokenAddress 接收资金的token地址（0表示eth）
+    /// @param to 接收资金的地址
+    /// @param value 接收资金的数量
+    function pay(address ntokenAddress, address tokenAddress, address to, uint value) override external {
 
         require(_applications[msg.sender] > 0, "NestLedger:!app");
         if (tokenAddress == address(0)) {
-            if (from == NEST_TOKEN_ADDRESS) {
+            if (ntokenAddress == NEST_TOKEN_ADDRESS) {
                 _nestLedger -= value;
             } else {
-                UINT storage balance = _ntokenLedger[from];
+                UINT storage balance = _ntokenLedger[ntokenAddress];
                 balance.value = balance.value - value;
             }
             payable(to).transfer(value);
@@ -122,4 +122,34 @@ contract NestLedger is NestBase, INestLedger {
             TransferHelper.safeTransfer(tokenAddress, to, value);
         }
     }
+
+    /// @dev 结算资金
+    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
+    /// @param tokenAddress 接收资金的token地址（0表示eth）
+    /// @param to 接收资金的地址
+    /// @param value 接收资金的数量
+    function settle(address ntokenAddress, address tokenAddress, address to, uint value) override external payable {
+
+        require(_applications[msg.sender] > 0, "NestLedger:!app");
+
+        if (tokenAddress == address(0)) {
+            if (ntokenAddress == NEST_TOKEN_ADDRESS) {
+                _nestLedger = _nestLedger + msg.value - value;
+            } else {
+                UINT storage balance = _ntokenLedger[ntokenAddress];
+                balance.value = balance.value + msg.value - value;
+            }
+            payable(to).transfer(value);
+        } else {
+            TransferHelper.safeTransfer(tokenAddress, to, value);
+            if (msg.value > 0) {
+                if (ntokenAddress == NEST_TOKEN_ADDRESS) {
+                    _nestLedger += msg.value;
+                } else {
+                    UINT storage balance = _ntokenLedger[ntokenAddress];
+                    balance.value = balance.value + msg.value;
+                }
+            }
+        }
+    } 
 }

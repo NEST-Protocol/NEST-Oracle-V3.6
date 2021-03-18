@@ -42,7 +42,7 @@ interface INestMining {
         // 矿工挖到nest的比例（万分制）。8000
         uint16 minerNestReward;// MINER_NEST_REWARD_PERCENTAGE
         
-        // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分之）。9500
+        // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分制）。9500
         uint16 minerNTokenReward;
 
         // 双轨报价阈值，当ntoken的发行量超过此阈值时，禁止单轨报价（单位：10000 ether）。500
@@ -142,11 +142,11 @@ interface INestMining {
     /// @param index The index of the price sheet w.r.t. `token`
     function close(address tokenAdderss, uint index) external;
 
-    /// @notice Close a batch of price sheets passed VERIFICATION-PHASE
-    /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
-    /// @param tokenAddress The address of TOKEN contract
-    /// @param indices A list of indices of sheets w.r.t. `token`
-    function closeList(address tokenAddress, uint32[] memory indices) external; 
+    // /// @notice Close a batch of price sheets passed VERIFICATION-PHASE
+    // /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
+    // /// @param tokenAddress The address of TOKEN contract
+    // /// @param indices A list of indices of sheets w.r.t. `token`
+    // function closeList(address tokenAddress, uint32[] memory indices) external; 
 
     /// @dev 触发计算价格
     /// @param tokenAdderss 目标token地址
