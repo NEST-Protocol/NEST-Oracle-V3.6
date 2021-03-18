@@ -144,11 +144,11 @@ interface INestMining {
     /// @param index The index of the price sheet w.r.t. `token`
     function close(address tokenAdderss, uint index) external;
 
-    // /// @notice Close a batch of price sheets passed VERIFICATION-PHASE
-    // /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
-    // /// @param tokenAddress The address of TOKEN contract
-    // /// @param indices A list of indices of sheets w.r.t. `token`
-    // function closeList(address tokenAddress, uint32[] memory indices) external; 
+    /// @notice Close a batch of price sheets passed VERIFICATION-PHASE
+    /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
+    /// @param tokenAddress The address of TOKEN contract
+    /// @param indices A list of indices of sheets w.r.t. `token`
+    function closeList(address tokenAddress, uint32[] memory indices) external; 
 
     /// @dev 触发计算价格
     /// @param tokenAdderss 目标token地址

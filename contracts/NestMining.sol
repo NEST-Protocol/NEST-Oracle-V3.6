@@ -759,7 +759,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
     /// @param tokenAddress The address of TOKEN contract
     /// @param indices A list of indices of sheets w.r.t. `token`
-    function closeList(address tokenAddress, uint32[] memory indices) external {
+    function closeList(address tokenAddress, uint32[] memory indices) override external {
 
         PriceSheetV36[] storage sheets = _channels[tokenAddress].sheets;
         address ntokenAddress = _getNTokenAddress(tokenAddress);
