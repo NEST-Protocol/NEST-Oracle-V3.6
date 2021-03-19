@@ -17,32 +17,15 @@ interface INestMining {
     /// @dev nest挖矿配置结构体
     struct Config {
         
-        // -- nest相关配置
-        // nest报价的eth单位。30
+        // 报价的eth单位。30
         // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
         uint32 postEthUnit;
 
-        // nest报价的手续费（万分之一eth，DIMI_ETHER）。1000
+        // 报价的手续费（万分之一eth，DIMI_ETHER）。1000
         uint16 postFee;
 
-        // 废弃
-        // nest吃单的手续费比例（万分制，DIMI_ETHER）。0
-        uint16 biteFeeRate;
-        
-        // -- ntoken相关配置
-        // ntoken报价的eth单位。10
-        // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
-        uint32 ntokenPostEthUnit;
-
-        // ntoken报价的手续费（万分之一eth，DIMI_ETHER）。1000
-        uint16 ntokenPostFee;
-
-        // 废弃
-        // ntoken吃单的手续费比例（万分制，DIMI_ETHER）。0
-        uint16 ntokenBiteFeeRate;
-
         // 矿工挖到nest的比例（万分制）。8000
-        uint16 minerNestReward;// MINER_NEST_REWARD_PERCENTAGE
+        uint16 minerNestReward;
         
         // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分制）。9500
         uint16 minerNTokenReward;
@@ -97,7 +80,7 @@ interface INestMining {
 
     /* ========== 系统配置 ========== */
 
-    /// @dev 修改配置。（修改配置之前，需要对所有的ntoken的收益进行结算）
+    /// @dev 修改配置
     /// @param config 配置对象
     function setConfig(Config memory config) external;
 
@@ -109,50 +92,59 @@ interface INestMining {
 
     /// @notice Post a price sheet for TOKEN
     /// @dev It is for TOKEN (except USDT and NTOKENs) whose NTOKEN has a total supply below a threshold (e.g. 5,000,000 * 1e18)
-    /// @param tokenAdderss The address of TOKEN contract
+    /// @param tokenAddress The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
-    function post(address tokenAdderss, uint ethNum, uint tokenAmountPerEth) external payable;
+    function post(address tokenAddress, uint ethNum, uint tokenAmountPerEth) external payable;
 
     /// @notice Post two price sheets for a token and its ntoken simultaneously 
     /// @dev Support dual-posts for TOKEN/NTOKEN, (ETH, TOKEN) + (ETH, NTOKEN)
-    /// @param tokenAdderss The address of TOKEN contract
+    /// @param tokenAddress The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
     /// @param ntokenAmountPerEth The price of NTOKEN
-    function post2(address tokenAdderss, uint ethNum, uint tokenAmountPerEth, uint ntokenAmountPerEth) external payable;
+    function post2(address tokenAddress, uint ethNum, uint tokenAmountPerEth, uint ntokenAmountPerEth) external payable;
 
     /// @notice Call the function to buy TOKEN/NTOKEN from a posted price sheet
     /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
-    /// @param tokenAdderss The address of token(ntoken)
+    /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
     /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteToken(address tokenAdderss, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
+    function biteToken(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
 
-    /// @notice Call the function to buy TOKEN/NTOKEN from a posted price sheet
-    /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
-    /// @param tokenAdderss The address of token(ntoken)
+    /// @notice Call the function to buy ETH from a posted price sheet
+    /// @dev bite ETH by TOKEN(NTOKEN),  (-ethNumBal, +tokenNumBal)
+    /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
+    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteEth(address tokenAdderss, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
+    function biteEth(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
     
     /// @notice Close a price sheet of (ETH, USDx) | (ETH, NEST) | (ETH, TOKEN) | (ETH, NTOKEN)
     /// @dev Here we allow an empty price sheet (still in VERIFICATION-PERIOD) to be closed 
-    /// @param tokenAdderss The address of TOKEN contract
+    /// @param tokenAddress The address of TOKEN contract
     /// @param index The index of the price sheet w.r.t. `token`
-    function close(address tokenAdderss, uint index) external;
+    function close(address tokenAddress, uint index) external;
 
     /// @notice Close a batch of price sheets passed VERIFICATION-PHASE
     /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
     /// @param tokenAddress The address of TOKEN contract
     /// @param indices A list of indices of sheets w.r.t. `token`
-    function closeList(address tokenAddress, uint32[] memory indices) external; 
+    function closeList(address tokenAddress, uint32[] memory indices) external;
 
-    /// @dev 触发计算价格
-    /// @param tokenAdderss 目标token地址
-    function stat(address tokenAdderss) external;
+    /// @notice Close two batch of price sheets passed VERIFICATION-PHASE
+    /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
+    /// @param tokenAddress1 The address of TOKEN1 contract
+    /// @param indices1 A list of indices of sheets w.r.t. `token1`
+    /// @param tokenAddress2 The address of TOKEN2 contract
+    /// @param indices2 A list of indices of sheets w.r.t. `token2`
+    function closeList2(address tokenAddress1, uint32[] memory indices1, address tokenAddress2, uint32[] memory indices2) external;
+
+    /// @dev The function updates the statistics of price sheets
+    ///     It calculates from priceInfo to the newest that is effective.
+    ///     Different from `_statOneBlock()`, it may cross multiple blocks.
+    function stat(address tokenAddress) external;
 
     /// @dev 结算佣金
     /// @param tokenAddress 目标token地址
@@ -162,7 +154,7 @@ interface INestMining {
     /// @param tokenAddress 目标token地址
     /// @param offset 跳过前面offset条记录
     /// @param count 返回count条记录
-    /// @param order 排序方式. 0倒序, 非0正序
+    /// @param order 排序方式。0倒序，非0正序
     /// @return 报价单列表
     function list(address tokenAddress, uint offset, uint count, uint order) external view returns (PriceSheetView[] memory);
 

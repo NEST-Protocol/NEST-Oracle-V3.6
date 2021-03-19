@@ -12,21 +12,11 @@ contract NNIncome is NestBase {
         NEST_TOKEN_ADDRESS = nestTokenAddress;
         NEST_GENESIS_BLOCK = nestGenesisBlock;
 
-        uint full = 400 ether * 15 / 100;
-        for (uint i = 0; i < 10; ++i) {
-            _nestReductionSteps[i] = full;
-            full = full * 8 / 10;
-        }
+        _latestBlock = block.number;
     }
 
     // NN发行总量
     uint constant NEST_NODE_TOTALSUPPLY = 1500;
-
-    // NEST出矿衰减间隔。2400000区块，约一年
-    uint constant NEST_REDUCTION_SPAN = 2400000;
-
-    // 衰减梯度数
-    uint constant NEST_REDUCTION_STEP_COUNT = 10;
 
     // NEST NODE地址
 	address immutable NEST_NODE_ADDRESS;
@@ -37,15 +27,6 @@ contract NNIncome is NestBase {
 	// 挖矿起始区块
 	uint immutable NEST_GENESIS_BLOCK;// = 6236588;	
 
-    // NN地址
-	//address public _nestNodeAddress;
-	
-    // 衰减梯度数组
-    uint[NEST_REDUCTION_STEP_COUNT] _nestReductionSteps;
-	
-    // 稳定出矿量
-    uint _nestStableMiningSpeed = 6 ether;
-
     // 已产生NEST
 	uint public _generatedNest;
 	
@@ -54,26 +35,6 @@ contract NNIncome is NestBase {
 
 	// 个人账本
 	mapping(address=>uint) _infoMapping;
-
-    //---------governance----------
-
-    // /// @dev 设置NestNode合约地址
-    // /// @param nestNodeAddress NestNode合约地址
-    // function setNestNodeAddress(address nestNodeAddress) external onlyGovernance {
-    // 	//require(add != address(0x0), "Log:NNIncome:0x0");
-    // 	_nestNodeAddress = nestNodeAddress;
-    // }
-
-    // /// @dev 设置出矿衰减参数
-    // /// @param nestStableMiningSpeed 稳定出矿量
-    // /// @param nestReductionSteps 衰减梯度数组（长度：10）
-    // function setReduction(
-    //     uint nestStableMiningSpeed,
-    //     uint[NEST_REDUCTION_STEP_COUNT] memory nestReductionSteps
-    // ) external onlyGovernance {
-    //     _nestReductionSteps = nestReductionSteps;
-    //     _nestStableMiningSpeed = nestStableMiningSpeed;
-    // }
 
     //---------transaction---------
 
@@ -152,15 +113,7 @@ contract NNIncome is NestBase {
     /// @dev 计算出矿增量
     /// @return 出矿增量
     function miningNest() public view returns(uint) {
-    	
-        uint period = (block.number - NEST_GENESIS_BLOCK) / NEST_REDUCTION_SPAN;
-        uint nestPerBlock;
-        if (period < NEST_REDUCTION_STEP_COUNT) {
-            nestPerBlock = _nestReductionSteps[period];
-        } else {
-            nestPerBlock = _nestStableMiningSpeed;
-        }
-        return nestPerBlock * (block.number - _latestBlock);
+        return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _latestBlock) * 15 ether / 100;
     }
 
     /// @dev 查询当前可领取Nest
@@ -171,5 +124,35 @@ contract NNIncome is NestBase {
     	uint totalNest = _generatedNest + miningNest();
     	uint balance = IERC20(NEST_NODE_ADDRESS).balanceOf(address(owner));
     	return (totalNest - _infoMapping[owner]) * balance / NEST_NODE_TOTALSUPPLY;
+    }
+
+    // NEST出矿衰减间隔。2400000区块，约一年
+    uint constant NEST_REDUCTION_SPAN = 2400000;
+    // NEST出矿衰减极限，超过此间隔后变为稳定出矿。24000000区块，约十年
+    uint constant NEST_REDUCTION_LIMIT = NEST_REDUCTION_SPAN * 10;
+    // 衰减梯度数组，每个衰减阶梯值占16位。衰减值取整数
+    uint constant NEST_REDUCTION_STEPS =
+        0
+        | (uint(400 / uint(1)) << (16 * 0))
+        | (uint(400 * 8 / uint(10)) << (16 * 1))
+        | (uint(400 * 8 * 8 / uint(10 * 10)) << (16 * 2))
+        | (uint(400 * 8 * 8 * 8 / uint(10 * 10 * 10)) << (16 * 3))
+        | (uint(400 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10)) << (16 * 4))
+        | (uint(400 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10)) << (16 * 5))
+        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10)) << (16 * 6))
+        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 7))
+        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 8))
+        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 9))
+        //| (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 10));
+        | (uint(40) << (16 * 10));
+
+    // 计算衰减梯度
+    function _redution(uint delta) private pure returns (uint) {
+        
+        if (delta < NEST_REDUCTION_LIMIT) {
+            return (NEST_REDUCTION_STEPS >> ((delta / NEST_REDUCTION_SPAN) << 4)) & 0xFFFF;
+        }
+
+        return (NEST_REDUCTION_STEPS >> 160) & 0xFFFF;
     }
 }

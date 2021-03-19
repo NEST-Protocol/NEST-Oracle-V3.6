@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-//import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./lib/TransferHelper.sol";
 import "./interface/INestMining.sol";
 import "./interface/INestQuery.sol";
@@ -12,180 +11,124 @@ import "./interface/INToken.sol";
 import "./interface/INest_NToken.sol";
 import "./NestBase.sol";
 
-/// @dev nest挖矿合约
+/// @dev This contract implemented the mining logic of nest.
 contract NestMining is NestBase, INestMining, INestQuery {
 
+    /// @param nestTokenAddress Address of nest token contract
+    /// @param nestGenesisBlock Genesis block number of nest
     constructor(address nestTokenAddress, uint nestGenesisBlock) {
         
-        // 权限控制
-        // DAO添加分红的方法
-        // 价格调用门面
-        // 配置参数
-        // ntoken出矿
-        // ntoken竞拍者的token如何分发。考虑到同一区块内有多笔报价是小概率事件，暂定每个关闭的时候给竞拍者分发
-        // 老的ntoken竞拍者挖矿
-        // 初始化方法
-        // ntoken不断的在衰减，但是挖矿限制为最多可以挖出100区块，如果一直没有人挖，但是衰减在继续，将来会越来越难得启动
-        // 出矿，衰减
-        // ntoken创建，管理
-        // DAO合约
-        // NestDAO分为账本部分，市场行为部分
-        // 投票执行赋予临时权限
-        // NestDAO配置
-        // 计算价格，处理价格字段的编码问题
-        // 投票
-        // 整理PriceInfoV36结构体，完成_stat()方法的实现逻辑
-        // 投票的通过状态改为实时计算，并且任何时候都可以撤回投票。（什么时候可以取回资产，投票并行问题如何解决）
-        // 吃单手续费，配置
-        // NN挖矿
-        // nest挖矿和ntoken挖矿合约分开
-        // TODO: 验证均价，波动率计算是否正确
-        // TODO: freeze，unfreeze方法整理
-        // TODO: nest和ntoken挖矿分别配置
-        // TODO: 全面清理SafeMath
-        // TODO: 检查系统权限控制，漏洞问题
-
         NEST_TOKEN_ADDRESS = nestTokenAddress;
         NEST_GENESIS_BLOCK = nestGenesisBlock;
 
-        // 占位，实际的注册账号的索引必须大于0
-        //_accounts.push(Account(address(0)));
-        //Account storage account = Account(address(0));
+        // Placeholder in _accounts, the index of a real account must greater than 0
         _accounts.push();
     }
 
-    ///dev 报价单信息。(占256位，一个以太坊存储单元)
-    struct PriceSheetV36 {
+    ///dev Definitions for the price sheet, include the full information. (use 256bits, a storage unit in ethereum evm)
+    struct PriceSheet {
         
-        // 矿工注册编号。通过矿工注册的方式，将矿工地址（160位）映射为32位整数，最多可以支持注册40亿矿工
+        // Index of miner account in _accounts. for this way, mapping an address(which need 160bits) to a 32bits integer, support 4billion accounts
         uint32 miner;
 
-        // 挖矿所在区块高度
+        // The block number of this price sheet packaged
         uint32 height;
 
-        // 报价剩余规模
+        // The remain number of this price sheet
         uint32 remainNum;
 
-        // 剩余的eth数量
+        // The eth number which miner will got
         uint32 ethNumBal;
 
-        // 剩余的token对应的eth数量
+        // The eth number which equivalent to token's value which miner will got
         uint32 tokenNumBal;
 
-        // nest抵押数量（单位: 1000nest）
+        // The pledged number of nest in this sheet. (unit: 1000nest)
         uint32 nestNum1k;
 
-        // 当前报价单的深度。0表示初始报价，大于0表示吃单报价
+        // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
         uint8 level;
 
-        // 价格改为这种表示方式，可能损失精度，误差控制在1/10^14以内
-        // 价格的指数. price = priceFraction * 16 ^ priceExponent
+        // Represent price as this way, may lose precision, the error less than 1/10^14
+        // Exponent of price。price = priceFraction * 16 ^ priceExponent
         uint8 priceExponent;
 
-        // 价格分数值. price = priceFraction * 16 ^ priceExponent
+        // Fraction of price。price = priceFraction * 16 ^ priceExponent
         uint48 priceFraction;
     }
 
-    /// @dev 价格信息。
-    struct PriceInfoV36 {
+    /// @dev Definitions for the price information
+    struct PriceInfo {
 
-        // 记录报价单的索引，为下一次从报价单此处继续更新价格信息做准备
+        // Record the index of price sheet, for update price information from price sheet next time.
         uint32 index;
 
-        // 报价单所处区块的高度
+        // The block number of this price
         uint32 height;
 
-        // 剩余的有效报价单的总规模
+        // The remain number of this price sheet
         uint32 remainNum;
 
-        // token 余额
-        //uint64 tokenAmount;
-        // token数量的浮动表示
+        // Price, represent as float
         uint8 priceExponent;
         uint48 priceFraction;
 
-        // // 平均 token 的价格（多少 token 可以兑换 1 ETH）
-        // uint64 avgTokenAmount;
-        // 平均价格的浮动表示
+        // Avg Price, represent as float
         uint8 avgExponent;
         uint48 avgFraction;
         
-        // // 波动率的平方，为下次计算新的波动率准备
-        // uint32 volatility_sigma_sq;
-
-        // // 记录值，计算新波动率的必要参数
-        // uint32 volatility_ut_sq;
-
-        // 波动率的平方。需要除以2^48
+        // Square of price volatility, need divide by 2^48
         uint48 sigmaSQ;
     }
 
-    /// @dev 表示一个价格通道
+    /// @dev Price channel
     struct PriceChannel {
 
-        // 报价单数组
-        PriceSheetV36[] sheets;
+        // Array of price sheets
+        PriceSheet[] sheets;
 
-        // 价格信息
-        PriceInfoV36 price;
+        // Price information
+        PriceInfo price;
 
-        // // 报价手续费
-        // uint postFee;
-
-        // // 从上次结算后的吃单计数
-        // // TODO: ntoken不需要计数
-        // uint nofeeCount;
-
-        // 报价佣金相关信息。
-        // 低128位表示当前每笔报价需要收取的佣金值
-        // 高128位表示当前累计的不需要收佣金的报价单数量（包括吃单和已经结算的）
+        // The information of mining fee
+        // low 128bits represent fee per post
+        // high 128bits in the high level indicate the current cumulative number of quotations that do not require Commission (including bills and settled ones)
         uint feeInfo;
     }
 
-    // /// @dev ntoken状态结构，用户缓存ntoken的各种状态
-    // struct NTokenStatus {
-    //     uint32 genesisBlockNumber;
-    // }
-
-    /// @dev 用结构体表示一个存储位置，可以使用storage变量，避免多次从mapping中索引
+    /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
         uint value;
     }
 
-    /// @dev 账户信息
+    /// @dev Account information
     struct Account {
         
-        // 挖矿账号地址
+        // Address of account
         address addr;
 
-        //// nest余额
-        //uint nestBalance;
-
-        // 挖矿账号的余额账本
+        // Balances of mining account
         // tokenAddress=>balance
         mapping(address=>UINT) balances;
     }
 
-    /// @dev 配置
+    /// @dev Configuration
     Config _config;
 
-    /// @dev 账号信息
+    /// @dev Registered account information
     Account[] _accounts;
 
-    /// @dev 账号地址映射
+    /// @dev Mapping from address to index of account. address=>accountIndex
     mapping(address=>uint) _accountMapping;
 
-    /// @dev 报价通道
+    /// @dev 报价通道。tokenAddress=>PriceChannel
     mapping(address=>PriceChannel) _channels;
 
-    /// @dev ntoken映射缓存
+    /// @dev ntoken映射缓存。tokenAddress=>ntokenAddress
     mapping(address=>address) _addressCache;
 
-    /// @dev 缓存ntoken创世区块号
+    /// @dev 缓存ntoken创世区块号。ntokenAddress=>genesisBlockNumber
     mapping(address=>uint) _genesisBlockNumberCache;
-
-    /// @dev 缓存双轨报价状态标记
-    mapping(address=>uint) _doublePostFlags;
 
     /// @dev 价格调用入口合约地址
     address _nestPriceFacadeAddress;
@@ -193,31 +136,27 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev NTokenController合约地址
     address _nTokenControllerAddress;
 
-    /// @dev nest账本合约
+    /// @dev nest账本合约地址
     address _nestLedgerAddress;
 
-    /// @dev NEST代币合约地址
+    /// @dev nest代币合约地址
     address immutable NEST_TOKEN_ADDRESS; // = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
     
-    // TODO: 确定nest的创世区块
-    /// @dev NEST创世区块
+    /// @dev nest创世区块号
     uint immutable NEST_GENESIS_BLOCK; // = 6236588;	
 
     /// @dev 万分之一eth，手续费单位
     uint constant DIMI_ETHER = 1 ether / 10000;
 
     /// @dev 批量结算分红的掩码。测试时每16个报价单结算一次，线上版本256个报价单结算一次
-    uint constant COLLECT_REWARD_MASK = 0xF;
+    uint constant COLLECT_REWARD_MASK = 0xFF;
     
-    /// @dev ntoken最多可以挖到100区块
-    uint constant MINING_NTOKEN_YIELD_BLOCK_LIMIT = 100;
-    
-    /// @dev Average block mining interval, ~ 14s
+    /// @dev 以太坊平均出块时间间隔，14秒
     uint constant ETHEREUM_BLOCK_TIMESPAN = 14;
 
     /* ========== 治理相关 ========== */
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请调用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         
@@ -245,7 +184,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
     }
 
-    /// @dev 修改配置。（修改配置之前，需要对所有的ntoken的收益进行结算）
+    /// @dev 修改配置
     /// @param config 配置对象
     function setConfig(Config memory config) override external onlyGovernance {
         _config = config;
@@ -256,15 +195,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
     function getConfig() override external view returns (Config memory) {
         return _config;
     }
-
-    // /// @dev 设置出矿衰减数组
-    // function setReduction(
-    //     uint[NEST_REDUCTION_STEP_COUNT] memory nestReductionSteps, 
-    //     uint[NTOKEN_REDUCTION_STEP_COUNT] memory ntokenReductionSteps
-    // ) external onlyGovernance {
-    //     _nestReductionSteps = nestReductionSteps;
-    //     _ntokenReductionSteps = ntokenReductionSteps;
-    // }
 
     /* ========== 报价相关 ========== */
 
@@ -297,8 +227,16 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev 清空缓存的ntoken信息。如果发生ntoken被禁用后重建，需要调用此方法
     /// @param tokenAddress token地址
     function resetNTokenCache(address tokenAddress) public {
-        _genesisBlockNumberCache[_getNTokenAddress(tokenAddress)] = 0;
-        _addressCache[tokenAddress] = address(0);
+
+        // 清除缓存
+        address ntokenAddress = _getNTokenAddress(tokenAddress);
+        _genesisBlockNumberCache[ntokenAddress] = 0;
+        _addressCache[tokenAddress] = _addressCache[ntokenAddress] = address(0);
+
+        // 重新加载
+        _getNTokenAddress(tokenAddress);
+        _getNTokenAddress(ntokenAddress);
+        _getNTokenGenesisBlock(ntokenAddress);
     }
 
     /// @notice Post a price sheet for TOKEN
@@ -322,30 +260,24 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 检查是否允许单轨报价
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         require(ntokenAddress != address(0) && ntokenAddress != tokenAddress, "NM:!tokenAddress");
-
         // nest单位不同，但是也早已经超过此发行数量，不再做额外判断
+        // ntoken采用关闭时出矿（或者取回时出矿），可能存在用户故意不关闭，或者故意不取回，导致总量判断不准确的问题。忽略
         require(IERC20(ntokenAddress).totalSupply() < uint(config.doublePostThreshold) * 10000 ether, "NM:!post2");        
 
-        // 4. 存入佣金
+        // 4. 存入收益
         PriceChannel storage channel = _channels[tokenAddress];
-        PriceSheetV36[] storage sheets = channel.sheets;
-        
-        // 每隔256个报价单存入一次收益，扣除吃单的次数
+        PriceSheet[] storage sheets = channel.sheets;
+        // 每隔256个报价单存入一次收益，扣除吃单的次数和已结算部分
         uint length = sheets.length;
         _collect(channel, ntokenAddress, length, fee, fee);
 
         // 5. 冻结资产
         uint accountIndex = _addressIndex(msg.sender);
-
         // 冻结token，nest
         // 由于使用浮点表示法(uint48 fraction, uint8 exponent)会带来一定的精度损失
         // 按照tokenAmountPerEth * ethNum冻结资产后，退回的时候可能损失精度差部分
         // 实际应该按照decodeFloat(fraction, exponent) * ethNum来冻结
         // 但是考虑到损失在1/10^14以内，因此忽略此处的损失，精度损失的部分，将来可以作为系统收益转出
-        //freeze2(tokenAddress, tokenAmountPerEth * ethNum, POST_PLEDGE_UNIT);
-        //mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-        //freeze(balances, tokenAddress, tokenAmountPerEth * ethNum);
-        //freeze(balances, NEST_TOKEN_ADDRESS, uint(config.pledgeNest) * 1000 ether);
         _freeze2(_accounts[accountIndex].balances, tokenAddress, tokenAmountPerEth * ethNum, uint(config.pledgeNest) * 1000 ether);
 
         // 6. 计算价格
@@ -353,13 +285,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
         _stat(channel, sheets, uint(config.priceEffectSpan));
 
         // 7. 创建报价单
-
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
         _createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.pledgeNest), 0, tokenAmountPerEth);
     }
 
     /// @notice Post two price sheets for a token and its ntoken simultaneously 
-    /// @dev  Support dual-posts for TOKEN/NTOKEN, (ETH, TOKEN) + (ETH, NTOKEN)
+    /// @dev Support dual-posts for TOKEN/NTOKEN, (ETH, TOKEN) + (ETH, NTOKEN)
     /// @param tokenAddress The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
@@ -373,40 +304,43 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(tokenAmountPerEth > 0 && ntokenAmountPerEth > 0, "NM:!price");
         
         // 2. 手续费
-        uint fee = uint(config.postFee) * DIMI_ETHER;
-        require(msg.value == fee + ethNum * 2 ether, "NM:!value");
+        // ******** tmp是多用途变量，从此处开始表示fee
+        uint tmp = uint(config.postFee) * DIMI_ETHER;
+        require(msg.value == tmp + ethNum * 2 ether, "NM:!value");
 
         // 3. 检查报价轨道
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         require(ntokenAddress != address(0) && ntokenAddress != tokenAddress, "NM:!tokenAddress");
 
-        // 4. 存入佣金
+        // 4. 存入收益
         PriceChannel storage channel = _channels[tokenAddress];
-        PriceSheetV36[] storage sheets = channel.sheets;
-        // 每隔256个报价单存入一次收益，扣除吃单的次数
+        PriceSheet[] storage sheets = channel.sheets;
+        // 每隔256个报价单存入一次收益，扣除吃单的次数和已结算部分
         uint length = sheets.length;
-        _collect(channel, ntokenAddress, length, fee, fee);
+        _collect(channel, ntokenAddress, length, tmp, tmp);
 
         // 5. 冻结资产
         uint accountIndex = _addressIndex(msg.sender);
         mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
+        // ******** tmp是多用途变量，从此处开始表示config.pledgeNest
+        tmp = uint(config.pledgeNest);
         _freeze(balances, tokenAddress, ethNum * tokenAmountPerEth);
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-            _freeze(balances, NEST_TOKEN_ADDRESS, ethNum * ntokenAmountPerEth + uint(config.pledgeNest) * 1000 ether);
+            _freeze(balances, NEST_TOKEN_ADDRESS, ethNum * ntokenAmountPerEth + tmp * 1000 ether);
         } else {
             // TODO: token和ntoken一起冻结
-            _freeze(balances, ntokenAddress, ethNum * ntokenAmountPerEth);
-            _freeze(balances, NEST_TOKEN_ADDRESS, uint(config.pledgeNest) * 2000 ether);
+            //_freeze(balances, ntokenAddress, ethNum * ntokenAmountPerEth);
+            //_freeze(balances, NEST_TOKEN_ADDRESS, tmp * 2000 ether);
+            _freeze2(balances, ntokenAddress, ethNum * ntokenAmountPerEth, tmp * 2000 ether);
         }
         
         // 6. 计算价格
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
-        // TODO: 考虑在计算价格的时候帮人关闭报价单
         _stat(channel, sheets, uint(config.priceEffectSpan));
 
         // 7. 创建报价单
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.pledgeNest), 0, tokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(ethNum), tmp, 0, tokenAmountPerEth);
 
         channel = _channels[ntokenAddress];
         sheets = channel.sheets;
@@ -414,7 +348,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
         _stat(channel, sheets, uint(config.priceEffectSpan));
         emit Post(ntokenAddress, msg.sender, sheets.length, ethNum, ntokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.pledgeNest), 0, ntokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(ethNum), tmp, 0, ntokenAmountPerEth);
     }
 
     /// @notice Call the function to buy TOKEN/NTOKEN from a posted price sheet
@@ -433,36 +367,30 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 2.加载报价单
         PriceChannel storage channel = _channels[tokenAddress];
-        PriceSheetV36[] storage sheets = channel.sheets;
-        PriceSheetV36 memory sheet = sheets[index];
+        PriceSheet[] storage sheets = channel.sheets;
+        PriceSheet memory sheet = sheets[index];
 
         // 3.检查报价单状态
         require(uint(sheet.remainNum) >= biteNum, "NM:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
+        // 4. 存入收益
         {
-            // 每隔256个报价单存入一次收益，扣除吃单的次数
+            // 每隔256个报价单存入一次收益，扣除吃单的次数和已结算部分
             address ntokenAddress = _getNTokenAddress(tokenAddress);
             if (tokenAddress != ntokenAddress) {
                 _collect(channel, ntokenAddress, sheets.length, 0, uint(config.postFee) * DIMI_ETHER);
             }
-            // if (uint(config.biteFeeRate) > 0) {
-            //     INestLedger(_nestLedgerAddress).carveReward { 
-            //         value: biteNum * uint(config.biteFeeRate) * DIMI_ETHER
-            //     } (ntokenAddress);
-            // }
         }
 
-        // 4. 计算需要的eth, token, nest数量
-        //uint needEthValue;
+        // 5. 计算需要的eth，token，nest数量，并冻结
         uint needTokenValue;
         uint level = uint(sheet.level);
 
         // 当吃单深度小于4的时候, nest和报价规模都翻倍
         if (level < uint(config.maxBiteNestedLevel)) {
             // 翻倍报价 + 用于买入token的数量，一共三倍
-            //needEthValue = biteNum * 3 ether;
-            require(msg.value == biteNum * 3 ether + biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NM:!value");
+            require(msg.value == biteNum * 3 ether, "NM:!value");
             // 翻倍报价
             needTokenValue = newTokenAmountPerEth * (biteNum << 1);
             ++level;
@@ -470,15 +398,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 当吃单深度达到4或以上时, nest翻倍, 规模不翻倍
         else {
             // 单倍报价 + 用于买入token的数量，一共两倍
-            //needEthValue = biteNum * 2 ether;
-            require(msg.value == biteNum * 2 ether + biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NM:!value");
+            require(msg.value == biteNum * 2 ether, "NM:!value");
             // 单倍报价
             needTokenValue = newTokenAmountPerEth * biteNum;
+            // 吃单链长度超过255是有可能的，当链长度达到4或以上时，对于合约来说，没有逻辑依赖其具体值，此计数累加到255以后就不再更新
             if (level < 255) ++level;
         }
-
-        // 转入的eth数量必须正确
-        //require(msg.value == needEthValue, "NestMining:eth value error");
 
         // 需要抵押的nest数量
         uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
@@ -502,26 +427,26 @@ contract NestMining is NestBase, INestMining, INestQuery {
             }
         }
 
-        // 5.更新被吃的报价单
+        // 6.更新被吃的报价单
         sheet.remainNum = uint32(sheet.remainNum - biteNum);
         sheet.ethNumBal = uint32(sheet.ethNumBal + biteNum);
         sheet.tokenNumBal = uint32(sheet.tokenNumBal - biteNum);
         sheets[index] = sheet;
 
-        // 6. 计算价格
+        // 7. 计算价格
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
         _stat(channel, sheets, uint(config.priceEffectSpan));
 
-        // 7.生成吃单报价单
+        // 8. 生成吃单报价单
         emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
         _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
     }
 
-    /// @notice Call the function to buy TOKEN/NTOKEN from a posted price sheet
-    /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
+    /// @notice Call the function to buy ETH from a posted price sheet
+    /// @dev bite ETH by TOKEN(NTOKEN),  (-ethNumBal, +tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
+    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
     function biteEth(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) override external payable {
 
@@ -533,37 +458,30 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 2.加载报价单
         PriceChannel storage channel = _channels[tokenAddress];
-        PriceSheetV36[] storage sheets = channel.sheets;
-        PriceSheetV36 memory sheet = sheets[index];
+        PriceSheet[] storage sheets = channel.sheets;
+        PriceSheet memory sheet = sheets[index];
 
         // 3.检查报价单状态
         require(uint(sheet.remainNum) >= biteNum, "NM:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
+        // 4. 存入收益
         {
-            // 每隔256个报价单存入一次收益，扣除吃单的次数
+            // 每隔256个报价单存入一次收益，扣除吃单的次数和已结算部分
             address ntokenAddress = _getNTokenAddress(tokenAddress);
             if (tokenAddress != ntokenAddress) {
                 _collect(channel, ntokenAddress, sheets.length, 0, uint(config.postFee) * DIMI_ETHER);
             }
-            // if (uint(config.biteFeeRate) > 0) {
-            //     INestLedger(_nestLedgerAddress).carveReward { 
-            //         value: biteNum * uint(config.biteFeeRate) * DIMI_ETHER
-            //     } (ntokenAddress);
-            // }
         }
 
-        // 4. 计算需要的eth, token, nest数量
-        //uint needEthValue;
+        // 5. 计算需要的eth，token，nest数量，并冻结
         uint needTokenValue;
         uint level = uint(sheet.level);
 
         // 当吃单深度小于4的时候, nest和报价规模都翻倍
         if (level < uint(config.maxBiteNestedLevel)) {
             // 翻倍报价 - 卖出token换得的数量，一共一倍
-            //needEthValue = biteNum * 1 ether;
-            require(msg.value == biteNum * 1 ether + biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NM:!value");
-
+            require(msg.value == biteNum * 1 ether, "NM:!value");
             // 翻倍报价
             needTokenValue = newTokenAmountPerEth * (biteNum << 1);
             ++level;
@@ -571,21 +489,16 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 当吃单深度达到4或以上时, nest翻倍, 规模不翻倍
         else {
             // 单倍报价 - 用于买入token的数量，一共0倍
-            //needEthValue = 0 ether;
-            require(msg.value == biteNum * uint(config.biteFeeRate) * DIMI_ETHER, "NM:!value");
-
+            require(msg.value == 0, "NM:!value");
             // 单倍报价
             needTokenValue = newTokenAmountPerEth * biteNum;
+            // 吃单链长度超过255是有可能的，当链长度达到4或以上时，对于合约来说，没有逻辑依赖其具体值，此计数累加到255以后就不再更新
             if (level < 255) ++level;
         }
         
-        // 转入的eth数量必须正确
-        //require(msg.value == needEthValue, "NestMining:eth value error");
-
         // 需要抵押的nest数量
         uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
 
-        // 5.结算
         // 冻结nest
         uint accountIndex = _addressIndex(msg.sender);
         mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
@@ -596,11 +509,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
 
         // 冻结token
-        //uint backTokenValue = decodeFloat(sheet.priceFraction, sheet.priceExponent) * biteNum;
-        //freeze(tokenAddress, balances[tokenAddress], needTokenValue + backTokenValue);
         _freeze(balances, tokenAddress, needTokenValue + decodeFloat(sheet.priceFraction, sheet.priceExponent) * biteNum);
 
-        // 6.更新被吃的报价单信息
+        // 6. 更新被吃的报价单信息
         sheet.remainNum = uint32(sheet.remainNum - biteNum);
         sheet.ethNumBal = uint32(sheet.ethNumBal - biteNum);
         sheet.tokenNumBal = uint32(sheet.tokenNumBal + biteNum);
@@ -610,14 +521,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
         _stat(channel, sheets, uint(config.priceEffectSpan));
 
-        // 8.生成吃单报价
+        // 8. 生成吃单报价
         emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
         _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
     }
 
     // 创建报价单
     function _createPriceSheet(
-        PriceSheetV36[] storage sheets, 
+        PriceSheet[] storage sheets, 
         uint accountIndex, 
         uint32 ethNum, 
         uint nestNum1k, 
@@ -626,7 +537,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     ) private {
         
         (uint48 fraction, uint8 exponent) = encodeFloat(tokenAmountPerEth);
-        sheets.push(PriceSheetV36(
+        sheets.push(PriceSheet(
             uint32(accountIndex),                       // uint32 miner;
             uint32(block.number),                       // uint32 height;
             ethNum,                                     // uint32 remainNum;
@@ -639,18 +550,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
         ));
     }
     
-    // uint constant NEST_REDUCTION_STEP_COUNT = 10;
-    // uint constant NTOKEN_REDUCTION_STEP_COUNT = 10;
-    // uint constant NEST_STABLE_MINING_SPEED = 40 ether;
-    // uint constant NTOKEN_STABLE_MINING_SPEED = 0.4 ether;
-
-    /// @dev nest衰减梯度数组
-    //uint[NEST_REDUCTION_STEP_COUNT] _nestReductionSteps;
-
-    /// @dev ntoken衰减梯度数组
-    //uint[NTOKEN_REDUCTION_STEP_COUNT] _ntokenReductionSteps;
-
-    // TODO: 出矿衰减数组是否需要修改，如果不需要修改，考虑改为在一个常量中表示
     // NEST出矿衰减间隔。2400000区块，约一年
     uint constant NEST_REDUCTION_SPAN = 2400000;
     // NEST出矿衰减极限，超过此间隔后变为稳定出矿。24000000区块，约十年
@@ -688,12 +587,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
     function close(address tokenAddress, uint index) override external {
         
         Config memory config = _config;
-
         PriceChannel storage channel = _channels[tokenAddress];
-        PriceSheetV36[] storage sheets = channel.sheets;
+        PriceSheet[] storage sheets = channel.sheets;
 
+        // 加载通道数据
         address ntokenAddress = _getNTokenAddress(tokenAddress);
-        (uint accountIndex, Values memory total) = _close(config, sheets, index, tokenAddress, ntokenAddress);
+        // 调用_close()关闭报价单
+        (uint accountIndex, Tunple memory total) = _close(config, sheets, index, tokenAddress, ntokenAddress);
 
         if (accountIndex > 0) {
             // 退回eth
@@ -704,10 +604,33 @@ contract NestMining is NestBase, INestMining, INestQuery {
             _unfreeze3(_accounts[accountIndex].balances, tokenAddress, uint(total.tokenValue), ntokenAddress, uint(total.ntokenValue), uint(total.nestValue));
         }
 
+        // 计算价格
         _stat(channel, sheets, uint(config.priceEffectSpan));
     }
 
-    function _calcMinedBlocks(PriceSheetV36[] storage sheets, uint index, uint height) private view returns (uint minedBlocks, uint count) {
+    /// @notice Close a batch of price sheets passed VERIFICATION-PHASE
+    /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
+    /// @param tokenAddress The address of TOKEN contract
+    /// @param indices A list of indices of sheets w.r.t. `token`
+    function closeList(address tokenAddress, uint32[] memory indices) override external {
+        _closeList(_config, _channels[tokenAddress], tokenAddress, indices);
+    }
+
+    /// @notice Close two batch of price sheets passed VERIFICATION-PHASE
+    /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
+    /// @param tokenAddress1 The address of TOKEN1 contract
+    /// @param indices1 A list of indices of sheets w.r.t. `token1`
+    /// @param tokenAddress2 The address of TOKEN2 contract
+    /// @param indices2 A list of indices of sheets w.r.t. `token2`
+    function closeList2(address tokenAddress1, uint32[] memory indices1, address tokenAddress2, uint32[] memory indices2) override external {
+        
+        Config memory config = _config;
+        mapping(address=>PriceChannel) storage channels = _channels;
+        _closeList(config, channels[tokenAddress1], tokenAddress1, indices1);
+        _closeList(config, channels[tokenAddress2], tokenAddress2, indices2);
+    }
+
+    function _calcMinedBlocks(PriceSheet[] storage sheets, uint index, uint height) private view returns (uint minedBlocks, uint count) {
 
         // 计算出矿量
         uint length = sheets.length;
@@ -748,81 +671,25 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
     }
 
-    struct Values {
+    // 用于给_close()方法返回多个值的结构体
+    struct Tunple {
         uint128 ethNum;
         uint128 tokenValue;
         uint128 nestValue;
         uint128 ntokenValue;
     }
 
-    /// @notice Close a batch of price sheets passed VERIFICATION-PHASE
-    /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
-    /// @param tokenAddress The address of TOKEN contract
-    /// @param indices A list of indices of sheets w.r.t. `token`
-    function closeList(address tokenAddress, uint32[] memory indices) override external {
-
-        PriceSheetV36[] storage sheets = _channels[tokenAddress].sheets;
-        address ntokenAddress = _getNTokenAddress(tokenAddress);
-        uint accountIndex = 0; //uint(sheets[uint(indices[0])].miner);
+    // 关闭报价单
+    function _close(Config memory config, PriceSheet[] storage sheets, uint index, address tokenAddress, address ntokenAddress) private returns (uint accountIndex, Tunple memory value) {
         
-        //if (accountIndex > 0) 
-        {
-            Config memory config = _config;
-            // 需要退回的eth个数
-            //uint totalEthNum = 0;
-            // 需要解冻的token资产数量
-            //uint totalTokenValue = 0;
-            // 需要解冻的nest资产数量
-            //uint totalNestValue = 0;
-            // 需要挖出的ntoken数量
-            //uint totalNTokenValue = 0;
-            Values memory total;
+        PriceSheet memory sheet = sheets[index];
 
-            for (uint i = 0; i < indices.length; ++i) {
-                
-                // 1. 遍历报价单
-                //(uint tokenValue, uint nestValue, uint ntokenValue, uint ethNum) = _close(sheets, uint(indices[i]), accountIndex, tokenAddress, ntokenAddress);
-                (uint minerIndex, Values memory value) = _close(config, sheets, uint(indices[i]), tokenAddress, ntokenAddress);
-                if (accountIndex == 0) {
-                    accountIndex = minerIndex;
-                } else {
-                    require(accountIndex == minerIndex, "NM:!miner");
-                }
-                total.ethNum += value.ethNum;
-                total.tokenValue += value.tokenValue;
-                total.nestValue += value.nestValue;
-                total.ntokenValue += value.ntokenValue;
-            }
-
-            // 退回eth
-            if (uint128(total.ethNum) > 0) {
-                payable(address(uint160(indexAddress(accountIndex)))).transfer(uint(total.ethNum) * 1 ether);
-            }
-            // 解冻资产
-            _unfreeze3(_accounts[accountIndex].balances, tokenAddress, uint(total.tokenValue), ntokenAddress, uint(total.ntokenValue), uint(total.nestValue));
-            // 4. 出矿逻辑
-            // if ((total.ntokenValue) > 0) {
-            // }
-        }
-    }
-
-    function _close(Config memory config, PriceSheetV36[] storage sheets, uint index, address tokenAddress, address ntokenAddress) private returns (uint accountIndex, Values memory value) {
-        
-        PriceSheetV36 memory sheet = sheets[index];
-
-        // 2. 找到可以关闭的报价单
         // 检查报价单状态，是否达到生效区块间隔或者被吃完
         if ((accountIndex = uint(sheet.miner)) > 0 && (uint(sheet.height) + uint(config.priceEffectSpan) < block.number || uint(sheet.remainNum) == 0)) {
             // 将报价矿工注册编号清空，表示报价单已经关闭
             sheet.miner = uint32(0);
             // 吃单报价和ntoken报价不挖矿
             if (uint(sheet.level) > 0 || tokenAddress == ntokenAddress) {
-                // _unfreeze2(
-                //     balances,
-                //     tokenAddress, 
-                //     decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal), 
-                //     uint(sheet.nestNum1k) * 1000 ether
-                // );
                 value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
                 value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
             } 
@@ -832,23 +699,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 (uint minedBlocks, uint count) = _calcMinedBlocks(sheets, index, uint(sheet.height));
                 // nest挖矿
                 if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-                    // _unfreeze2(
-                    //     balances,
-                    //     // 解冻token
-                    //     tokenAddress, 
-                    //     // 解冻token数量 = price * tokenNumBal
-                    //     decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal), 
-                    //     // 解冻抵押的nest和挖矿的nest
-                    //     uint(sheet.nestNum1k) * 1000 ether + minedBlocks * _redution(block.number - NEST_GENESIS_BLOCK) * 1 ether * uint(config.minerNestReward) / 10000 / count
-                    // );
                     value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
                     value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether + minedBlocks * _redution(block.number - NEST_GENESIS_BLOCK) * 1 ether * uint(config.minerNestReward) / 10000 / count);
                 } 
                 // ntoken挖矿
                 else {
                     // 最多挖到100区块
-                    if (minedBlocks > MINING_NTOKEN_YIELD_BLOCK_LIMIT) {
-                        minedBlocks = MINING_NTOKEN_YIELD_BLOCK_LIMIT;
+                    if (minedBlocks > uint(config.ntokenMinedBlockLimit)) {
+                        minedBlocks = uint(config.ntokenMinedBlockLimit);
                     }
                     
                     uint mined = (minedBlocks * _redution(block.number - _getNTokenGenesisBlock(ntokenAddress)) * 0.01 ether) / count;
@@ -856,20 +714,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     address bidder = INToken(ntokenAddress).checkBidder();
                     // 新的ntoken
                     if (bidder == address(this)) {
-                        // 出矿全部给矿工
-                        // _unfreeze3(
-                        //     balances,
-                        //     // 解冻token
-                        //     tokenAddress, 
-                        //     // 解冻token数量 = price * tokenNumBal
-                        //     decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal), 
-                        //     // 挖矿的ntoken
-                        //     ntokenAddress,
-                        //     // 出矿数量和分成
-                        //     mined,
-                        //     // 解冻抵押的nest和挖矿的nest
-                        //     uint(sheet.nestNum1k) * 1000 ether
-                        // );
                         value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
                         value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
                         value.ntokenValue = uint128(mined);
@@ -879,20 +723,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     }
                     // 老的ntoken
                     else {
-                        // // 出矿95%给矿工
-                        // _unfreeze3(
-                        //     balances,
-                        //     // 解冻token
-                        //     tokenAddress, 
-                        //     // 解冻token数量 = price * tokenNumBal
-                        //     decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal), 
-                        //     // 挖矿的ntoken
-                        //     ntokenAddress,
-                        //     // 出矿数量和分成
-                        //     mined * uint(config.minerNTokenReward) / 10000,
-                        //     // 解冻抵押的nest和挖矿的nest
-                        //     uint(sheet.nestNum1k) * 1000 ether
-                        // );
                         value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
                         value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
                         value.ntokenValue = uint128(mined * uint(config.minerNTokenReward) / 10000);
@@ -906,12 +736,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     }
                 }
             }
-            // // 转回其eth
-            // if (uint(sheet.ethNumBal) > 0) {
-            //     //address payable miner = address(uint160(indexAddress(accountIndex)));
-            //     //miner.transfer(uint(sheet.ethNumBal) * 1 ether);
-            //     payable(address(uint160(indexAddress(accountIndex)))).transfer(uint(sheet.ethNumBal) * 1 ether);
-            // }
+
             value.ethNum = uint128(sheet.ethNumBal);
             sheet.ethNumBal = uint32(0);
             sheet.tokenNumBal = uint32(0);
@@ -919,10 +744,48 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
     }
 
-    function _stat(PriceChannel storage channel, PriceSheetV36[] storage sheets, uint priceEffectSpan) private {
+    // 批量关闭报价单
+    function _closeList(Config memory config, PriceChannel storage channel, address tokenAddress, uint32[] memory indices) private {
+
+        PriceSheet[] storage sheets = channel.sheets;
+        address ntokenAddress = _getNTokenAddress(tokenAddress);
+        uint accountIndex = 0; 
+        Tunple memory total;
+
+        // 1. 遍历报价单
+        for (uint i = 0; i < indices.length; ++i) {
+
+            // 由于需要返回的变量太多，会导定义的变量数量过多，因此定义Tunple结构体
+            (uint minerIndex, Tunple memory value) = _close(config, sheets, uint(indices[i]), tokenAddress, ntokenAddress);
+            // 批量关闭报价单只能关闭同一用户的报价单
+            if (accountIndex == 0) {
+                // accountIndex == 0表示是第一个报价单，取此报价单的矿工编号
+                accountIndex = minerIndex;
+            } else {
+                // accountIndex != 0表示是后续报价单，矿工编号必须与之前记录的保持一致
+                require(accountIndex == minerIndex, "NM:!miner");
+            }
+
+            total.ethNum += value.ethNum;
+            total.tokenValue += value.tokenValue;
+            total.nestValue += value.nestValue;
+            total.ntokenValue += value.ntokenValue;
+        }
+
+        // 退回eth
+        if (uint128(total.ethNum) > 0) {
+            payable(address(uint160(indexAddress(accountIndex)))).transfer(uint(total.ethNum) * 1 ether);
+        }
+        // 解冻资产
+        _unfreeze3(_accounts[accountIndex].balances, tokenAddress, uint(total.tokenValue), ntokenAddress, uint(total.ntokenValue), uint(total.nestValue));
+
+        _stat(channel, sheets, uint(config.priceEffectSpan));
+    }
+
+    function _stat(PriceChannel storage channel, PriceSheet[] storage sheets, uint priceEffectSpan) private {
 
         // 找到token的价格信息
-        PriceInfoV36 memory p0 = channel.price;
+        PriceInfo memory p0 = channel.price;
         
         // 报价单数组长度
         uint length = sheets.length;
@@ -930,7 +793,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint index = uint(p0.index);
         // 已经计算价格的最新区块高度
         uint prev = uint(p0.height);
-        // 用于计算价格的eth基数变量
+        // 用于计算价格的eth计数变量
         uint totalEth = 0; //uint(p0.remainNum);
         // 用于计算价格的token计数变量
         uint totalTokenValue = 0; //decodeFloat(p0.priceFraction, p0.priceExponent) * totalEth;
@@ -940,7 +803,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint price;
 
         // 遍历报价单，找到生效价格
-        PriceSheetV36 memory sheet;
+        PriceSheet memory sheet;
         for (; ; ) {
             
             // 从当前位置遍历已经达到生效间隔的报价单
@@ -1076,13 +939,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
             } (ntokenAddress);
 
             // 手动结算不需要更新佣金变量
-            //Config memory config = _config;
             channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (count << 128);
         }
     }
 
     // 将PriceSheet转化为PriceSheetView
-    function _toPriceSheetView(PriceSheetV36 memory sheet, uint index) private view returns (PriceSheetView memory) {
+    function _toPriceSheetView(PriceSheet memory sheet, uint index) private view returns (PriceSheetView memory) {
 
         return PriceSheetView(
             // 索引号
@@ -1110,19 +972,19 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param tokenAddress 目标token地址
     /// @param offset 跳过前面offset条记录
     /// @param count 返回count条记录
-    /// @param order 排序方式. 0倒序, 非0正序
+    /// @param order 排序方式。0倒序，非0正序
     /// @return 报价单列表
     function list(address tokenAddress, uint offset, uint count, uint order) override external view returns (PriceSheetView[] memory) {
         
-        PriceSheetV36[] storage sheets = _channels[tokenAddress].sheets;
+        PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         PriceSheetView[] memory result = new PriceSheetView[](count);
+        uint i = 0;
 
         // 倒序
         if (order == 0) {
 
             uint index = sheets.length - offset;
             uint end = index - count;
-            uint i = 0;
             while (index-- > end) {
                 result[i++] = _toPriceSheetView(sheets[index], index);
             }
@@ -1132,7 +994,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
             
             uint index = offset;
             uint end = index + count;
-            uint i = 0;
             while (index < end) {
                 result[i++] = _toPriceSheetView(sheets[index], index);
                 ++index;
@@ -1147,11 +1008,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return 预估的出矿量
     function estimate(address tokenAddress) override external view returns (uint) {
 
-        PriceSheetV36[] storage sheets = _channels[tokenAddress].sheets;
+        PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         uint index = sheets.length;
         while (index > 0) {
 
-            PriceSheetV36 memory sheet = sheets[--index];
+            PriceSheet memory sheet = sheets[--index];
             if (uint(sheet.level) == 0) {
                 
                 uint blocks = (block.number - uint(sheet.height));
@@ -1170,10 +1031,10 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev 查询目标报价单挖矿情况。
     /// @param tokenAddress token地址。ntoken不能挖矿，调用的时候请自行保证不要使用ntoken地址
     /// @param index 报价单地址
-    function getMinedBlocks(address tokenAddress, uint index) override public view returns (uint minedBlocks, uint count) {
+    function getMinedBlocks(address tokenAddress, uint index) override external view returns (uint minedBlocks, uint count) {
         
-        PriceSheetV36[] storage sheets = _channels[tokenAddress].sheets;
-        PriceSheetV36 memory sheet = sheets[index];
+        PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+        PriceSheet memory sheet = sheets[index];
         
         // 吃单报价或者ntoken报价不挖矿
         if (sheet.level > 0 /*|| INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress) == tokenAddress*/) {
@@ -1192,6 +1053,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     function withdraw(address tokenAddress, uint value) override external returns (uint) {
 
         // TODO: 用户锁定的nest和矿池的nest混合存储在一起，当nest挖完时，会出现将别人锁定的nest当作出矿取走的问题
+        // 由于nest挖完还需要较长时间，此问题惨不考虑
         Account storage account = _accounts[_accountMapping[msg.sender]];
         uint balance = account.balances[tokenAddress].value;
         require(balance >= value, "NM:!balance");
@@ -1297,19 +1159,19 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
     }
 
-    /// @dev 解冻token和nest
-    /// @param balances 账本
-    /// @param tokenAddress token地址
-    /// @param tokenValue token数量
-    /// @param nestValue nest数量
-    function _unfreeze2(mapping(address=>UINT) storage balances, address tokenAddress, uint tokenValue, uint nestValue) private {
+    // /// @dev 解冻token和nest
+    // /// @param balances 账本
+    // /// @param tokenAddress token地址
+    // /// @param tokenValue token数量
+    // /// @param nestValue nest数量
+    // function _unfreeze2(mapping(address=>UINT) storage balances, address tokenAddress, uint tokenValue, uint nestValue) private {
 
-        UINT storage balance = balances[tokenAddress];
-        balance.value = balance.value + tokenValue;
+    //     UINT storage balance = balances[tokenAddress];
+    //     balance.value = balance.value + tokenValue;
 
-        balance = balances[NEST_TOKEN_ADDRESS];
-        balance.value = balance.value + nestValue;
-    }
+    //     balance = balances[NEST_TOKEN_ADDRESS];
+    //     balance.value = balance.value + nestValue;
+    // }
 
     // /// @dev 冻结token和nest
     // /// @param balances 账本
@@ -1377,7 +1239,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     function triggeredPrice(address tokenAddress) override public view returns (uint blockNumber, uint price) {
 
         require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
-        PriceInfoV36 memory priceInfo = _channels[tokenAddress].price;
+        PriceInfo memory priceInfo = _channels[tokenAddress].price;
         if (uint(priceInfo.remainNum) > 0) {
             return (uint(priceInfo.height), decodeFloat(priceInfo.priceFraction, priceInfo.priceExponent));
         }
@@ -1393,7 +1255,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     function triggeredPriceInfo(address tokenAddress) override public view returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ) {
         
         require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
-        PriceInfoV36 memory priceInfo = _channels[tokenAddress].price;
+        PriceInfo memory priceInfo = _channels[tokenAddress].price;
 
         return (
             uint(priceInfo.height), 
@@ -1412,12 +1274,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
 
         Config memory config = _config;
-        PriceSheetV36[] storage sheets = _channels[tokenAddress].sheets;
+        PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         uint index = sheets.length;
 
         // 找到已经生效的报价单索引
         while (index > 0) { 
-            PriceSheetV36 memory sheet = sheets[--index];
+            PriceSheet memory sheet = sheets[--index];
             if (uint(sheet.height) + uint(config.priceEffectSpan) < block.number && uint(sheet.remainNum) > 0) {
                 
                 // 根据区块内的报价单计算价格
@@ -1440,9 +1302,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 }
 
                 // totalEth必然大于0
-                // if (totalEth > 0) {
-                //     return (height, totalTokenValue / totalEth);
-                // }
                 return (height, totalTokenValue / totalEth);
             }
         }
@@ -1471,7 +1330,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         (triggeredPriceBlockNumber, triggeredPriceValue, triggeredAvgPrice, triggeredSigmaSQ) = triggeredPriceInfo(tokenAddress);
     }
 
-    /// @dev 获取最新的触发价格
+    /// @dev 获取最新的触发价格（token和ntoken）
     /// @param tokenAddress 目标token地址
     /// @return blockNumber 价格所在区块号
     /// @return price 价格(1eth可以兑换多少token)
@@ -1482,7 +1341,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         (ntokenBlockNumber, ntokenPrice) = triggeredPrice(_getNTokenAddress(tokenAddress));
     }
 
-    /// @dev 获取最新的触发价格完整信息
+    /// @dev 获取最新的触发价格完整信息（token和ntoken）
     /// @param tokenAddress 目标token地址
     /// @return blockNumber 价格所在区块号
     /// @return price 价格（1eth可以兑换多少token）
@@ -1497,7 +1356,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         (ntokenBlockNumber, ntokenPrice, ntokenAvgPrice, ntokenSigmaSQ) = triggeredPriceInfo(_getNTokenAddress(tokenAddress));
     }
 
-    /// @dev 获取最新的生效价格
+    /// @dev 获取最新的生效价格（token和ntoken）
     /// @param tokenAddress 目标token地址
     /// @return blockNumber 价格所在区块号
     /// @return price 价格(1eth可以兑换多少token)

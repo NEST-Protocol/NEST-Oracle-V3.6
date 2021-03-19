@@ -23,7 +23,7 @@ interface INTokenController {
 
         // 开通ntoken需要支付的nest数量。10000 ether
         uint96 openFeeNestAmount;
-        
+
         // ntoken管理功能启用状态。0：未启用，1：已启用
         uint8 state;
     }
@@ -92,7 +92,7 @@ interface INTokenController {
     /// @dev 分页列出ntoken列表
     /// @param offset 跳过前面offset条记录
     /// @param count 返回count条记录
-    /// @param order 排序方式. 0倒序, 非0正序
+    /// @param order 排序方式。0倒序，非0正序
     /// @return ntoken列表
     function list(uint offset, uint count, uint order) external view returns (NTokenTag[] memory);
 }

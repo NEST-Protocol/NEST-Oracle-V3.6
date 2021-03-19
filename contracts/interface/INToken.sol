@@ -2,23 +2,41 @@
 
 pragma solidity ^0.8.0;
 
+/// @dev ntoken代币合约接口
 interface INToken {
-    
-    // mint ntoken for value
-    function mint(uint256 amount, address account) external;
-
-    // the block height where the ntoken was created
-    function checkBlockInfo() external view returns(uint256 createBlock, uint256 recentlyUsedBlock);
-    // the owner (auction winner) of the ntoken
-    function checkBidder() external view returns(address);
-    function totalSupply() external view returns (uint256);
-    function balanceOf(address account) external view returns (uint256);
-    function transfer(address recipient, uint256 amount) external returns (bool);
-    function allowance(address owner, address spender) external view returns (uint256);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-    
+        
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
+    /// @dev Mint 
+    /// @param amount The amount of NToken to add
+    /// @param account The account of NToken to add
+    function mint(uint256 amount, address account) external;
+        
+    /// @notice The view of variables about minting 
+    /// @dev The naming follows Nestv3.0
+    /// @return createBlock The block number where the contract was created
+    /// @return recentlyUsedBlock The block number where the last minting went
+    function checkBlockInfo() external view returns(uint256 createBlock, uint256 recentlyUsedBlock);
+
+    /// @dev The ABI keeps unchanged with old NTokens, so as to support token-and-ntoken-mining
+    /// @return The address of bidder
+    function checkBidder() external view returns(address);
+    
+    /// @notice The view of totalSupply
+    /// @return The total supply of ntoken
+    function totalSupply() external view returns (uint256);
+
+    /// @dev The view of balances
+    /// @param owner The address of an account
+    /// @return The balance of the account
+    function balanceOf(address owner) external view returns (uint256);
+
+    function allowance(address owner, address spender) external view returns (uint256); 
+
+    function transfer(address to, uint256 value) external returns (bool);
+
+    function approve(address spender, uint256 value) external returns (bool);
+
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
 }

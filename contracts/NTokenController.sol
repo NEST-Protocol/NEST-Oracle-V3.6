@@ -42,7 +42,7 @@ contract NTokenController is NestBase, INTokenController {
         return _config;
     }
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请调用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
@@ -88,7 +88,12 @@ contract NTokenController is NestBase, INTokenController {
     /// @param ntokenAddress ntoken地址
     /// @return token地址
     function getTokenAddress(address ntokenAddress) override external view returns (address) {
-        return _nTokenTagList[_nTokenTags[ntokenAddress] - 1].tokenAddress;
+
+        uint index = _nTokenTags[ntokenAddress];
+        if (index > 0) {
+            return _nTokenTagList[index - 1].tokenAddress;
+        }
+        return address(0);
     }
 
     /// @dev 获取token对应的ntoken地址
@@ -108,6 +113,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev Bad tokens should be banned 
     function disable(address tokenAddress) override external onlyGovernance
     {
+        // 当tokenAddress不存在时，_nTokenTags[tokenAddress] - 1会溢出错误
         _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = 0;
         emit NTokenDisabled(tokenAddress);
     }
@@ -115,6 +121,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev 启用ntoken
     function enable(address tokenAddress) override external onlyGovernance
     {
+        // 当tokenAddress不存在时，_nTokenTags[tokenAddress] - 1会溢出错误
         _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = 1;
         emit NTokenEnabled(tokenAddress);
     }
@@ -138,8 +145,8 @@ contract NTokenController is NestBase, INTokenController {
 
         // 创建nToken代币合约
         NToken ntoken = new NToken(strConcat("NToken",
-                getAddressStr(ntokenCounter)),
-                strConcat("N", getAddressStr(ntokenCounter))
+            getAddressStr(ntokenCounter)),
+            strConcat("N", getAddressStr(ntokenCounter))
         );
 
         address governance = _governance;
@@ -193,7 +200,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev 分页列出ntoken列表
     /// @param offset 跳过前面offset条记录
     /// @param count 返回count条记录
-    /// @param order 排序方式. 0倒序, 非0正序
+    /// @param order 排序方式。0倒序，非0正序
     /// @return ntoken列表
     function list(uint offset, uint count, uint order) override external view returns (NTokenTag[] memory) {
         

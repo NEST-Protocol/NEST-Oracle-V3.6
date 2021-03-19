@@ -18,12 +18,7 @@ contract NestBase {
     /// @dev 治理合约地址
 	address public _governance;
 
-    // function initialize(address nestDaoAddress) external {
-    //     require(msg.sender == dao, "NEST:!creater");
-    //     dao = nestDaoAddress;
-    // }
-
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请调用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) virtual public {
 
@@ -31,22 +26,6 @@ contract NestBase {
         require(governance == msg.sender || INestGovernance(governance).checkGovernance(msg.sender, 0));
         _governance = nestGovernanceAddress;
     }
-
-    //---------modifier------------
-
-    modifier onlyGovernance() {
-        require(INestGovernance(_governance).checkGovernance(msg.sender, 0), "NEST:!gov");
-        _;
-    }
-
-    modifier noContract() {
-        require(msg.sender == tx.origin, "NEST:!contract");
-        _;
-    }
-
-    // function setGovernance(address gov) public onlyGovernance {
-    //     governance = gov;
-    // }
 
     /// @dev 将当前合约的资金转走
     /// @param tokenAddress 目标token地址（0表示eth）
@@ -60,10 +39,16 @@ contract NestBase {
             TransferHelper.safeTransfer(tokenAddress, to, value);
         }
     }
+    
+    //---------modifier------------
 
-    // /// @dev 获取DAO合约地址
-    // /// @return DAO合约地址
-    // function getDaoAddress() public view returns (address) {
-    //     return _DAO;
-    // }
+    modifier onlyGovernance() {
+        require(INestGovernance(_governance).checkGovernance(msg.sender, 0), "NEST:!gov");
+        _;
+    }
+
+    modifier noContract() {
+        require(msg.sender == tx.origin, "NEST:!contract");
+        _;
+    }
 }

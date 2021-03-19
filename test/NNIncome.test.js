@@ -86,7 +86,7 @@ contract("NestMining", async accounts => {
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
-        await nestGovernance.register("nest.dao.redeeming", nestRedeeming.address);
+        await nestGovernance.registerAddress("nest.dao.redeeming", nestRedeeming.address);
 
         // 更新合约地址
         await nestLedger.update(nestGovernance.address);
@@ -106,32 +106,15 @@ contract("NestMining", async accounts => {
         
         await nestMining.setConfig({
         
-            // -- nest相关配置
-            // nest报价的eth单位。30
+            // 报价的eth单位。30
             // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
             postEthUnit: 30,
     
-            // nest报价的手续费（万分之一eth，DIMI_ETHER）。1000
+            // 报价的手续费（万分之一eth，DIMI_ETHER）。1000
             postFee: 1000,
     
-            // 废弃
-            // nest吃单的手续费比例（万分制，DIMI_ETHER）。0
-            biteFeeRate: 0,
-            
-            // -- ntoken相关配置
-            // ntoken报价的eth单位。10
-            // 可以通过将postEthUnit设置为0来停止报价和吃单（关闭和取回不受影响）
-            ntokenPostEthUnit: 10,
-    
-            // ntoken报价的手续费（万分之一eth，DIMI_ETHER）。1000
-            ntokenPostFee: 1000,
-    
-            // 废弃
-            // ntoken吃单的手续费比例（万分制，DIMI_ETHER）。0
-            ntokenBiteFeeRate: 0,
-    
             // 矿工挖到nest的比例（万分制）。8000
-            minerNestReward: 8000, // MINER_NEST_REWARD_PERCENTAGE
+            minerNestReward: 8000,
             
             // 矿工挖到的ntoken比例，只对3.0版本创建的ntoken有效（万分制）。9500
             minerNTokenReward: 9500,
@@ -152,9 +135,6 @@ contract("NestMining", async accounts => {
             // 报价抵押nest数量（单位千）。100
             pledgeNest: 100
         });
-
-        console.log(await nestMining.getConfig());
-        //return;
 
         await nestPriceFacade.setConfig({
 
@@ -280,6 +260,7 @@ contract("NestMining", async accounts => {
         await nestMining.close(usdt.address, 0);
         await nestMining.close(nest.address, 0);
 
+        //console.log('miningNest: ' + await nnIncome.miningNest());
         let earned = await nnIncome.earnedNest(account0);
         console.log("account1 earned nest: " + earned);
 

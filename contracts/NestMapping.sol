@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-//import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./lib/IERC20.sol";
 import "./interface/INestMapping.sol";
 import "./interface/INestQuery.sol";
@@ -159,14 +158,14 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @dev 注册地址。通过此处注册的地址，是被nest系统接受的地址
     /// @param key 地址标识
     /// @param addr 目标地址。0地址表示删除注册信息
-    function register(string memory key, address addr) override external onlyGovernance {
+    function registerAddress(string memory key, address addr) override external onlyGovernance {
         _registeredAddress[key] = addr;
     }
 
     /// @dev 查询注册地址
     /// @param key 地址标识
     /// @return 目标地址
-    function getAddress(string memory key) override external view returns (address) {
+    function checkAddress(string memory key) override external view returns (address) {
         return _registeredAddress[key];
     }
 }

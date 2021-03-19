@@ -77,7 +77,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
     //receive() external payable {}
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请调用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
@@ -334,7 +334,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     /// @dev 分页列出投票提案
     /// @param offset 跳过前面offset条记录
     /// @param count 返回count条记录
-    /// @param order 排序方式. 0倒序, 非0正序
+    /// @param order 排序方式。0倒序，非0正序
     /// @return 投票列表
     function list(uint offset, uint count, uint order) override external view returns (ProposalView[] memory) {
         
@@ -465,7 +465,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
     // 获取nest流通量
     function _getNestCirculation(IERC20 nest) private view returns (uint) {
-        
+
         return NEST_TOTAL_SUPPLY 
             - nest.balanceOf(_nestMiningAddress)
             - nest.balanceOf(_nnIncomeAddress)

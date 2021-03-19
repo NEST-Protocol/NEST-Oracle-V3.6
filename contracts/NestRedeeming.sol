@@ -51,7 +51,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
         return _config;
     }
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请调用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
@@ -130,7 +130,6 @@ contract NestRedeeming is NestBase, INestRedeeming {
                 quota = uint(config.nestLimit) * 1 ether;
             }
             redeemInfo.quota = uint128(block.number * uint(config.nestPerBlock) * 1 ether - (quota - amount));
-            //nestLedger = nestLedger + msg.value - value;
         } 
         // ntoken回购额度
         else {
@@ -139,12 +138,11 @@ contract NestRedeeming is NestBase, INestRedeeming {
                 quota = uint(config.ntokenLimit) * 1 ether;
             }
             redeemInfo.quota = uint128(block.number * uint(config.ntokenPerBlock) * 1 ether - (quota - amount));
-            //UINT storage balance = ntokenLedger[ntokenAddress];
-            //balance.value = balance.value + msg.value - value;
         }
 
         // 6. 检查回购额度和价格偏差
-        require(quota >= amount, "NestDAO:!amount");
+        // 无需此检查
+        // require(quota >= amount, "NestDAO:!amount");
         require(
             latestPriceValue <= triggeredAvgPrice * (10000 + uint(config.priceDeviationLimit)) / 10000 && 
             latestPriceValue >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)) / 10000, "NestDAO:!price");
@@ -155,12 +153,8 @@ contract NestRedeeming is NestBase, INestRedeeming {
         //payable(msg.sender).transfer(value);
         
         // 8. 结算资金
-        // 改为一个结算方法（settle）
-        //INestLedger(nestLedgerAddress).addReward { value: msg.value } (ntokenAddress);
-        INestLedger(nestLedgerAddress).pay(ntokenAddress, address(0), msg.sender, value);
-
         // 如果ntoken不是真正的ntoken，那么其在账本中应该也是没有资金的，无法完成结算，因此不再检查ntoken是否是合法的ntoken
-        //INestLedger(nestLedgerAddress).settle{ value: msg.value }(ntokenAddress, address(0), msg.sender, value);
+        INestLedger(nestLedgerAddress).pay(ntokenAddress, address(0), msg.sender, value);
     }
 
     /// @dev Get the current amount available for repurchase

@@ -124,7 +124,7 @@ interface INestVote {
     /// @dev 分页列出投票提案
     /// @param offset 跳过前面offset条记录
     /// @param count 返回count条记录
-    /// @param order 排序方式. 0倒序, 非0正序
+    /// @param order 排序方式。0倒序，非0正序
     /// @return 投票列表
     function list(uint offset, uint count, uint order) external view returns (ProposalView[] memory);
 

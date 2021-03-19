@@ -26,26 +26,6 @@ contract NestLedger is NestBase, INestLedger {
     mapping(address=>uint) _applications;
     address immutable NEST_TOKEN_ADDRESS;
 
-    // /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请条用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
-    // /// @param nestGovernanceAddress 治理合约地址
-    // function update(address nestGovernanceAddress) override public {
-    //     super.update(nestGovernanceAddress);
-
-    //     // (
-    //     //     , //address nestTokenAddress,
-    //     //     _nestLedgerAddress, //address nestLedgerAddress,
-              
-    //     //     , //address nestMiningAddress,
-    //     //     , //address nestPriceFacadeAddress,
-              
-    //     //     , //address nestVoteAddress,
-    //     //     _nestQueryAddress, //address nestQueryAddress,
-    //     //     , //address nnIncomeAddress,
-    //     //       //address nTokenControllerAddress
-              
-    //     // ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
-    // }
-
     /// @dev 修改配置
     /// @param config 配置结构体
     function setConfig(Config memory config) override external onlyGovernance {

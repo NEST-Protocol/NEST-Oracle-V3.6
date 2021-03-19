@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "./interface/INestGovernance.sol";
 import "./NestMapping.sol";
 
-/// @dev The contract is for redeeming nest token and getting ETH in return
+/// @dev 
 contract NestGovernance is NestMapping, INestGovernance {
 
     constructor() {

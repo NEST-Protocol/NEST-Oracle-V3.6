@@ -88,10 +88,10 @@ interface INestMapping {
     /// @dev 注册地址。通过此处注册的地址，是被nest系统接受的地址
     /// @param key 地址标识
     /// @param addr 目标地址。0地址表示删除注册信息
-    function register(string memory key, address addr) external;
+    function registerAddress(string memory key, address addr) external;
 
     /// @dev 查询注册地址
     /// @param key 地址标识
     /// @return 目标地址
-    function getAddress(string memory key) external view returns (address);
+    function checkAddress(string memory key) external view returns (address);
 }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./INestMapping.sol";
 
-/// @dev The contract is for redeeming nest token and getting ETH in return
+/// @dev 
 interface INestGovernance is INestMapping {
 
     /// @dev 设置治理权限
