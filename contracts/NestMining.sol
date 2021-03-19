@@ -121,43 +121,43 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev Mapping from address to index of account. address=>accountIndex
     mapping(address=>uint) _accountMapping;
 
-    /// @dev 报价通道。tokenAddress=>PriceChannel
+    /// @dev Mapping from token address to price channel. tokenAddress=>PriceChannel
     mapping(address=>PriceChannel) _channels;
 
-    /// @dev ntoken映射缓存。tokenAddress=>ntokenAddress
+    /// @dev Mapping from token address to ntoken address. tokenAddress=>ntokenAddress
     mapping(address=>address) _addressCache;
 
-    /// @dev 缓存ntoken创世区块号。ntokenAddress=>genesisBlockNumber
+    /// @dev Cache for genesis block number of ntoken. ntokenAddress=>genesisBlockNumber
     mapping(address=>uint) _genesisBlockNumberCache;
 
-    /// @dev 价格调用入口合约地址
+    /// @dev INestPriceFacade implemention contract address
     address _nestPriceFacadeAddress;
 
-    /// @dev NTokenController合约地址
+    /// @dev INTokenController implemention contract address
     address _nTokenControllerAddress;
 
-    /// @dev nest账本合约地址
+    /// @dev INestLegder implemention contract address
     address _nestLedgerAddress;
 
-    /// @dev nest代币合约地址
+    /// @dev Address of nest token contract
     address immutable NEST_TOKEN_ADDRESS; // = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
     
-    /// @dev nest创世区块号
+    /// @dev Genesis block number of nest
     uint immutable NEST_GENESIS_BLOCK; // = 6236588;	
 
-    /// @dev 万分之一eth，手续费单位
+    /// @dev Unit of post fee. 0.0001 ether
     uint constant DIMI_ETHER = 1 ether / 10000;
 
-    /// @dev 批量结算分红的掩码。测试时每16个报价单结算一次，线上版本256个报价单结算一次
+    /// @dev The mask of batch settlement dividend. During the test, it is settled once every 16 quotations and once every 256 quotations of the online version
     uint constant COLLECT_REWARD_MASK = 0xFF;
     
-    /// @dev 以太坊平均出块时间间隔，14秒
+    /// @dev Ethereum average block time interval, 14 seconds
     uint constant ETHEREUM_BLOCK_TIMESPAN = 14;
 
-    /* ========== 治理相关 ========== */
+    /* ========== Governance ========== */
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请调用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
     function update(address nestGovernanceAddress) override public {
         
         super.update(nestGovernanceAddress);
@@ -184,21 +184,21 @@ contract NestMining is NestBase, INestMining, INestQuery {
         ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
     }
 
-    /// @dev 修改配置
-    /// @param config 配置对象
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
         _config = config;
     }
 
-    /// @dev 获取配置
-    /// @return 配置对象
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() override external view returns (Config memory) {
         return _config;
     }
 
-    /* ========== 报价相关 ========== */
+    /* ========== Mining ========== */
 
-    // 获取token对应的ntoken地址
+    // Get ntoken address of from token address
     function _getNTokenAddress(address tokenAddress) private returns (address) {
         
         // 处理禁用ntoken后导致的缓存问题
@@ -212,7 +212,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         return ntokenAddress;
     }
 
-    // 获取ntoken的创世区块
+    // Get genesis block number of ntoken
     function _getNTokenGenesisBlock(address ntokenAddress) private returns (uint) {
 
         uint genesisBlockNumber = _genesisBlockNumberCache[ntokenAddress];
@@ -224,16 +224,16 @@ contract NestMining is NestBase, INestMining, INestQuery {
         return genesisBlockNumber;
     }
 
-    /// @dev 清空缓存的ntoken信息。如果发生ntoken被禁用后重建，需要调用此方法
-    /// @param tokenAddress token地址
+    /// @dev Clear chache of token. while ntoken recreated, this method is need to call
+    /// @param tokenAddress Token address
     function resetNTokenCache(address tokenAddress) public {
 
-        // 清除缓存
+        // Clear cache
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         _genesisBlockNumberCache[ntokenAddress] = 0;
         _addressCache[tokenAddress] = _addressCache[ntokenAddress] = address(0);
 
-        // 重新加载
+        // Reload
         _getNTokenAddress(tokenAddress);
         _getNTokenAddress(ntokenAddress);
         _getNTokenGenesisBlock(ntokenAddress);
@@ -248,43 +248,43 @@ contract NestMining is NestBase, INestMining, INestQuery {
         
         Config memory config = _config;
 
-        // 1. 参数检查
+        // 1. Check arguments
         require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NM:!ethNum");
         require(tokenAmountPerEth > 0, "NM:!price");
         
-        // 2. 手续费
+        // 2. Calculate fee
         uint fee = uint(config.postFee) * DIMI_ETHER;
         require(msg.value == fee + ethNum * 1 ether, "NM:!value");
 
-        // 3. 检查报价轨道
-        // 检查是否允许单轨报价
+        // 3. Check price channel
+        // Check if the token allow post
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         require(ntokenAddress != address(0) && ntokenAddress != tokenAddress, "NM:!tokenAddress");
-        // nest单位不同，但是也早已经超过此发行数量，不再做额外判断
-        // ntoken采用关闭时出矿（或者取回时出矿），可能存在用户故意不关闭，或者故意不取回，导致总量判断不准确的问题。忽略
+        // Unit of nest is different, but the total supply already exceeded the number of this issue. No additional judgment will be made
+        // ntoken is mint when the price sheet is closed (or retrieved), this may be the problem that the user intentionally does not close or retrieve, which leads to the inaccurate judgment of the total amount. ignore
         require(IERC20(ntokenAddress).totalSupply() < uint(config.doublePostThreshold) * 10000 ether, "NM:!post2");        
 
-        // 4. 存入收益
+        // 4. Deposit fee
         PriceChannel storage channel = _channels[tokenAddress];
         PriceSheet[] storage sheets = channel.sheets;
-        // 每隔256个报价单存入一次收益，扣除吃单的次数和已结算部分
+        // The revenue is deposited every 256 quotations, deducting the times of taking orders and the settled part
         uint length = sheets.length;
         _collect(channel, ntokenAddress, length, fee, fee);
 
-        // 5. 冻结资产
+        // 5. Freezing assets
         uint accountIndex = _addressIndex(msg.sender);
-        // 冻结token，nest
-        // 由于使用浮点表示法(uint48 fraction, uint8 exponent)会带来一定的精度损失
-        // 按照tokenAmountPerEth * ethNum冻结资产后，退回的时候可能损失精度差部分
-        // 实际应该按照decodeFloat(fraction, exponent) * ethNum来冻结
-        // 但是考虑到损失在1/10^14以内，因此忽略此处的损失，精度损失的部分，将来可以作为系统收益转出
+        // Freeze token and nest
+        // Because of the use of floating-point representation(uint48 fraction, uint8 exponent), it may bring some precision loss
+        // After assets are frozen according to tokenAmountPerEth * ethNum, the part with poor accuracy may be lost when the assets are returned
+        // It should be frozen according to decodeFloat(fraction, exponent) * ethNum
+        // However, considering that the loss is less than 1 / 10 ^ 14, the loss here is ignored, and the part of precision loss can be transferred out as system income in the future
         _freeze2(_accounts[accountIndex].balances, tokenAddress, tokenAmountPerEth * ethNum, uint(config.pledgeNest) * 1000 ether);
 
-        // 6. 计算价格
-        // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
+        // 6. Calculate the price
+        // According to the current mechanism, the newly added quotation cannot take effect, so the calculated price is placed before the quotation is added, which can reduce unnecessary traversal
         _stat(channel, sheets, uint(config.priceEffectSpan));
 
-        // 7. 创建报价单
+        // 7. Create price sheet
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
         _createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.pledgeNest), 0, tokenAmountPerEth);
     }
@@ -299,53 +299,50 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         Config memory config = _config;
 
-        // 1. 参数检查
+        // 1. Check arguments
         require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NM:!ethNum");
         require(tokenAmountPerEth > 0 && ntokenAmountPerEth > 0, "NM:!price");
         
-        // 2. 手续费
-        // ******** tmp是多用途变量，从此处开始表示fee
+        // 2. Calculate fee
+        // ******** 'tmp' is a multi-purpose variable, from which we begin to express 'fee'
         uint tmp = uint(config.postFee) * DIMI_ETHER;
         require(msg.value == tmp + ethNum * 2 ether, "NM:!value");
 
-        // 3. 检查报价轨道
+        // 3. Check price channel
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         require(ntokenAddress != address(0) && ntokenAddress != tokenAddress, "NM:!tokenAddress");
 
-        // 4. 存入收益
+        // 4. Deposit fee
         PriceChannel storage channel = _channels[tokenAddress];
         PriceSheet[] storage sheets = channel.sheets;
-        // 每隔256个报价单存入一次收益，扣除吃单的次数和已结算部分
+        // The revenue is deposited every 256 quotations, deducting the times of taking orders and the settled part
         uint length = sheets.length;
         _collect(channel, ntokenAddress, length, tmp, tmp);
 
-        // 5. 冻结资产
+        // 5. Freezing assets
         uint accountIndex = _addressIndex(msg.sender);
         mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-        // ******** tmp是多用途变量，从此处开始表示config.pledgeNest
+        // ******** 'tmp' is a multi-purpose variable, from which we begin to express 'config.pledgeNest'
         tmp = uint(config.pledgeNest);
         _freeze(balances, tokenAddress, ethNum * tokenAmountPerEth);
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             _freeze(balances, NEST_TOKEN_ADDRESS, ethNum * ntokenAmountPerEth + tmp * 1000 ether);
         } else {
-            // TODO: token和ntoken一起冻结
-            //_freeze(balances, ntokenAddress, ethNum * ntokenAmountPerEth);
-            //_freeze(balances, NEST_TOKEN_ADDRESS, tmp * 2000 ether);
             _freeze2(balances, ntokenAddress, ethNum * ntokenAmountPerEth, tmp * 2000 ether);
         }
         
-        // 6. 计算价格
-        // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
+        // 6. Calculate the price
+        // According to the current mechanism, the newly added quotation cannot take effect, so the calculated price is placed before the quotation is added, which can reduce unnecessary traversal
         _stat(channel, sheets, uint(config.priceEffectSpan));
 
-        // 7. 创建报价单
+        // 7. Create price sheet
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
         _createPriceSheet(sheets, accountIndex, uint32(ethNum), tmp, 0, tokenAmountPerEth);
 
         channel = _channels[ntokenAddress];
         sheets = channel.sheets;
 
-        // 根据目前的机制，刚添加的报价单不可能生效，因此计算价格放在添加报价单之前，这样可以减少不必要的遍历
+        // According to the current mechanism, the newly added quotation cannot take effect, so the calculated price is placed before the quotation is added, which can reduce unnecessary traversal
         _stat(channel, sheets, uint(config.priceEffectSpan));
         emit Post(ntokenAddress, msg.sender, sheets.length, ethNum, ntokenAmountPerEth);
         _createPriceSheet(sheets, accountIndex, uint32(ethNum), tmp, 0, ntokenAmountPerEth);
@@ -361,22 +358,22 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         Config memory config = _config;
 
-        // 1.参数检查
+        // 1. Check arguments
         require(biteNum > 0 && biteNum % uint(config.postEthUnit) == 0, "NM:!biteNum");
         require(newTokenAmountPerEth > 0, "NM:!price");
 
-        // 2.加载报价单
+        // 2. Load price sheet
         PriceChannel storage channel = _channels[tokenAddress];
         PriceSheet[] storage sheets = channel.sheets;
         PriceSheet memory sheet = sheets[index];
 
-        // 3.检查报价单状态
+        // 3. Check state
         require(uint(sheet.remainNum) >= biteNum, "NM:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
-        // 4. 存入收益
+        // 4. Deposit fee
         {
-            // 每隔256个报价单存入一次收益，扣除吃单的次数和已结算部分
+            // The revenue is deposited every 256 quotations, deducting the times of taking orders and the settled part
             address ntokenAddress = _getNTokenAddress(tokenAddress);
             if (tokenAddress != ntokenAddress) {
                 _collect(channel, ntokenAddress, sheets.length, 0, uint(config.postFee) * DIMI_ETHER);

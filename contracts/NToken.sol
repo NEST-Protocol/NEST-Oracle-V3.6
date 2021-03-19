@@ -40,7 +40,7 @@ contract NToken is NestBase, INToken {
         _state = block.number;
     }
 
-    /// @dev 在实现合约中重写，用于加载其他的合约地址。重写时请调用super.update(nestGovernanceAddress)，并且重写方法不要加上onlyGovernance
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
@@ -80,7 +80,7 @@ contract NToken is NestBase, INToken {
     function checkBidder() override public view returns(address) {
         return _nestMiningAddress;
     }
-    
+
     /// @notice The view of totalSupply
     /// @return The total supply of ntoken
     function totalSupply() override public view returns (uint256) {
