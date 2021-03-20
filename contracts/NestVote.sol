@@ -10,7 +10,7 @@ import "./interface/IVotePropose.sol";
 import "./interface/INestGovernance.sol";
 import "./NestBase.sol";
 
-/// @dev nest投票合约
+/// @dev nest voting contract, implemented the voting logic
 contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     
     // NOTE: to support open-zeppelin/upgrades, leave it blank
@@ -22,42 +22,44 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         uint value;
     }
 
-    /// @dev 提案
+    /// @dev Proposal information
     struct Proposal {
 
-        // 将固定字段和变动字段分开存储，
-        /* ========== 固定字段 ========== */
+        // The immutable field and the variable field are stored separately
+        /* ========== Immutable field ========== */
 
-        // 提案简介
+        // Brief of this proposal
         string brief;
 
-        // 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
+        // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
         address contractAddress;
 
-        // 投票开始时间
+        // Voting start time
         uint48 startTime;
 
-        // 投票截止时间
+        // Voting stop time
         uint48 stopTime;
 
-        // 提案者
+        // Proposer
         address proposer;
 
-        // 抵押的nest
+        // Staked nest amount
         uint96 staked;
 
-        /* ========== 变动字段 ========== */
-        // 获得的投票量
-        // uint96可以表示的最大值为79228162514264337593543950335，超过nest总量10000000000 ether，因此可以用uint96表示得票总量
+        /* ========== Mutable field ========== */
+
+        // Gained value
+        // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
+        // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
         uint96 gainValue;
 
-        // 提案状态
+        // The state of this proposal
         uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
 
-        // 提案执行者
+        // The executor of this proposal
         address executor;
 
-        // 执行时间（如果有，例如区块号或者时间戳）放在合约里面，由合约自行限制
+        // The execution time (if any, such as block number or time stamp) is placed in the contract and is limited by the contract itself
     }
     
     Config _config;
@@ -75,10 +77,9 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
     uint constant NEST_TOTAL_SUPPLY = 10000000000 ether;
 
-    //receive() external payable {}
-
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
+    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
 
@@ -104,51 +105,51 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
     }
 
-    /// @dev 修改配置
-    /// @param config 配置结构体
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
         _config = config;
     }
 
-    /// @dev 获取配置
-    /// @return 配置结构体
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() override external view returns (Config memory) {
         return _config;
     }
 
     /* ========== VOTE ========== */
     
-    /// @dev 发起投票提案
-    /// @param contractAddress 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
-    /// @param brief 提案简介
+    /// @dev Initiate a voting proposal
+    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param brief Brief of this propose
     function propose(address contractAddress, string memory brief) override external noContract
     {
-        // 目标地址不能已经拥有治理权限，防止治理权限被覆盖
+        // The target address cannot already have governance permission to prevent the governance permission from being covered
         require(!INestGovernance(_governance).checkGovernance(contractAddress, 0), "NestVote:!governance");
      
         Config memory config = _config;
         uint index = _proposalList.length;
 
-        // 创建投票结构
+        // Create voting structure
         _proposalList.push(Proposal(
         
-            // 提案简介
+            // Brief of this propose
             //string brief;
             brief,
 
-            // 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
+            // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
             //address contractAddress;
             contractAddress,
 
-            // 投票开始时间
+            // Voting start time
             //uint48 startTime;
             uint48(block.timestamp),
 
-            // 投票截止时间
+            // Voting stop time
             //uint48 stopTime;
             uint48(block.timestamp + uint(config.voteDuration)),
 
-            // 提案者
+            // Proposer
             //address proposer;
             msg.sender,
 
@@ -161,181 +162,170 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             address(0)
         ));
 
-        // 抵押nest
+        // Stake nest
         IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking));
 
         emit NIPSubmitted(msg.sender, contractAddress, index);
     }
 
-    /// @dev 投票
-    /// @param index 提案编号
-    /// @param value 投票的nest数量
+    /// @dev vote
+    /// @param index Index of proposal
+    /// @param value Amount of nest to vote
     function vote(uint index, uint value) override external noContract
     {
-        // 1. 加载投票结构
+        // 1. Load the proposal
         Proposal memory p = _proposalList[index];
 
-        // 2. 检查
-        // 检查是否在截止时间内
-        // 注意，截止时间不包括stopTime
+        // 2. Check
+        // Check time region
+        // Note: stop time is not include stopTime
         require (block.timestamp >= uint(p.startTime) && block.timestamp < uint(p.stopTime), "NestVote:!time");
         require (p.state == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
 
-        // 3. 增加投票账本
+        // 3. Update voting ledger
         UINT storage balance = _stakedLedger[index][msg.sender];
         balance.value += value;
 
-        // 4. 更新投票信息
-        // 增加投票的nest
-        // 更新得票量
+        // 4. Update voting information
         _proposalList[index].gainValue = uint96(uint(p.gainValue) + value);
 
-        // 5. 抵押nest
+        // 5. Stake nest
         IERC20(_nestTokenAddress).transferFrom(msg.sender, address(this), value);
 
         emit NIPVote(msg.sender, index, value);
     }
 
-    /// @dev 取回投票的nest，如果目标投票处于投票中的状态，则会取消相应的得票量
-    /// @param index 提案编号
+    /// @dev Withdraw the nest of the vote. If the target vote is in the voting state, the corresponding number of votes will be cancelled
+    /// @param index Index of the proposal
     function withdraw(uint index) override external noContract
     {
-        // 1. 加载投票结构
-        //Proposal memory p = _proposalList[index];
-
-        // 2. 检查
-        //require (uint(p.state) > PROPOSAL_STATE_PROPOSED || block.timestamp >= uint(p.stopTime), "NestVote:!state");
-        //if (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED))
-
-        // 3. 更新账本
+        // 1. Update voting ledger
         UINT storage balance = _stakedLedger[index][msg.sender];
         uint balanceValue = balance.value;
         balance.value = 0;
 
-        // 4. 提案状态取回，需要更新得票量
+        // 2. In the proposal state, the number of votes obtained needs to be updated
         if (uint(_proposalList[index].state) == PROPOSAL_STATE_PROPOSED) {
             _proposalList[index].gainValue = uint96(_proposalList[index].gainValue - balanceValue);
         }
 
-        // 4. 退回抵押的nest
+        // 4. Return staked nest
         IERC20(_nestTokenAddress).transfer(address(msg.sender), balanceValue);
     }
 
-    /// @dev 执行投票
-    /// @param index 提案编号
+    /// @dev Execute the proposal
+    /// @param index Index of the proposal
     function execute(uint index) override external noContract
     {
         Config memory config = _config;
 
-        // 1. 加载投票结构
+        // 1. Load proposal
         Proposal memory p = _proposalList[index];
 
-        // 2. 检查
+        // 2. Check status
         require (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
         require (block.timestamp < uint(p.stopTime), "NestVote:!time");
-        // 目标地址不能已经拥有治理权限，防止治理权限被覆盖
+        // The target address cannot already have governance permission to prevent the governance permission from being covered
         address governance = _governance;
         require(!INestGovernance(governance).checkGovernance(p.contractAddress, 0), "NestVote:!governance");
 
-        // 3. 检查得票率
-        // 判断投票是否通过
+        // 3. Check the gaine rate
         IERC20 nest = IERC20(_nestTokenAddress);
 
-        // 计算nest流通量
+        // Calculate the circulation of nest
         uint nestCirculation = getNestCirculation();
         require(uint(p.gainValue) >= nestCirculation * uint(config.acceptance) / 10000, "NestVote:!gainValue");
 
-        // 3. 授予执行权限
+        // 3. Temporarily grant execution permission
         INestGovernance(governance).setGovernance(p.contractAddress, 1);
 
-        // 4. 执行
+        // 4. Execute
         _proposalList[index].state = PROPOSAL_STATE_ACCEPTED;
         _proposalList[index].executor = address(msg.sender);
         IVotePropose(p.contractAddress).run();
 
-        // 4. 删除执行权限
+        // 5. Delete execution permission
         INestGovernance(governance).setGovernance(p.contractAddress, 0);
         
-        // 退回nest
+        // Return nest
         nest.transfer(p.proposer, uint(p.staked));
 
         emit NIPExecute(msg.sender, index);
     }
 
-    /// @dev 取消投票
-    /// @param index 提案编号
+    /// @dev Cancel the proposal
+    /// @param index Index of the proposal
     function calcel(uint index) override external noContract {
-        // 1. 加载投票结构
+
+        // 1. Load proposal
         Proposal memory p = _proposalList[index];
 
-        // 2. 检查
+        // 2. Check state
         require (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
         require (block.timestamp >= uint(p.stopTime), "NestVote:!time");
 
-        // 3. 更新状态
+        // 3. Update status
         _proposalList[index].state = PROPOSAL_STATE_CANCELLED;
 
-        // 4. 退回抵押的nest
+        // 4. Return staked nest
         IERC20(_nestTokenAddress).transfer(p.proposer, uint(p.staked));
     }
 
-    /// @dev 获取投票信息
-    /// @param index 提案编号
-    /// @return 投票信息结构体
+    /// @dev Get proposal information
+    /// @param index Index of the proposal
+    /// @return Proposal information
     function getProposeInfo(uint index) override external view returns (ProposalView memory) {
         
         Proposal memory proposal = _proposalList[index];
         return ProposalView(
-            //uint index;
+            // Index of the proposal
             index,
-            // 将固定字段和变动字段分开存储，
-            /* ========== 固定字段 ========== */
-            // 提案简介
+            // Brief of proposal
             //string brief;
             proposal.brief,
-            // 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
+            // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
             //address contractAddress;
             proposal.contractAddress,
-            // 投票开始时间
+            // Voting start time
             //uint48 startTime;
             proposal.startTime,
-            // 投票截止时间
+            // Voting stop time
             //uint48 stopTime;
             proposal.stopTime,
-            // 提案者
+            // Proposer
             //address proposer;
             proposal.proposer,
-            // 抵押的nest
+            // Staked nest amount
             //uint96 staked;
             proposal.staked,
-            /* ========== 变动字段 ========== */
-            // 获得的投票量
-            // uint96可以表示的最大值为79228162514264337593543950335，超过nest总量10000000000 ether，因此可以用uint96表示得票总量
+            // Gained value
+            // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
+            // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
             //uint96 gainValue;
             proposal.gainValue,
-            // 提案状态
+            // The state of this proposal
             //uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
             proposal.state,
-            // 提案执行者
+            // The executor of this proposal
             //address executor;
             proposal.executor,
 
-            // nest流通量
+            // Circulation of nest
             uint96(getNestCirculation())
         );
     }
 
-    /// @dev 获取累计投票提案数量
-    /// @return 累计投票提案数量
+    /// @dev Get the cumulative number of voting proposals
+    /// @return The cumulative number of voting proposals
     function getProposeCount() override external view returns (uint) {
         return _proposalList.length;
     }
 
-    /// @dev 分页列出投票提案
-    /// @param offset 跳过前面offset条记录
-    /// @param count 返回count条记录
-    /// @param order 排序方式。0倒序，非0正序
-    /// @return 投票列表
+    /// @dev List proposals by page
+    /// @param offset Skip previous (offset) records
+    /// @param count Return (count) records
+    /// @param order Order. 0 reverse order, non-0 positive order
+    /// @return List of price proposals
     function list(uint offset, uint count, uint order) override external view returns (ProposalView[] memory) {
         
         Proposal[] storage proposalList = _proposalList;
@@ -343,7 +333,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         Proposal memory proposal;
         uint nestCirculation = getNestCirculation();
 
-        // 倒序
+        // Reverse order
         if (order == 0) {
 
             uint index = proposalList.length - offset;
@@ -353,55 +343,53 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
                 proposal = proposalList[--index];
                 result[i++] = ProposalView(
-                    //uint index;
+                    // Index of the proposal
                     index,
-                    // 将固定字段和变动字段分开存储，
-                    /* ========== 固定字段 ========== */
 
-                    // 提案简介
+                    // Brief of proposal
                     //string brief;
                     proposal.brief,
 
-                    // 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
+                    // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
                     //address contractAddress;
                     proposal.contractAddress,
 
-                    // 投票开始时间
+                    // Voting start time
                     //uint48 startTime;
                     proposal.startTime,
 
-                    // 投票截止时间
+                    // Voting stop time
                     //uint48 stopTime;
                     proposal.stopTime,
 
-                    // 提案者
+                    // Proposer
                     //address proposer;
                     proposal.proposer,
 
-                    // 抵押的nest
+                    // Staked nest amount
                     //uint96 staked;
                     proposal.staked,
 
-                    /* ========== 变动字段 ========== */
-                    // 获得的投票量
-                    // uint96可以表示的最大值为79228162514264337593543950335，超过nest总量10000000000 ether，因此可以用uint96表示得票总量
+                    // Gained value
+                    // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
+                    // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
                     //uint96 gainValue;
                     proposal.gainValue,
 
-                    // 提案状态
+                    // The state of this proposal
                     //uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
                     proposal.state,
 
-                    // 提案执行者
+                    // The executor of this proposal
                     //address executor;
                     proposal.executor,
 
-                    // nest流通量
+                    // Circulation of nest
                     uint96(nestCirculation)
                 );
             }
         } 
-        // 正序
+        // Positive sequence
         else {
             
             uint index = offset;
@@ -411,50 +399,48 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
                 proposal = proposalList[index];
                 result[i++] = ProposalView(
-                    //uint index;
+                    // Index of the proposal
                     index++,
-                    // 将固定字段和变动字段分开存储，
-                    /* ========== 固定字段 ========== */
 
-                    // 提案简介
+                    // Brief of proposal
                     //string brief;
                     proposal.brief,
 
-                    // 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
+                    // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
                     //address contractAddress;
                     proposal.contractAddress,
 
-                    // 投票开始时间
+                    // Voting start time
                     //uint48 startTime;
                     proposal.startTime,
 
-                    // 投票截止时间
+                    // Voting stop time
                     //uint48 stopTime;
                     proposal.stopTime,
 
-                    // 提案者
+                    // Proposer
                     //address proposer;
                     proposal.proposer,
 
-                    // 抵押的nest
+                    // Staked nest amount
                     //uint96 staked;
                     proposal.staked,
 
-                    /* ========== 变动字段 ========== */
-                    // 获得的投票量
-                    // uint96可以表示的最大值为79228162514264337593543950335，超过nest总量10000000000 ether，因此可以用uint96表示得票总量
+                    // Gained value
+                    // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
+                    // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
                     //uint96 gainValue;
                     proposal.gainValue,
 
-                    // 提案状态
+                    // The state of this proposal
                     //uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
                     proposal.state,
 
-                    // 提案执行者
+                    // The executor of this proposal
                     //address executor;
                     proposal.executor,
 
-                    // nest流通量
+                    // Circulation of nest
                     uint96(nestCirculation)
                 );
             }
@@ -463,7 +449,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         return result;
     }
 
-    // 获取nest流通量
+    // Get Circulation of nest
     function _getNestCirculation(IERC20 nest) private view returns (uint) {
 
         return NEST_TOTAL_SUPPLY 
@@ -473,8 +459,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             - nest.balanceOf(address(0x1));
     }
 
-    /// @dev 获取nest流通量
-    /// @return nest流通量
+    /// @dev Get Circulation of nest
+    /// @return Circulation of nest
     function getNestCirculation() override public view returns (uint) {
         return _getNestCirculation(IERC20(_nestTokenAddress));
     }

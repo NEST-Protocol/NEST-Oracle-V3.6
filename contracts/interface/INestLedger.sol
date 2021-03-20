@@ -2,55 +2,55 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev nest账本合约
+/// @dev Defines methods for nest ledger contract
 interface INestLedger {
 
-    /// @dev nest账本合约配置结构体
+    /// @dev Configuration structure of nest ledger contract
     struct Config {
         
-        // nest分成（万分制）。2000
+        // nest reward scale(10000 based). 2000
         uint32 nestRewardScale;
 
-        // ntoken分成（万分制）。8000
+        // ntoken reward scale(10000 based). 8000
         uint32 ntokenRedardScale;
     }
     
-    /// @dev 修改配置
-    /// @param config 配置结构体
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) external;
 
-    /// @dev 获取配置
-    /// @return 配置结构体
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() external view returns (Config memory);
 
-    /// @dev 设置DAO应用
-    /// @param addr DAO应用地址
-    /// @param flag 授权标记，1表示授权，0表示取消授权
+    /// @dev Set DAO application
+    /// @param addr DAO application contract address
+    /// @param flag Authorization flag, 1 means authorization, 0 means cancel authorization
     function setApplication(address addr, uint flag) external;
 
-    /// @dev ntoken收益
-    /// @param ntokenAddress ntoken地址
-    function addReward(address ntokenAddress) external payable;
-
-    /// @dev 收益分成
-    /// @param ntokenAddress ntoken地址
+    /// @dev Carve reward
+    /// @param ntokenAddress Destination ntoken address
     function carveReward(address ntokenAddress) external payable;
+
+    /// @dev Add reward
+    /// @param ntokenAddress Destination ntoken address
+    function addReward(address ntokenAddress) external payable;
 
     /// @dev The function returns eth rewards of specified ntoken
     /// @param ntokenAddress The notoken address
     function totalRewards(address ntokenAddress) external view returns (uint);
 
-    /// @dev 支付资金
-    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
-    /// @param tokenAddress 接收资金的token地址（0表示eth）
-    /// @param to 接收资金的地址
-    /// @param value 接收资金的数量
+    /// @dev Pay
+    /// @param ntokenAddress Destination ntoken address. Indicates which ntoken to pay with
+    /// @param tokenAddress Token address of receiving funds (0 means ETH)
+    /// @param to Address to receive
+    /// @param value Amount to receive
     function pay(address ntokenAddress, address tokenAddress, address to, uint value) external;
 
-    /// @dev 结算资金
-    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
-    /// @param tokenAddress 接收资金的token地址（0表示eth）
-    /// @param to 接收资金的地址
-    /// @param value 接收资金的数量
+    /// @dev Settlement
+    /// @param ntokenAddress Destination ntoken address. Indicates which ntoken to settle with
+    /// @param tokenAddress Token address of receiving funds (0 means ETH)
+    /// @param to Address to receive
+    /// @param value Amount to receive
     function settle(address ntokenAddress, address tokenAddress, address to, uint value) external payable;
 }

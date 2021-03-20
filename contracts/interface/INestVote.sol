@@ -2,133 +2,134 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev 投票合约
+/// @dev nest voting interface
 interface INestVote {
 
-    /// @dev 提交投票提案事件
-    /// @param proposer 发起者地址
-    /// @param contractAddress 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
-    /// @param index 提案编号
+    /// @dev Event of submitting a voting proposal
+    /// @param proposer Proposer address
+    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param index Index of proposal
     event NIPSubmitted(address proposer, address contractAddress, uint index);
 
-    /// @dev 投票事件
-    /// @param voter 投票者地址
-    /// @param index 提案编号
-    /// @param amount 投票数量
+    /// @dev Voting event
+    /// @param voter Voter address
+    /// @param index Index of proposal
+    /// @param amount Amount of nest to vote
     event NIPVote(address voter, uint index, uint amount);
-    //event NIPWithdraw(address voter, uint index, uint blnc);
-    //event NIPRevoke(address voter, uint index, uint amount);
 
-    /// @dev 提案执行事件
-    /// @param executor 执行者地址
-    /// @param index 提案编号
+    /// @dev Proposal execute event
+    /// @param executor Executor address
+    /// @param index Index of proposal
     event NIPExecute(address executor, uint index);
 
-    /// @dev 投票合约配置结构体
+    /// @dev Voting contract configuration structure
     struct Config {
 
-        // 投票通过需要的比例（万分制）。5100
+        // Proportion of votes required (10000 based). 5100
         uint32 acceptance;
 
-        // 投票时间周期。5 * 86400秒
+        // Voting time cycle (seconds). 5 * 86400
         uint64 voteDuration;
 
-        // 投票需要抵押的nest数量。100000 nest
+        // The number of nest votes need to be staked. 100000 nest
         uint96 proposalStaking;
     }
 
-    // 提案
+    // Proposal
     struct ProposalView {
 
+        // Index of proposal
         uint index;
         
-        // 将固定字段和变动字段分开存储，
-        /* ========== 固定字段 ========== */
+        // The immutable field and the variable field are stored separately
+        /* ========== Immutable field ========== */
 
-        // 提案简介
+        // Brief of this proposal
         string brief;
 
-        // 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
+        // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
         address contractAddress;
 
-        // 投票开始时间
+        // Voting start time
         uint48 startTime;
 
-        // 投票截止时间
+        // Voting stop time
         uint48 stopTime;
 
-        // 提案者
+        // Proposer
         address proposer;
 
-        // 抵押的nest
+        // Staked nest amount
         uint96 staked;
 
-        /* ========== 变动字段 ========== */
-        // 获得的投票量
-        // uint96可以表示的最大值为79228162514264337593543950335，超过nest总量10000000000 ether，因此可以用uint96表示得票总量
+        /* ========== Mutable field ========== */
+
+        // Gained value
+        // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
+        // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
         uint96 gainValue;
 
-        // 提案状态
+        // The state of this proposal
         uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
 
-        // 提案执行者
+        // The executor of this proposal
         address executor;
 
-        // 执行时间（如果有，例如区块号或者时间戳）放在合约里面，由合约自行限制
+        // The execution time (if any, such as block number or time stamp) is placed in the contract and is limited by the contract itself
 
-        // nest总流通量
+        // Circulation of nest
         uint96 nestCirculation;
     }
     
-    /// @dev 修改配置
-    /// @param config 配置结构体
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) external;
 
-    /// @dev 获取配置
-    /// @return 配置结构体
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() external view returns (Config memory);
 
     /* ========== VOTE ========== */
     
-    /// @dev 发起投票提案
-    /// @param contractAddress 提案通过后，要执行的合约地址(需要实现IVotePropose接口)
-    /// @param brief 提案简介
+    /// @dev Initiate a voting proposal
+    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param brief Brief of this propose
     function propose(address contractAddress, string memory brief) external;
 
-    /// @dev 投票
-    /// @param index 提案编号
-    /// @param value 投票的nest数量
+    /// @dev vote
+    /// @param index Index of proposal
+    /// @param value Amount of nest to vote
     function vote(uint index, uint value) external;
 
-    /// @dev 取回投票的nest，如果目标投票处于投票中的状态，则会取消相应的得票量
-    /// @param index 提案编号
+    /// @dev Withdraw the nest of the vote. If the target vote is in the voting state, the corresponding number of votes will be cancelled
+    /// @param index Index of the proposal
     function withdraw(uint index) external;
 
-    /// @dev 执行投票
-    /// @param index 提案编号
+    /// @dev Execute the proposal
+    /// @param index Index of the proposal
     function execute(uint index) external;
 
-    /// @dev 取消投票
-    /// @param index 提案编号
+    /// @dev Cancel the proposal
+    /// @param index Index of the proposal
     function calcel(uint index) external;
 
-    /// @dev 获取投票信息
-    /// @param index 提案编号
-    /// @return 投票信息结构体
+    /// @dev Get proposal information
+    /// @param index Index of the proposal
+    /// @return Proposal information
     function getProposeInfo(uint index) external view returns (ProposalView memory);
 
-    /// @dev 获取累计投票提案数量
-    /// @return 累计投票提案数量
+    /// @dev Get the cumulative number of voting proposals
+    /// @return The cumulative number of voting proposals
     function getProposeCount() external view returns (uint);
 
-    /// @dev 分页列出投票提案
-    /// @param offset 跳过前面offset条记录
-    /// @param count 返回count条记录
-    /// @param order 排序方式。0倒序，非0正序
-    /// @return 投票列表
+    /// @dev List proposals by page
+    /// @param offset Skip previous (offset) records
+    /// @param count Return (count) records
+    /// @param order Order. 0 reverse order, non-0 positive order
+    /// @return List of price proposals
     function list(uint offset, uint count, uint order) external view returns (ProposalView[] memory);
 
-    /// @dev 获取nest流通量
-    /// @return nest流通量
+    /// @dev Get Circulation of nest
+    /// @return Circulation of nest
     function getNestCirculation() external view returns (uint);
 }

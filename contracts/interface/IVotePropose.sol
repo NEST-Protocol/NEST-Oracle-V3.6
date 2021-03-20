@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev 投票合约需要实现的接口
+/// @dev Interface to be implemented for voting contract
 interface IVotePropose {
 
-    /// @dev 投票通过后需要执行的代码
+    /// @dev Methods to be called after approved
     function run() external;
 }

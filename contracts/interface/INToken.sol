@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev ntoken代币合约接口
+/// @dev ntoken interface
 interface INToken {
         
     event Transfer(address indexed from, address indexed to, uint256 value);

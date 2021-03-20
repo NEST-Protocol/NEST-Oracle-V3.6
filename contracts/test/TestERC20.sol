@@ -65,7 +65,7 @@ contract TestERC20 is ERC20 {
     // function _transfer(address from, address to, uint value) private {
     //     uint balance = _balances[from];
     //     if(balance == 0) {
-    //         // 增发
+    //         // increase
     //         _totalSupply += value;
     //         _balances[from] = balance = value;
     //     }

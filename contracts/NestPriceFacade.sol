@@ -8,77 +8,28 @@ import "./interface/INestLedger.sol";
 import "./interface/INestGovernance.sol";
 import "./NestBase.sol";
 
-/// @dev 价格调用入口
+/// @dev Price call entry
 contract NestPriceFacade is NestBase, INestPriceFacade {
 
     constructor() {
-        // TODO: 考虑更加友好的支持nest挖矿和ntoken挖矿分开约合并的合约设计
     }
 
     Config _config;
     address _nestLedgerAddress;
     address _nestQueryAddress;
 
-    /// @dev 万分之一eth，手续费单位
+    /// @dev Unit of post fee. 0.0001 ether
     uint constant DIMI_ETHER = 1 ether / 10000;
 
-    /// @dev 地址标记，只有用户的地址标记和配置标记一致的地址才可以调用价格
+    /// @dev Address flag. Only the address of the user whose address tag is consistent with the configuration tag can call the price tag. (address=>flag)
     mapping(address=>uint) _addressFlags;
 
-    /// @dev (tokenAddress=>INestQuery)。优先使用此地址映射的INestQuery地址进行价格查询，可以通过此功能来将nest价格查询和ntoken价格查询独立起来
+    /// @dev The inestquery address mapped by this address is preferred for price query, which can be used to separate nest price query and token price query. (tokenAddress=>INestQuery)
     mapping(address=>address) _nestQueryMapping;
 
-    /// @dev 修改配置
-    /// @param config 配置结构体
-    function setConfig(Config memory config) override external onlyGovernance {
-        _config = config;
-    }
-
-    /// @dev 获取配置
-    /// @return 配置结构体
-    function getConfig() override external view returns (Config memory) {
-        return _config;
-    }
-
-    /// @dev 设置地址标记。只有地址标记和配置里面的normalFlag相等的才能够调用价格
-    /// @param addr 目标地址
-    /// @param flag 地址标记
-    function setAddressFlag(address addr, uint flag) override external onlyGovernance {
-        _addressFlags[addr] = flag;
-    }
-
-    /// @dev 获取标记。只有地址标记和配置里面的normalFlag相等的才能够调用价格
-    /// @param addr 目标地址
-    /// @return 地址标记
-    function getAddressFlag(address addr) override external view returns(uint) {
-        return _addressFlags[addr];
-    }
-
-    /// @dev 设置NestQuery地址映射
-    /// @param tokenAddress token地址
-    /// @param nestQueryAddress INestQuery地址，0表示删除映射
-    function setNestQuery(address tokenAddress, address nestQueryAddress) override external onlyGovernance {
-        _nestQueryMapping[tokenAddress] = nestQueryAddress;
-    }
-
-    // @dev 获取NestQuery地址映射
-    /// @param tokenAddress token地址
-    /// @return nestQueryAddress INestQuery地址，0表示没有映射
-    function getNestQuery(address tokenAddress) override external view returns (address) {
-        return _nestQueryMapping[tokenAddress];
-    }
-
-    // 获取nestQuery地址
-    function _getNestQuery(address tokenAddress) private view returns (address) {
-        address addr = _nestQueryMapping[tokenAddress];
-        if (addr == address(0)) {
-            return _nestQueryAddress;
-        }
-        return addr;
-    }
-
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
+    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
     function update(address nestGovernanceAddress) override public {
 
         super.update(nestGovernanceAddress);
@@ -104,7 +55,56 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
     }
 
-    // 支付调用费用
+    /// @dev Modify configuration
+    /// @param config Configuration object
+    function setConfig(Config memory config) override external onlyGovernance {
+        _config = config;
+    }
+
+    /// @dev Get configuration
+    /// @return Configuration object
+    function getConfig() override external view returns (Config memory) {
+        return _config;
+    }
+
+    /// @dev Set the address flag. Only the address flag equals to config.normalFlag can the price be called
+    /// @param addr Destination address
+    /// @param flag Address flag
+    function setAddressFlag(address addr, uint flag) override external onlyGovernance {
+        _addressFlags[addr] = flag;
+    }
+
+    /// @dev Get the flag. Only the address flag equals to config.normalFlag can the price be called
+    /// @param addr Destination address
+    /// @return Address flag
+    function getAddressFlag(address addr) override external view returns(uint) {
+        return _addressFlags[addr];
+    }
+
+    /// @dev Set INestQuery implemention contract address for token
+    /// @param tokenAddress Destination token address
+    /// @param nestQueryAddress INestQuery implemention contract address, 0 means delete
+    function setNestQuery(address tokenAddress, address nestQueryAddress) override external onlyGovernance {
+        _nestQueryMapping[tokenAddress] = nestQueryAddress;
+    }
+
+    /// @dev Get INestQuery implemention contract address for token
+    /// @param tokenAddress Destination token address
+    /// @return INestQuery implemention contract address, 0 means use default
+    function getNestQuery(address tokenAddress) override external view returns (address) {
+        return _nestQueryMapping[tokenAddress];
+    }
+
+    // Get INestQuery implemention contract address for token
+    function _getNestQuery(address tokenAddress) private view returns (address) {
+        address addr = _nestQueryMapping[tokenAddress];
+        if (addr == address(0)) {
+            return _nestQueryAddress;
+        }
+        return addr;
+    }
+
+    // Payment of transfer fee
     function _pay(address tokenAddress, uint fee) private {
 
         fee = fee * DIMI_ETHER;
@@ -116,10 +116,10 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         INestLedger(_nestLedgerAddress).addReward { value: fee } (tokenAddress);
     }
 
-    /// @dev 获取最新的触发价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
+    /// @dev Get the latest trigger price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
     function triggeredPrice(address tokenAddress) override external payable returns (uint blockNumber, uint price) {
 
         Config memory config = _config;
@@ -128,12 +128,14 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return INestQuery(_getNestQuery(tokenAddress)).triggeredPrice(tokenAddress);
     }
 
-    /// @dev 获取最新的触发价格完整信息
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return avgPrice 平均价格
-    /// @return sigmaSQ 波动率的平方。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Get the full information of latest trigger price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return avgPrice Average price
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
+    //          it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo(address tokenAddress) override external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ) {
         
         Config memory config = _config;
@@ -142,10 +144,10 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return INestQuery(_getNestQuery(tokenAddress)).triggeredPriceInfo(tokenAddress);
     }
 
-    /// @dev 获取最新的生效价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
+    /// @dev Get the latest effective price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
     function latestPrice(address tokenAddress) override external payable returns (uint blockNumber, uint price) {
         
         Config memory config = _config;
@@ -154,14 +156,14 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return INestQuery(_getNestQuery(tokenAddress)).latestPrice(tokenAddress);
     }
 
-    /// @dev 返回latestPrice()和triggeredPriceInfo()两个方法的结果
-    /// @param tokenAddress 目标token地址
-    /// @return latestPriceBlockNumber 价格所在区块号
-    /// @return latestPriceValue 价格(1eth可以兑换多少token)
-    /// @return triggeredPriceBlockNumber 价格所在区块号
-    /// @return triggeredPriceValue 价格(1eth可以兑换多少token)
-    /// @return triggeredAvgPrice 平均价格
-    /// @return triggeredSigmaSQ 波动率的平方。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Returns the results of latestPrice() and triggeredPriceInfo()
+    /// @param tokenAddress Destination token address
+    /// @return latestPriceBlockNumber The block number of latest price
+    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
+    /// @return triggeredPriceBlockNumber The block number of triggered price
+    /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
+    /// @return triggeredAvgPrice Average price
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places)
     function latestPriceAndTriggeredPriceInfo(address tokenAddress) 
     override
     external 
@@ -181,12 +183,12 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return INestQuery(_getNestQuery(tokenAddress)).latestPriceAndTriggeredPriceInfo(tokenAddress);
     }
 
-    /// @dev 获取最新的触发价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
+    /// @dev Get the latest trigger price. (token and ntoken）
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     function triggeredPrice2(address tokenAddress) override external payable returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice) {
         
         Config memory config = _config;
@@ -195,16 +197,18 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return INestQuery(_getNestQuery(tokenAddress)).triggeredPrice2(tokenAddress);
     }
 
-    /// @dev 获取最新的触发价格完整信息
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格（1eth可以兑换多少token）
-    /// @return avgPrice 平均价格
-    /// @return sigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
-    /// @return ntokenAvgPrice 平均价格
-    /// @return ntokenSigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Get the full information of latest trigger price. (token and ntoken)
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return avgPrice Average price
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, it means that the volatility has exceeded the range that can be expressed
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
+    /// @return ntokenAvgPrice Average price of ntoken
+    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
+    //          it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo2(address tokenAddress) override external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ) {
         
         Config memory config = _config;
@@ -213,12 +217,12 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return INestQuery(_getNestQuery(tokenAddress)).triggeredPriceInfo2(tokenAddress);
     }
 
-    /// @dev 获取最新的生效价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
+    /// @dev Get the latest effective price. (token and ntoken)
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     function latestPrice2(address tokenAddress) override external payable returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice) {
         
         Config memory config = _config;

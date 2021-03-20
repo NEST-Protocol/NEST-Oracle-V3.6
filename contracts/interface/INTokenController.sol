@@ -10,21 +10,21 @@ interface INTokenController {
     /// @param owner The address of miner who opened the oracle
     event NTokenOpened(address tokenAddress, address ntokenAddress, address owner);
     
-    /// @notice ntoken禁用事件
-    /// @param tokenAddress token地址
+    /// @notice ntoken disable event
+    /// @param tokenAddress token address
     event NTokenDisabled(address tokenAddress);
     
-    /// @notice ntoken启用事件
-    /// @param tokenAddress token地址
+    /// @notice ntoken enable event
+    /// @param tokenAddress token address
     event NTokenEnabled(address tokenAddress);
 
-    /// @dev ntoken控制器配置结构体
+    /// @dev ntoken configuration structure
     struct Config {
 
-        // 开通ntoken需要支付的nest数量。10000 ether
+        // The number of nest needed to pay for opening ntoken. 10000 ether
         uint96 openFeeNestAmount;
 
-        // ntoken管理功能启用状态。0：未启用，1：已启用
+        // ntoken management is enabled. 0: not enabled, 1: enabled
         uint8 state;
     }
 
@@ -39,38 +39,38 @@ interface INTokenController {
         uint8 state;                // =0: disabled | =1 normal
     }
 
-    /* ========== 治理相关 ========== */
+    /* ========== Governance ========== */
 
-    /// @dev 修改配置。
-    /// @param config 配置对象
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) external;
 
-    /// @dev 获取配置
-    /// @return 配置对象
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() external view returns (Config memory);
 
-    /// @dev 设置ntoken映射（对应的ntoken必须已经存在）
-    /// @param tokenAddress token地址
-    /// @param ntokenAddress ntoken地址
-    /// @param state 状态
+    /// @dev Set the token mapping
+    /// @param tokenAddress Destination token address
+    /// @param ntokenAddress Destination ntoken address
+    /// @param state status for this map
     function setNTokenMapping(address tokenAddress, address ntokenAddress, uint state) external;
 
-    /// @dev 获取ntoken对应的token地址
-    /// @param ntokenAddress ntoken地址
-    /// @return token地址
+    /// @dev Get token address from ntoken address
+    /// @param ntokenAddress Destination ntoken address
+    /// @return token address
     function getTokenAddress(address ntokenAddress) external view returns (address);
 
-    /// @dev 获取token对应的ntoken地址
-    /// @param tokenAddress token地址
-    /// @return ntoken地址
+    /// @dev Get ntoken address from token address
+    /// @param tokenAddress Destination token address
+    /// @return ntoken address
     function getNTokenAddress(address tokenAddress) external view returns (address);
 
-    /* ========== ntoken管理 ========== */
+    /* ========== ntoken management ========== */
     
     /// @dev Bad tokens should be banned 
     function disable(address tokenAddress) external;
 
-    /// @dev 启用ntoken
+    /// @dev enable ntoken
     function enable(address tokenAddress) external;
 
     /// @notice Open a NToken for a token by anyone (contracts aren't allowed)
@@ -80,19 +80,19 @@ interface INTokenController {
 
     /* ========== VIEWS ========== */
 
-    /// @dev 获取ntoken信息
-    /// @param tokenAddress token地址
-    /// @return ntoken信息结构体
+    /// @dev Get ntoken information
+    /// @param tokenAddress Destination token address
+    /// @return ntoken information
     function getNTokenTag(address tokenAddress) external view returns (NTokenTag memory);
 
-    /// @dev 获取ntoken数量
-    /// @return ntoken数量
+    /// @dev Get opened ntoken count
+    /// @return ntoken count
     function getNTokenCount() external view returns (uint);
 
-    /// @dev 分页列出ntoken列表
-    /// @param offset 跳过前面offset条记录
-    /// @param count 返回count条记录
-    /// @param order 排序方式。0倒序，非0正序
-    /// @return ntoken列表
+    /// @dev List ntoken information by page
+    /// @param offset Skip previous (offset) records
+    /// @param count Return (count) records
+    /// @param order Order. 0 reverse order, non-0 positive order
+    /// @return ntoken information by page
     function list(uint offset, uint count, uint order) external view returns (NTokenTag[] memory);
 }

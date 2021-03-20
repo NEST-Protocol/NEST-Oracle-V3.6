@@ -6,7 +6,7 @@ import "./lib/TransferHelper.sol";
 import "./interface/INestLedger.sol";
 import "./NestBase.sol";
 
-/// @dev NEST 账本合约
+/// @dev Nest ledger contract
 contract NestLedger is NestBase, INestLedger {
 
     constructor(address nestTokenAddress) {
@@ -18,35 +18,36 @@ contract NestLedger is NestBase, INestLedger {
     }
 
     Config _config;
-    // nest账本
+    // nest ledger
     uint _nestLedger;
-    // ntoken账本
+    // ntoken ledger
     mapping(address=>UINT) _ntokenLedger;
-    // DAO应用
+    // DAO applications
     mapping(address=>uint) _applications;
+    /// @dev Address of nest token contract
     address immutable NEST_TOKEN_ADDRESS;
 
-    /// @dev 修改配置
-    /// @param config 配置结构体
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
         _config = config;
     }
 
-    /// @dev 获取配置
-    /// @return 配置结构体
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() override external view returns (Config memory) {
         return _config;
     }
 
-    /// @dev 设置DAO应用
-    /// @param addr DAO应用地址
-    /// @param flag 授权标记，1表示授权，0表示取消授权
+    /// @dev Set DAO application
+    /// @param addr DAO application contract address
+    /// @param flag Authorization flag, 1 means authorization, 0 means cancel authorization
     function setApplication(address addr, uint flag) override external onlyGovernance {
         _applications[addr] = flag;
     }
 
-    /// @dev 收益分成
-    /// @param ntokenAddress ntoken地址
+    /// @dev Carve reward
+    /// @param ntokenAddress Destination ntoken address
     function carveReward(address ntokenAddress) override external payable {
 
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -54,14 +55,13 @@ contract NestLedger is NestBase, INestLedger {
         } else {
             Config memory config = _config;
             UINT storage balance = _ntokenLedger[ntokenAddress];
-            // TODO: 使用减法看是否可以节省gas
             balance.value = balance.value + msg.value * uint(config.nestRewardScale) / 10000;
             _nestLedger = _nestLedger + msg.value * uint(config.ntokenRedardScale) / 10000;
         }
     }
 
-    /// @dev ntoken收益
-    /// @param ntokenAddress ntoken地址
+    /// @dev Add reward
+    /// @param ntokenAddress Destination ntoken address
     function addReward(address ntokenAddress) override external payable {
 
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -82,11 +82,11 @@ contract NestLedger is NestBase, INestLedger {
         return _ntokenLedger[ntokenAddress].value;
     }
 
-    /// @dev 支付资金
-    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
-    /// @param tokenAddress 接收资金的token地址（0表示eth）
-    /// @param to 接收资金的地址
-    /// @param value 接收资金的数量
+    /// @dev Pay
+    /// @param ntokenAddress Destination ntoken address. Indicates which ntoken to pay with
+    /// @param tokenAddress Token address of receiving funds (0 means ETH)
+    /// @param to Address to receive
+    /// @param value Amount to receive
     function pay(address ntokenAddress, address tokenAddress, address to, uint value) override external {
 
         require(_applications[msg.sender] > 0, "NestLedger:!app");
@@ -103,11 +103,11 @@ contract NestLedger is NestBase, INestLedger {
         }
     }
 
-    /// @dev 结算资金
-    /// @param ntokenAddress 表示需要和哪个ntoken进行结算
-    /// @param tokenAddress 接收资金的token地址（0表示eth）
-    /// @param to 接收资金的地址
-    /// @param value 接收资金的数量
+    /// @dev Settlement
+    /// @param ntokenAddress Destination ntoken address. Indicates which ntoken to settle with
+    /// @param tokenAddress Token address of receiving funds (0 means ETH)
+    /// @param to Address to receive
+    /// @param value Amount to receive
     function settle(address ntokenAddress, address tokenAddress, address to, uint value) override external payable {
 
         require(_applications[msg.sender] > 0, "NestLedger:!app");

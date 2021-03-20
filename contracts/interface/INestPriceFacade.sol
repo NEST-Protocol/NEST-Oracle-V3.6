@@ -2,78 +2,80 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev 价格调用入口
+/// @dev Price call entry
 interface INestPriceFacade {
     
-    /// @dev 价格调用入口配置结构体
+    /// @dev Price call entry configuration structure
     struct Config {
 
-        // 单轨询价费用（万分之一eth，DIMI_ETHER）。100
+        // Single query fee（0.0001 ether, DIMI_ETHER). 100
         uint16 singleFee;
 
-        // 双轨询价费用（万分之一eth，DIMI_ETHER）。100
+        // Double query fee（0.0001 ether, DIMI_ETHER). 100
         uint16 doubleFee;
 
-        // 调用地址的正常状态标记。0
+        // The normal state flag of the call address. 0
         uint8 normalFlag;
     }
 
-    /// @dev 修改配置
-    /// @param config 配置结构体
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) external;
 
-    /// @dev 获取配置
-    /// @return 配置结构体
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() external view returns (Config memory);
 
-    /// @dev 设置地址标记。只有地址标记和配置里面的normalFlag相等的才能够调用价格
-    /// @param addr 目标地址
-    /// @param flag 地址标记
+    /// @dev Set the address flag. Only the address flag equals to config.normalFlag can the price be called
+    /// @param addr Destination address
+    /// @param flag Address flag
     function setAddressFlag(address addr, uint flag) external;
 
-    /// @dev 获取标记。只有地址标记和配置里面的normalFlag相等的才能够调用价格
-    /// @param addr 目标地址
-    /// @return 地址标记
+    /// @dev Get the flag. Only the address flag equals to config.normalFlag can the price be called
+    /// @param addr Destination address
+    /// @return Address flag
     function getAddressFlag(address addr) external view returns(uint);
 
-    /// @dev 设置NestQuery地址映射
-    /// @param tokenAddress token地址
-    /// @param nestQueryAddress INestQuery地址，0表示删除映射
+    /// @dev Set INestQuery implemention contract address for token
+    /// @param tokenAddress Destination token address
+    /// @param nestQueryAddress INestQuery implemention contract address, 0 means delete
     function setNestQuery(address tokenAddress, address nestQueryAddress) external;
 
-    // @dev 获取NestQuery地址映射
-    /// @param tokenAddress token地址
-    /// @return nestQueryAddress INestQuery地址，0表示没有映射
+    /// @dev Get INestQuery implemention contract address for token
+    /// @param tokenAddress Destination token address
+    /// @return INestQuery implemention contract address, 0 means use default
     function getNestQuery(address tokenAddress) external view returns (address);
 
-    /// @dev 获取最新的触发价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
+    /// @dev Get the latest trigger price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
     function triggeredPrice(address tokenAddress) external payable returns (uint blockNumber, uint price);
 
-    /// @dev 获取最新的触发价格完整信息
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return avgPrice 平均价格
-    /// @return sigmaSQ 波动率的平方。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Get the full information of latest trigger price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return avgPrice Average price
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
+    //          it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo(address tokenAddress) external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ);
 
-    /// @dev 获取最新的生效价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
+    /// @dev Get the latest effective price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
     function latestPrice(address tokenAddress) external payable returns (uint blockNumber, uint price);
 
-    /// @dev 返回latestPrice()和triggeredPriceInfo()两个方法的结果
-    /// @param tokenAddress 目标token地址
-    /// @return latestPriceBlockNumber 价格所在区块号
-    /// @return latestPriceValue 价格(1eth可以兑换多少token)
-    /// @return triggeredPriceBlockNumber 价格所在区块号
-    /// @return triggeredPriceValue 价格(1eth可以兑换多少token)
-    /// @return triggeredAvgPrice 平均价格
-    /// @return triggeredSigmaSQ 波动率的平方。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Returns the results of latestPrice() and triggeredPriceInfo()
+    /// @param tokenAddress Destination token address
+    /// @return latestPriceBlockNumber The block number of latest price
+    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
+    /// @return triggeredPriceBlockNumber The block number of triggered price
+    /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
+    /// @return triggeredAvgPrice Average price
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places)
     function latestPriceAndTriggeredPriceInfo(address tokenAddress) 
     external 
     payable 
@@ -86,31 +88,33 @@ interface INestPriceFacade {
         uint triggeredSigmaSQ
     );
 
-    /// @dev 获取最新的触发价格（token和ntoken）
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
+    /// @dev Get the latest trigger price. (token and ntoken）
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     function triggeredPrice2(address tokenAddress) external payable returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
 
-    /// @dev 获取最新的触发价格完整信息（token和ntoken）
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格（1eth可以兑换多少token）
-    /// @return avgPrice 平均价格
-    /// @return sigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
-    /// @return ntokenAvgPrice 平均价格
-    /// @return ntokenSigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Get the full information of latest trigger price. (token and ntoken)
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return avgPrice Average price
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, it means that the volatility has exceeded the range that can be expressed
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
+    /// @return ntokenAvgPrice Average price of ntoken
+    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
+    //          it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo2(address tokenAddress) external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ);
 
-    /// @dev 获取最新的生效价格（token和ntoken）
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
+    /// @dev Get the latest effective price. (token and ntoken)
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     function latestPrice2(address tokenAddress) external payable returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
 }

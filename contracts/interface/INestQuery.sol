@@ -2,37 +2,39 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev 价格查询接口
+/// @dev Nest price query interface
 interface INestQuery {
     
-    /// @dev 获取最新的触发价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
+    /// @dev Get the latest trigger price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
     function triggeredPrice(address tokenAddress) external view returns (uint blockNumber, uint price);
 
-    /// @dev 获取最新的触发价格完整信息
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格（1eth可以兑换多少token）
-    /// @return avgPrice 平均价格
-    /// @return sigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Get the full information of latest trigger price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return avgPrice Average price
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
+    //          it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo(address tokenAddress) external view returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ);
 
-    /// @dev 获取最新的生效价格
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
+    /// @dev Get the latest effective price
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
     function latestPrice(address tokenAddress) external view returns (uint blockNumber, uint price);
 
-    /// @dev 返回latestPrice()和triggeredPriceInfo()两个方法的结果
-    /// @param tokenAddress 目标token地址
-    /// @return latestPriceBlockNumber 价格所在区块号
-    /// @return latestPriceValue 价格(1eth可以兑换多少token)
-    /// @return triggeredPriceBlockNumber 价格所在区块号
-    /// @return triggeredPriceValue 价格(1eth可以兑换多少token)
-    /// @return triggeredAvgPrice 平均价格
-    /// @return triggeredSigmaSQ 波动率的平方。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Returns the results of latestPrice() and triggeredPriceInfo()
+    /// @param tokenAddress Destination token address
+    /// @return latestPriceBlockNumber The block number of latest price
+    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
+    /// @return triggeredPriceBlockNumber The block number of triggered price
+    /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
+    /// @return triggeredAvgPrice Average price
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places)
     function latestPriceAndTriggeredPriceInfo(address tokenAddress) 
     external 
     view 
@@ -45,31 +47,33 @@ interface INestQuery {
         uint triggeredSigmaSQ
     );
 
-    /// @dev 获取最新的触发价格（token和ntoken）
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
+    /// @dev Get the latest trigger price. (token and ntoken）
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     function triggeredPrice2(address tokenAddress) external returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
 
-    /// @dev 获取最新的触发价格完整信息（token和ntoken）
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格（1eth可以兑换多少token）
-    /// @return avgPrice 平均价格
-    /// @return sigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
-    /// @return ntokenAvgPrice 平均价格
-    /// @return ntokenSigmaSQ 波动率的平方（18位小数）。当前实现假定波动率不可能超过1，与此对应的，当返回值等于999999999999996447时，表示波动率已经超过可以表示的范围
+    /// @dev Get the full information of latest trigger price. (token and ntoken)
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return avgPrice Average price
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, it means that the volatility has exceeded the range that can be expressed
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
+    /// @return ntokenAvgPrice Average price of ntoken
+    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
+    //          it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo2(address tokenAddress) external returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ);
 
-    /// @dev 获取最新的生效价格（token和ntoken）
-    /// @param tokenAddress 目标token地址
-    /// @return blockNumber 价格所在区块号
-    /// @return price 价格(1eth可以兑换多少token)
-    /// @return ntokenBlockNumber ntoken价格所在区块号
-    /// @return ntokenPrice 价格(1eth可以兑换多少ntoken)
+    /// @dev Get the latest effective price. (token and ntoken)
+    /// @param tokenAddress Destination token address
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    /// @return ntokenBlockNumber The block number of ntoken price
+    /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     function latestPrice2(address tokenAddress) external returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
 }

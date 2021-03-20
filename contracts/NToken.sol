@@ -8,24 +8,24 @@ import "./NestBase.sol";
 
 // The contract is based on Nest_NToken from Nest Protocol v3.0. Considering compatibility, the interface
 // keeps the same. 
-/// @dev ntoken代币合约 
+/// @dev ntoken contract
 contract NToken is NestBase, INToken {
 
-    // ntoken创建区块号
+    // ntoken genesis block number
     uint256 immutable public GENESIS_BLOCK_NUMBER;
-    // NestMining合约地址
+    // INestMining implemention contract address
     address _nestMiningAddress;
     
-    // token信息
+    // token information
     string public name;
     string public symbol;
     uint8 constant public decimals = 18;
-    // token状态，高128位表示_totalSupply，低128位表示lastestMintAtHeight
+    // token state，high 128 bits represent _totalSupply，low 128 bits represent lastestMintAtHeight
     uint256 _state;
     
-    // 余额账本
+    // Balances ledger
     mapping (address=>uint) private _balances;
-    // 授权账本
+    // Approve ledger
     mapping (address=>mapping(address=>uint)) private _allowed;
 
     /// @notice Constructor

@@ -5,38 +5,35 @@ pragma solidity ^0.8.0;
 /// @dev The contract is for redeeming nest token and getting ETH in return
 interface INestRedeeming {
 
-    /// @dev 回购配置结构体
+    /// @dev Redeem configuration structure
     struct Config {
 
-        // 单轨询价费用。0.01ether
-        // 调用价格改为在NestPriceFacade里面确定。需要考虑退回的情况
-        //uint96 fee;
-
-        // 激活回购阈值，当ntoken的发行量超过此阈值时，激活回购（单位：10000 ether）。500
+        // Redeem activate threshold, when the circulation of token exceeds this threshold, 
+        // activate redeem (Unit: 10000 ether). 500 
         uint32 activeThreshold;
 
-        // 每区块回购nest数量。1000
+        // The number of nest redeem per block. 1000
         uint16 nestPerBlock;
 
-        // 单次回购nest数量上限。300000
+        // The maximum number of nest in a single redeem. 300000
         uint32 nestLimit;
 
-        // 每区块回购ntoken数量。10
+        // The number of ntoken redeem per block. 10
         uint16 ntokenPerBlock;
 
-        // 单次回购ntoken数量上限。3000
+        // The maximum number of ntoken in a single redeem. 3000
         uint32 ntokenLimit;
 
-        // 价格偏差上限，超过此上限停止回购（万分制）。500
+        // Price deviation limit, beyond this upper limit stop redeem (10000 based). 500
         uint16 priceDeviationLimit;
     }
 
-    /// @dev 修改配置
-    /// @param config 配置结构体
+    /// @dev Modify configuration
+    /// @param config Configuration object
     function setConfig(Config memory config) external;
 
-    /// @dev 获取配置
-    /// @return 配置结构体
+    /// @dev Get configuration
+    /// @return Configuration object
     function getConfig() external view returns (Config memory);
 
     /// @dev Redeem ntokens for ethers

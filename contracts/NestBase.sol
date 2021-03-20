@@ -5,21 +5,22 @@ pragma solidity ^0.8.0;
 import "./lib/TransferHelper.sol";
 import "./interface/INestGovernance.sol";
 
-/// @dev NEST合约基类
+/// @dev Base contract of nest
 contract NestBase {
 
     constructor() {
 
-        // 临时存储，用于限制只允许创建者设置治理合约地址
-        // 治理合约地址设置后，_governance将真正的表示合约地址
+        // Temporary storage, used to restrict only the creator to set the governance contract address
+        // After setting the address of the governance contract _governance will really represent the contract address
         _governance = msg.sender;
     }
 
-    /// @dev 治理合约地址
+    /// @dev INestGovernance implemention contract address
 	address public _governance;
 
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
+    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
     function update(address nestGovernanceAddress) virtual public {
 
         address governance = _governance;
@@ -27,10 +28,10 @@ contract NestBase {
         _governance = nestGovernanceAddress;
     }
 
-    /// @dev 将当前合约的资金转走
-    /// @param tokenAddress 目标token地址（0表示eth）
-    /// @param to 转入地址
-    /// @param value 转账金额
+    /// @dev Transfer funds from current contracts
+    /// @param tokenAddress Destination token address.（0 means eth）
+    /// @param to Transfer in address
+    /// @param value Transfer amount
     function transfer(address tokenAddress, address to, uint value) external onlyGovernance {
         if (tokenAddress == address(0)) {
             //address(uint160(to)).transfer(value);

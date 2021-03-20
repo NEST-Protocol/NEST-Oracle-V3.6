@@ -15,21 +15,21 @@ contract NestRedeeming is NestBase, INestRedeeming {
         NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
 
-    /// @dev 治理地址信息
+    /// @dev Governance information
     struct GovernanceInfo {
         address addr;
         uint96 flag;
     }
 
-    /// @dev 回购信息
+    /// @dev Redeeming information
     struct RedeemInfo {
         
-        // 已经消耗的回购额度
+        // Redeem quota consumed
         // block.number * quotaPerBlock - quota
         uint128 quota;
 
-        // 回购发行量阈值，当此值和config.activeThreshold相等时，启用回购，无需检查ntoken的发行量
-        // 当config.activeThreshold修改时，会重新根据发行量检查是否启用回购
+        // Redeem threshold by circulation of ntoken, when this value equal to config.activeThreshold, redeeming is enabled without checking the circulation of the ntoken
+        // When config.activeThreshold modified, it will check whether repo is enabled again according to the circulation
         uint32 threshold;
     }
 
@@ -39,20 +39,9 @@ contract NestRedeeming is NestBase, INestRedeeming {
     address _nestPriceFacadeAddress;
     address immutable NEST_TOKEN_ADDRESS;
 
-    /// @dev 修改配置
-    /// @param config 配置结构体
-    function setConfig(Config memory config) override external onlyGovernance {
-        _config = config;
-    }
-
-    /// @dev 获取配置
-    /// @return 配置结构体
-    function getConfig() override external view returns (Config memory) {
-        return _config;
-    }
-
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
+    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
 
@@ -78,6 +67,18 @@ contract NestRedeeming is NestBase, INestRedeeming {
         ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
     }
 
+    /// @dev Modify configuration
+    /// @param config Configuration object
+    function setConfig(Config memory config) override external onlyGovernance {
+        _config = config;
+    }
+
+    /// @dev Get configuration
+    /// @return Configuration object
+    function getConfig() override external view returns (Config memory) {
+        return _config;
+    }
+
     receive() payable external {
     }
 
@@ -87,22 +88,20 @@ contract NestRedeeming is NestBase, INestRedeeming {
     /// @param amount The amount of ntoken
     function redeem(address ntokenAddress, uint amount) override external payable {
         
-        // 1. 加载配置
+        // 1. Load configuration
         Config memory config = _config;
-        // 调用价格改为在NestPriceFacade里面确定。需要考虑退回的情况
-        //require(msg.value == uint(config.fee), "NestDAO:!fee");
 
-        // 2. 检查回购状态
+        // 2. Check redeeming stat
         RedeemInfo storage redeemInfo = redeemLedger[ntokenAddress];
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
-            // 由于nest已经开启回购，且发行量较大，因此此处不在单独考虑其发行量
+            // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here
             require(IERC20(ntokenAddress).totalSupply() >= uint(config.activeThreshold) * 10000 ether, "NestDAO:!totalSupply");
             redeemInfo.threshold = config.activeThreshold;
         }
 
-        // 3. 查询价格
-        // 记录当前余额，用于检查是否有调用价格时的退回
+        // 3. Query price
+        // Record the current balance, used to check whether there is a call price when the return
         uint balance = address(this).balance;
         (
             /* uint latestPriceBlockNumber */, 
@@ -112,18 +111,18 @@ contract NestRedeeming is NestBase, INestRedeeming {
             uint triggeredAvgPrice,
             /* uint triggeredSigma */
         ) = INestPriceFacade(_nestPriceFacadeAddress).latestPriceAndTriggeredPriceInfo { value: msg.value } (ntokenAddress);
-        // 计算退回数量
+        // Calculate return quantity
         balance = address(this).balance - (balance - msg.value);
         if (balance > 0) {
             payable(msg.sender).transfer(balance);
         }
 
-        // 4. 计算回购可以换得的eth数量
+        // 4. Calculate the number of eth that can be exchanged for redeem
         uint value = amount * 1 ether / latestPriceValue;
         uint quota;
 
-        // 5. 计算回购额度
-        // nest回购额度
+        // 5. Calculation of redeem quota
+        // nest redeeming quota
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             quota = block.number * uint(config.nestPerBlock) * 1 ether - ri.quota;
             if (quota > uint(config.nestLimit) * 1 ether) {
@@ -131,7 +130,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
             }
             redeemInfo.quota = uint128(block.number * uint(config.nestPerBlock) * 1 ether - (quota - amount));
         } 
-        // ntoken回购额度
+        // ntoken redeeming quota
         else {
             quota = block.number * uint(config.ntokenPerBlock) * 1 ether - ri.quota;
             if (quota > uint(config.ntokenLimit) * 1 ether) {
@@ -140,20 +139,21 @@ contract NestRedeeming is NestBase, INestRedeeming {
             redeemInfo.quota = uint128(block.number * uint(config.ntokenPerBlock) * 1 ether - (quota - amount));
         }
 
-        // 6. 检查回购额度和价格偏差
-        // 无需此检查
+        // 6. Check the redeeming amount and price deviation
+        // This check is not required
         // require(quota >= amount, "NestDAO:!amount");
         require(
             latestPriceValue <= triggeredAvgPrice * (10000 + uint(config.priceDeviationLimit)) / 10000 && 
             latestPriceValue >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)) / 10000, "NestDAO:!price");
         
-        // 7. 转入回购的ntoken
+        // 7. Ntoken transferred to redeem
         address nestLedgerAddress = _nestLedgerAddress;
         TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, address(nestLedgerAddress), amount);
         //payable(msg.sender).transfer(value);
         
-        // 8. 结算资金
-        // 如果ntoken不是真正的ntoken，那么其在账本中应该也是没有资金的，无法完成结算，因此不再检查ntoken是否是合法的ntoken
+        // 8. Settlement
+        // If a token is not a real token, it should also have no funds in the account book and cannot complete the settlement. 
+        // Therefore, it is no longer necessary to check whether the token is a legal token
         INestLedger(nestLedgerAddress).pay(ntokenAddress, address(0), msg.sender, value);
     }
 
@@ -161,18 +161,18 @@ contract NestRedeeming is NestBase, INestRedeeming {
     /// @param ntokenAddress The address of ntoken
     function quotaOf(address ntokenAddress) override public view returns (uint) {
 
-        // 1. 加载配置
+        // 1. Load configuration
         Config memory config = _config;
 
-        // 2. 检查回购状态
+        // 2. Check redeem state
         RedeemInfo storage redeemInfo = redeemLedger[ntokenAddress];
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
-            // 由于nest已经开启回购，且发行量较大，因此此处不在单独考虑其发行量
+            // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here
             if (IERC20(ntokenAddress).totalSupply() < uint(config.activeThreshold) * 10000 ether) return 0;
         }
 
-        // 3. 计算回购额度
+        // 3. Calculation of redeem quota
         uint quota;
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             quota = block.number * uint(config.nestPerBlock) * 1 ether - ri.quota;
