@@ -19,7 +19,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     address _nestQueryAddress;
 
     /// @dev Unit of post fee. 0.0001 ether
-    uint constant DIMI_ETHER = 1 ether / 10000;
+    uint constant DIMI_ETHER = 0.0001 ether; // 1 ether / 10000;
 
     /// @dev Address flag. Only the address of the user whose address tag is consistent with the configuration tag can call the price tag. (address=>flag)
     mapping(address=>uint) _addressFlags;
@@ -167,6 +167,17 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.singleFee);
         return INestQuery(_getNestQuery(tokenAddress)).latestPrice(tokenAddress);
+    }
+    /// @dev Get the last (num) effective price
+    /// @param tokenAddress Destination token address
+    /// @param count The number of prices that want to return
+    /// @return An array which length is num * 2, each two element expresses one price like blockNumber｜price
+    function lastPriceList(address tokenAddress, uint count) override external payable returns (uint[] memory) {
+
+        Config memory config = _config;
+        require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
+        _pay(tokenAddress, config.singleFee);
+        return INestQuery(_getNestQuery(tokenAddress)).lastPriceList(tokenAddress, count);
     }
 
     /// @dev Returns the results of latestPrice() and triggeredPriceInfo()

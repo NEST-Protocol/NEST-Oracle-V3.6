@@ -96,7 +96,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
             // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here
-            require(IERC20(ntokenAddress).totalSupply() >= uint(config.activeThreshold) * 10000 ether, "NestDAO:!totalSupply");
+            require(IERC20(ntokenAddress).totalSupply() >= uint(config.activeThreshold) * 10000 ether, "NestRedeeming:!totalSupply");
             redeemInfo.threshold = config.activeThreshold;
         }
 
@@ -144,7 +144,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
         // require(quota >= amount, "NestDAO:!amount");
         require(
             latestPriceValue <= triggeredAvgPrice * (10000 + uint(config.priceDeviationLimit)) / 10000 && 
-            latestPriceValue >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)) / 10000, "NestDAO:!price");
+            latestPriceValue >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)) / 10000, "NestRedeeming:!price");
         
         // 7. Ntoken transferred to redeem
         address nestLedgerAddress = _nestLedgerAddress;

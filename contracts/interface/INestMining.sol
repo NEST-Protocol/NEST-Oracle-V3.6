@@ -17,12 +17,12 @@ interface INestMining {
     /// @dev Nest mining configuration structure
     struct Config {
         
-        // Eth unit of each post. 30
+        // Eth number of each post. 30
         // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
         uint32 postEthUnit;
 
         // Post fee(0.0001eth，DIMI_ETHER). 1000
-        uint16 postFee;
+        uint16 postFeeUnit;
 
         // Proportion of miners digging(10000 based). 8000
         uint16 minerNestReward;
@@ -70,13 +70,16 @@ interface INestMining {
         uint32 tokenNumBal;
 
         // The pledged number of nest in this sheet. (unit: 1000nest)
-        uint32 nestNum1k;
+        uint24 nestNum1k;
 
         // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
         uint8 level;
 
+        // Post fee shares
+        uint8 shares;
+
         // The token price. (1eth equivalent to (price) token)
-        uint128 price;
+        uint152 price;
     }
 
     /* ========== Configuration ========== */

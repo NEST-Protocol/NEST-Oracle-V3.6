@@ -75,6 +75,12 @@ interface INestPriceFacade {
     /// @return price The token price. (1eth equivalent to (price) token)
     function latestPrice(address tokenAddress) external payable returns (uint blockNumber, uint price);
 
+    /// @dev Get the last (num) effective price
+    /// @param tokenAddress Destination token address
+    /// @param count The number of prices that want to return
+    /// @return An array which length is num * 2, each two element expresses one price like blockNumber｜price
+    function lastPriceList(address tokenAddress, uint count) external payable returns (uint[] memory);
+
     /// @dev Returns the results of latestPrice() and triggeredPriceInfo()
     /// @param tokenAddress Destination token address
     /// @return latestPriceBlockNumber The block number of latest price

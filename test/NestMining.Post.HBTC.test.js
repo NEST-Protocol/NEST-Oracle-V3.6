@@ -111,7 +111,7 @@ contract("NestMining", async accounts => {
             postEthUnit: 30,
     
             // 报价的手续费（万分之一eth，DIMI_ETHER）。1000
-            postFee: 1000,
+            postFeeUnit: 1000,
     
             // 矿工挖到nest的比例（万分制）。8000
             minerNestReward: 8000,
