@@ -167,7 +167,9 @@ interface INestMining {
     /// @dev Query the quantity of the target quotation
     /// @param tokenAddress Token address. The token can't mine. Please make sure you don't use the token address when calling
     /// @param index The index of the sheet
-    function getMinedBlocks(address tokenAddress, uint index) external view returns (uint minedBlocks, uint count);
+    /// @return minedBlocks Mined block period from previous block
+    /// @return totalShares Total shares of sheets in the block
+    function getMinedBlocks(address tokenAddress, uint index) external view returns (uint minedBlocks, uint totalShares);
 
     /* ========== Accounts ========== */
 

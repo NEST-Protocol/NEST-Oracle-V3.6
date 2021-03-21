@@ -144,6 +144,19 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return INestQuery(_getNestQuery(tokenAddress)).triggeredPriceInfo(tokenAddress);
     }
 
+    /// @dev Find the price at block number
+    /// @param tokenAddress Destination token address
+    /// @param height Destination block number
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    function findPrice(address tokenAddress, uint height) override external payable returns (uint blockNumber, uint price) {
+        
+        Config memory config = _config;
+        require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
+        _pay(tokenAddress, config.singleFee);
+        return INestQuery(_getNestQuery(tokenAddress)).findPrice(tokenAddress, height);
+    }
+
     /// @dev Get the latest effective price
     /// @param tokenAddress Destination token address
     /// @return blockNumber The block number of price

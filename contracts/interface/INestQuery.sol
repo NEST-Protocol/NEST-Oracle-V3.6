@@ -21,6 +21,13 @@ interface INestQuery {
     //          it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo(address tokenAddress) external view returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ);
 
+    /// @dev Find the price at block number
+    /// @param tokenAddress Destination token address
+    /// @param height Destination block number
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    function findPrice(address tokenAddress, uint height) external view returns (uint blockNumber, uint price);
+
     /// @dev Get the latest effective price
     /// @param tokenAddress Destination token address
     /// @return blockNumber The block number of price

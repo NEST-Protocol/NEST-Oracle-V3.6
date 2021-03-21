@@ -332,13 +332,13 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         ProposalView[] memory result = new ProposalView[](count);
         Proposal memory proposal;
         uint nestCirculation = getNestCirculation();
+        uint i = 0;
 
         // Reverse order
         if (order == 0) {
 
             uint index = proposalList.length - offset;
             uint end = index - count;
-            uint i = 0;
             while (index > end) {
 
                 proposal = proposalList[--index];
@@ -394,7 +394,6 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             
             uint index = offset;
             uint end = index + count;
-            uint i = 0;
             while (index < end) {
 
                 proposal = proposalList[index];

@@ -16,7 +16,7 @@ contract NestBase {
     }
 
     /// @dev INestGovernance implemention contract address
-	address public _governance;
+    address public _governance;
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance

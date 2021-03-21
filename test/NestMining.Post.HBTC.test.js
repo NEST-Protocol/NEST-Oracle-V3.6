@@ -371,6 +371,15 @@ contract("NestMining", async accounts => {
 
             receipt = await nestMining.close(hbtc.address, 1);
             console.log(receipt);
+
+            let pi = await nestMining.findPrice(hbtc.address, 6000);
+            LOG('blockNumber: {blockNumber}, price: {price}', pi);
+
+            let arr = await nestMining.getLatestPrices(hbtc.address, 2);
+            LOG('------------------------');
+            for (var i in arr) {
+                console.log(arr[i].toString());
+            }
         }
     });
 });

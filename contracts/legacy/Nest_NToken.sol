@@ -239,12 +239,12 @@ contract Nest_NToken is INest_NToken {
     * @param bidder 中标者地址
     */
     constructor (string memory _name, string memory _symbol, address voteFactory, address bidder) {
-    	name = _name;                                                               
-    	symbol = _symbol;
-    	_createBlock = block.number;
-    	_recentlyUsedBlock = block.number;
-    	_voteFactory = Nest_3_VoteFactory(address(voteFactory));
-    	_bidder = bidder;
+        name = _name;                                                               
+        symbol = _symbol;
+        _createBlock = block.number;
+        _recentlyUsedBlock = block.number;
+        _voteFactory = Nest_3_VoteFactory(address(voteFactory));
+        _bidder = bidder;
     }
     
     /**
@@ -252,7 +252,7 @@ contract Nest_NToken is INest_NToken {
     * @param voteFactory 投票合约地址
     */
     function changeMapping (address voteFactory) override public onlyOwner {
-    	_voteFactory = Nest_3_VoteFactory(address(voteFactory));
+        _voteFactory = Nest_3_VoteFactory(address(voteFactory));
     }
     
     /**

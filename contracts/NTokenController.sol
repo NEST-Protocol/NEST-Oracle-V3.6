@@ -207,13 +207,13 @@ contract NTokenController is NestBase, INTokenController {
         
         NTokenTag[] storage nTokenTagList = _nTokenTagList;
         NTokenTag[] memory result = new NTokenTag[](count);
+        uint i = 0;
 
         // 倒序
         if (order == 0) {
 
             uint index = nTokenTagList.length - offset;
             uint end = index - count;
-            uint i = 0;
             while (index > end) {
                 result[i++] = nTokenTagList[--index];
             }
@@ -223,7 +223,6 @@ contract NTokenController is NestBase, INTokenController {
             
             uint index = offset;
             uint end = index + count;
-            uint i = 0;
             while (index < end) {
                 result[i++] = nTokenTagList[index];
             }

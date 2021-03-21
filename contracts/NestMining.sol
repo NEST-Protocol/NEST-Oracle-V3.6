@@ -45,17 +45,22 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint32 tokenNumBal;
 
         // The pledged number of nest in this sheet. (unit: 1000nest)
-        uint32 nestNum1k;
+        uint24 nestNum1k;
+
+        // Post fee times
+        uint8 shares;
 
         // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
         uint8 level;
 
         // Represent price as this way, may lose precision, the error less than 1/10^14
         // Exponent of price。price = priceFraction * 16 ^ priceExponent
-        uint8 priceExponent;
+        //uint8 priceExponent;
 
         // Fraction of price。price = priceFraction * 16 ^ priceExponent
-        uint48 priceFraction;
+        //uint48 priceFraction;
+
+        uint56 priceFloat;
     }
 
     /// @dev Definitions for the price information
@@ -71,12 +76,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint32 remainNum;
 
         // Price, represent as float
-        uint8 priceExponent;
-        uint48 priceFraction;
+        //uint8 priceExponent;
+        //uint48 priceFraction;
+        uint56 priceFloat;
 
         // Avg Price, represent as float
-        uint8 avgExponent;
-        uint48 avgFraction;
+        //uint8 avgExponent;
+        //uint48 avgFraction;
+        uint56 avgFloat;
         
         // Square of price volatility, need divide by 2^48
         uint48 sigmaSQ;
@@ -145,7 +152,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     address immutable NEST_TOKEN_ADDRESS; // = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
     
     /// @dev Genesis block number of nest
-    uint immutable NEST_GENESIS_BLOCK; // = 6236588;	
+    uint immutable NEST_GENESIS_BLOCK; // = 6236588;
 
     /// @dev Unit of post fee. 0.0001 ether
     uint constant DIMI_ETHER = 1 ether / 10000;
@@ -222,7 +229,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
             (genesisBlockNumber,) = INToken(ntokenAddress).checkBlockInfo();
             _genesisBlockNumberCache[ntokenAddress] = genesisBlockNumber;
         }
-
         return genesisBlockNumber;
     }
 
@@ -255,8 +261,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(tokenAmountPerEth > 0, "NM:!price");
         
         // 2. Calculate fee
-        uint fee = uint(config.postFee) * DIMI_ETHER;
-        require(msg.value == fee + ethNum * 1 ether, "NM:!value");
+        //uint fee = msg.value - ethNum * 1 ether;
+        //require(fee > 0, "NM:!value");
 
         // 3. Check price channel
         // Check if the token allow post
@@ -272,7 +278,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet[] storage sheets = channel.sheets;
         // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
         uint length = sheets.length;
-        _collect(channel, ntokenAddress, length, fee, fee);
+        uint shares = _collect(channel, ntokenAddress, length, msg.value - ethNum * 1 ether, config);
+        require(shares > 0, "NM:!fee");
 
         // 5. Freezing assets
         uint accountIndex = _addressIndex(msg.sender);
@@ -291,7 +298,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 7. Create price sheet
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.pledgeNest), 0, tokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(ethNum), uint(config.pledgeNest), shares, 0, tokenAmountPerEth);
     }
 
     /// @notice Post two price sheets for a token and its ntoken simultaneously 
@@ -309,9 +316,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(tokenAmountPerEth > 0 && ntokenAmountPerEth > 0, "NM:!price");
         
         // 2. Calculate fee
-        // ******** 'tmp' is a multi-purpose variable, from which we begin to express 'fee'
-        uint tmp = uint(config.postFee) * DIMI_ETHER;
-        require(msg.value == tmp + ethNum * 2 ether, "NM:!value");
+        //uint tmp = msg.value - ethNum * 2 ether; //uint(config.postFee) * DIMI_ETHER;
+        //require(tmp >= uint(config.postFee) * DIMI_ETHER, "NM:!value");
 
         // 3. Check price channel
         address ntokenAddress = _getNTokenAddress(tokenAddress);
@@ -320,20 +326,18 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 4. Deposit fee
         PriceChannel storage channel = _channels[tokenAddress];
         PriceSheet[] storage sheets = channel.sheets;
-        // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
-        uint length = sheets.length;
-        _collect(channel, ntokenAddress, length, tmp, tmp);
 
         // 5. Freezing assets
+        uint pledgeNest = uint(config.pledgeNest);
         uint accountIndex = _addressIndex(msg.sender);
-        mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-        // ******** 'tmp' is a multi-purpose variable, from which we begin to express 'config.pledgeNest'
-        tmp = uint(config.pledgeNest);
-        _freeze(balances, tokenAddress, ethNum * tokenAmountPerEth);
-        if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-            _freeze(balances, NEST_TOKEN_ADDRESS, ethNum * ntokenAmountPerEth + tmp * 1000 ether);
-        } else {
-            _freeze2(balances, ntokenAddress, ethNum * ntokenAmountPerEth, tmp * 2000 ether);
+        {
+            mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
+            _freeze(balances, tokenAddress, ethNum * tokenAmountPerEth);
+            if (ntokenAddress == NEST_TOKEN_ADDRESS) {
+                _freeze(balances, NEST_TOKEN_ADDRESS, ethNum * ntokenAmountPerEth + pledgeNest * 1000 ether);
+            } else {
+                _freeze2(balances, ntokenAddress, ethNum * ntokenAmountPerEth, pledgeNest * 2000 ether);
+            }
         }
         
         // 6. Calculate the price
@@ -342,8 +346,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
         _stat(channel, sheets, uint(config.priceEffectSpan));
 
         // 7. Create price sheet
+
+        // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
+        uint length = sheets.length;
+
         emit Post(tokenAddress, msg.sender, length, ethNum, tokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(ethNum), tmp, 0, tokenAmountPerEth);
+        length = _collect(channel, ntokenAddress, length, msg.value - ethNum * 2 ether, config);
+        require(length > 0, "NM:!fee");
+        _createPriceSheet(sheets, accountIndex, uint32(ethNum), pledgeNest, length, 0, tokenAmountPerEth);
 
         channel = _channels[ntokenAddress];
         sheets = channel.sheets;
@@ -352,7 +362,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // is placed before the sheet is added, which can reduce unnecessary traversal
         _stat(channel, sheets, uint(config.priceEffectSpan));
         emit Post(ntokenAddress, msg.sender, sheets.length, ethNum, ntokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(ethNum), tmp, 0, ntokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(ethNum), pledgeNest, 0, 0, ntokenAmountPerEth);
     }
 
     /// @notice Call the function to buy TOKEN/NTOKEN from a posted price sheet
@@ -383,7 +393,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
             address ntokenAddress = _getNTokenAddress(tokenAddress);
             if (tokenAddress != ntokenAddress) {
-                _collect(channel, ntokenAddress, sheets.length, 0, uint(config.postFee) * DIMI_ETHER);
+                _collect(channel, ntokenAddress, sheets.length, 0, config);
             }
         }
 
@@ -416,16 +426,16 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // Freeze nest
         uint accountIndex = _addressIndex(msg.sender);
-        mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-        if (tokenAddress == NEST_TOKEN_ADDRESS) {
-            needTokenValue += needNest1k * 1000 ether;
-        } else {
-            _freeze(balances, NEST_TOKEN_ADDRESS, needNest1k * 1000 ether);        
-        }
-
         {
+            mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
+            if (tokenAddress == NEST_TOKEN_ADDRESS) {
+                needTokenValue += needNest1k * 1000 ether;
+            } else {
+                _freeze(balances, NEST_TOKEN_ADDRESS, needNest1k * 1000 ether);        
+            }
+
             // Freeze token
-            uint backTokenValue = decodeFloat(sheet.priceFraction, sheet.priceExponent) * biteNum;
+            uint backTokenValue = decodeFloat(sheet.priceFloat) * biteNum;
             if (needTokenValue > backTokenValue) {
                 _freeze(balances, tokenAddress, needTokenValue - backTokenValue);
             } else {
@@ -446,7 +456,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 8. Create price sheet
         emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, 0, level, newTokenAmountPerEth);
     }
 
     /// @notice Call the function to buy ETH from a posted price sheet
@@ -477,7 +487,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
             address ntokenAddress = _getNTokenAddress(tokenAddress);
             if (tokenAddress != ntokenAddress) {
-                _collect(channel, ntokenAddress, sheets.length, 0, uint(config.postFee) * DIMI_ETHER);
+                _collect(channel, ntokenAddress, sheets.length, 0, config);
             }
         }
 
@@ -510,16 +520,17 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // Freeze nest
         uint accountIndex = _addressIndex(msg.sender);
-        mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-        if (tokenAddress == NEST_TOKEN_ADDRESS) {
-            needTokenValue += needNest1k * 1000 ether;
-        } else {
-            _freeze(balances, NEST_TOKEN_ADDRESS, needNest1k * 1000 ether);        
+        {
+            mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
+            if (tokenAddress == NEST_TOKEN_ADDRESS) {
+                needTokenValue += needNest1k * 1000 ether;
+            } else {
+                _freeze(balances, NEST_TOKEN_ADDRESS, needNest1k * 1000 ether);        
+            }
+
+            // Freeze token
+            _freeze(balances, tokenAddress, needTokenValue + decodeFloat(sheet.priceFloat) * biteNum);
         }
-
-        // Freeze token
-        _freeze(balances, tokenAddress, needTokenValue + decodeFloat(sheet.priceFraction, sheet.priceExponent) * biteNum);
-
         // 6. Update the biten sheet
         sheet.remainNum = uint32(sheet.remainNum - biteNum);
         sheet.ethNumBal = uint32(sheet.ethNumBal - biteNum);
@@ -533,7 +544,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // 8. Create price sheet
         emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level, newTokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, 0, level, newTokenAmountPerEth);
     }
 
     // Create price sheet
@@ -542,21 +553,23 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint accountIndex, 
         uint32 ethNum, 
         uint nestNum1k, 
+        uint shares,
         uint level, 
         uint tokenAmountPerEth
     ) private {
         
-        (uint48 fraction, uint8 exponent) = encodeFloat(tokenAmountPerEth);
         sheets.push(PriceSheet(
             uint32(accountIndex),                       // uint32 miner;
             uint32(block.number),                       // uint32 height;
             ethNum,                                     // uint32 remainNum;
             ethNum,                                     // uint32 ethNumBal;
             ethNum,                                     // uint32 tokenNumBal;
-            uint32(nestNum1k),                          // uint32 nestNum1k;
+            uint24(nestNum1k),                          // uint32 nestNum1k;
+            uint8(shares),
             uint8(level),                               // uint8 level;
-            exponent,                                   // uint8 priceExponent;
-            fraction                                    // uint48 priceFraction;
+            //exponent,                                   // uint8 priceExponent;
+            //fraction                                    // uint48 priceFraction;
+            encodeFloat(tokenAmountPerEth)
         ));
     }
     
@@ -565,20 +578,20 @@ contract NestMining is NestBase, INestMining, INestQuery {
     // The decay limit of nest ore drawing becomes stable after exceeding this interval. 24 million blocks, about 10 years
     uint constant NEST_REDUCTION_LIMIT = NEST_REDUCTION_SPAN * 10;
     // Attenuation gradient array, each attenuation step value occupies 16 bits. The attenuation value is an integer
-    uint constant NEST_REDUCTION_STEPS =
-        0
-        | (uint(400 / uint(1)) << (16 * 0))
-        | (uint(400 * 8 / uint(10)) << (16 * 1))
-        | (uint(400 * 8 * 8 / uint(10 * 10)) << (16 * 2))
-        | (uint(400 * 8 * 8 * 8 / uint(10 * 10 * 10)) << (16 * 3))
-        | (uint(400 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10)) << (16 * 4))
-        | (uint(400 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10)) << (16 * 5))
-        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10)) << (16 * 6))
-        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 7))
-        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 8))
-        | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 9))
-        //| (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 10));
-        | (uint(40) << (16 * 10));
+    uint constant NEST_REDUCTION_STEPS = 0x280035004300530068008300a300cc010001400190;
+        // 0
+        // | (uint(400 / uint(1)) << (16 * 0))
+        // | (uint(400 * 8 / uint(10)) << (16 * 1))
+        // | (uint(400 * 8 * 8 / uint(10 * 10)) << (16 * 2))
+        // | (uint(400 * 8 * 8 * 8 / uint(10 * 10 * 10)) << (16 * 3))
+        // | (uint(400 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10)) << (16 * 4))
+        // | (uint(400 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10)) << (16 * 5))
+        // | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10)) << (16 * 6))
+        // | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 7))
+        // | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 8))
+        // | (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 9))
+        // //| (uint(400 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 * 8 / uint(10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10 * 10)) << (16 * 10));
+        // | (uint(40) << (16 * 10));
 
     // Calculation of attenuation gradient
     function _redution(uint delta) private pure returns (uint) {
@@ -602,7 +615,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // Load the price channel
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         // Call _close() method to close price sheet
-        (uint accountIndex, Tunple memory total) = _close(config, sheets, index, tokenAddress, ntokenAddress);
+        (uint accountIndex, Tunple memory total) = _close(config, sheets, index, ntokenAddress);
 
         if (accountIndex > 0) {
             // Return eth
@@ -640,11 +653,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
     }
 
     // Calculation blocks which mined
-    function _calcMinedBlocks(PriceSheet[] storage sheets, uint index, uint height) private view returns (uint minedBlocks, uint count) {
+    function _calcMinedBlocks(PriceSheet[] storage sheets, uint index, PriceSheet memory sheet) private view returns (uint minedBlocks, uint totalShares) {
 
+        uint height = uint(sheet.height);
         uint length = sheets.length;
         uint i = index;
-        count = 1;
+        totalShares = uint(sheet.shares);
         
         // Backward looking for sheets in the same block
         while (++i < length && uint(sheets[i].height) == height) {
@@ -652,9 +666,10 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // Multiple sheets in the same block is a small probability event at present, so it can be ignored 
             // to read more than once, if there are always multiple sheets in the same block, it means that the 
             // sheets are very intensive, and the gas consumed here does not have a great impact
-            if (uint(sheets[i].level) == 0) {
-                ++count;
-            }
+            // if (uint(sheets[i].level) == 0) {
+            //     ++count;
+            // }
+            totalShares += uint(sheets[i].shares);
         }
 
         i = index;
@@ -665,18 +680,27 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // Multiple sheets in the same block is a small probability event at present, so it can be ignored 
             // to read more than once, if there are always multiple sheets in the same block, it means that the 
             // sheets are very intensive, and the gas consumed here does not have a great impact
-            if (uint(sheets[i].level) == 0) {
-                ++count;
-            }
+            // if (uint(sheets[i].level) == 0) {
+            //     ++count;
+            // }
+            totalShares += uint(sheets[i].shares);
         }
 
-        if (i == 0 && sheets[i].height == height) {
-            // TODO: Consider how to calculate the first sheet
-            //minedBlocks = 10;
-            return (10, count);
+        // if (i == 0 && sheets[i].height == height) {
+        //     // TODO: Consider how to calculate the first sheet
+        //     //minedBlocks = 10;
+        //     return (10, count);
+        // } else {
+        //     //minedBlocks = height - prev;
+        //     return (height - prev, count);
+        // }
+
+        if (i > 0 || height > prev) {
+            //return (height - prev, totalShares);
+            minedBlocks = height - prev;
         } else {
-            //minedBlocks = height - prev;
-            return (height - prev, count);
+            //return (10, totalShares);
+            minedBlocks = 10;
         }
     }
 
@@ -689,7 +713,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     }
 
     // Close price sheet
-    function _close(Config memory config, PriceSheet[] storage sheets, uint index, address tokenAddress, address ntokenAddress) private returns (uint accountIndex, Tunple memory value) {
+    function _close(Config memory config, PriceSheet[] storage sheets, uint index, address ntokenAddress) private returns (uint accountIndex, Tunple memory value) {
         
         PriceSheet memory sheet = sheets[index];
 
@@ -698,18 +722,19 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // Set sheet.miner to 0, express the sheet is closed
             sheet.miner = uint32(0);
             // The price which is bite or ntoken dosen't mining
-            if (uint(sheet.level) > 0 || tokenAddress == ntokenAddress) {
-                value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
+            if (uint(sheet.shares) == 0) {
+                value.tokenValue = uint128(decodeFloat(sheet.priceFloat) * uint(sheet.tokenNumBal));
                 value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
             } 
             // Mining logic
             else {
                 
-                (uint minedBlocks, uint count) = _calcMinedBlocks(sheets, index, uint(sheet.height));
+                (uint minedBlocks, uint totalShares) = _calcMinedBlocks(sheets, index, sheet);
+
+                // TODO: 可以合并
                 // nest mining
                 if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-                    value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
-                    value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether + minedBlocks * _redution(block.number - NEST_GENESIS_BLOCK) * 1 ether * uint(config.minerNestReward) / 10000 / count);
+                    value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether + minedBlocks * uint(sheet.shares) * _redution(uint(sheet.height) - NEST_GENESIS_BLOCK) * 1 ether * uint(config.minerNestReward) / 10000 / totalShares);
                 } 
                 // ntoken mining
                 else {
@@ -718,13 +743,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
                         minedBlocks = uint(config.ntokenMinedBlockLimit);
                     }
                     
-                    uint mined = (minedBlocks * _redution(block.number - _getNTokenGenesisBlock(ntokenAddress)) * 0.01 ether) / count;
+                    uint mined = (minedBlocks * uint(sheet.shares) * _redution(uint(sheet.height) - _getNTokenGenesisBlock(ntokenAddress)) * 0.01 ether) / totalShares;
                     // ntoken bidders
                     address bidder = INToken(ntokenAddress).checkBidder();
                     // New ntoken
                     if (bidder == address(this)) {
-                        value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
-                        value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
                         value.ntokenValue = uint128(mined);
                         // TODO：Put this logic into widhdran() method to reduce gas consumption
                         // mining
@@ -732,8 +755,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     }
                     // Legacy ntoken
                     else {
-                        value.tokenValue = uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.tokenNumBal));
-                        value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
                         value.ntokenValue = uint128(mined * uint(config.minerNTokenReward) / 10000);
                         // Considering that multiple sheets in the same block are small probability events, 
                         // we can send token to bidders in each closing operation
@@ -744,9 +765,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
                         // mining
                         INest_NToken(ntokenAddress).increaseTotal(mined);
                     }
+                    value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
                 }
             }
 
+            value.tokenValue = uint128(decodeFloat(sheet.priceFloat) * uint(sheet.tokenNumBal));
             value.ethNum = uint128(sheet.ethNumBal);
             sheet.ethNumBal = uint32(0);
             sheet.tokenNumBal = uint32(0);
@@ -763,10 +786,10 @@ contract NestMining is NestBase, INestMining, INestQuery {
         Tunple memory total;
 
         // 1. Traverse sheets
-        for (uint i = 0; i < indices.length; ++i) {
+        for (uint i = indices.length; i > 0;) {
 
             // Because too many variables need to be returned, too many variables will be defined, so the structure of tunple is defined
-            (uint minerIndex, Tunple memory value) = _close(config, sheets, uint(indices[i]), tokenAddress, ntokenAddress);
+            (uint minerIndex, Tunple memory value) = _close(config, sheets, uint(indices[--i]), ntokenAddress);
             // Batch closing quotation can only close sheet of the same user
             if (accountIndex == 0) {
                 // accountIndex == 0 means the first sheet, and the number of this sheet is taken
@@ -816,13 +839,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet;
         for (; ; ) {
             
+            uint sheetPrice = decodeFloat(sheet.priceFloat);
             // Traverse the sheets that has reached the effective interval from the current position
             bool flag = index < length && (height = uint((sheet = sheets[index]).height)) + priceEffectSpan < block.number;
 
             // The same block, and the flag is true, the cumulative count
             if (prev == height && flag) {
                 totalEth += uint(sheet.remainNum);
-                totalTokenValue += decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.remainNum);
+                totalTokenValue += sheetPrice * uint(sheet.remainNum);
             }
             // Not the same block (or flag is false), calculate the price and update it
             else {
@@ -837,11 +861,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     if (prev > 0) {
                         // Calculate average price
                         // avgPrice[i + 1] = avgPrice[i] * 95% + price[i] * 5%
-                        (p0.avgFraction, p0.avgExponent) = encodeFloat((decodeFloat(p0.avgFraction, p0.avgExponent) * 19 + price) / 20);
+                        p0.avgFloat = encodeFloat((sheetPrice * 19 + price) / 20);
 
                         //if (height > uint(p0.height)) 
                         {
-                            uint tmp = (price << 24) / decodeFloat(p0.priceFraction, p0.priceExponent);
+                            uint tmp = (price << 24) / sheetPrice;
                             if (tmp > 0x1000000) {
                                 tmp = tmp - 0x1000000;
                             } else {
@@ -865,7 +889,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     else {
                         // The average price is equal to the price
                         //p0.avgTokenAmount = uint64(price);
-                        (p0.avgFraction, p0.avgExponent) = encodeFloat(price);
+                        p0.avgFloat = encodeFloat(price);
 
                         // The volatility is 0
                         p0.sigmaSQ = uint48(0);
@@ -875,8 +899,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     p0.height = uint32(prev);
                     // Update price
                     p0.remainNum = uint32(totalEth);
-                    //p0.tokenAmount = uint64(totalTokenValue);
-                    (p0.priceFraction, p0.priceExponent) = encodeFloat(totalTokenValue / totalEth);
+                    p0.priceFloat = encodeFloat(totalTokenValue / totalEth);
 
                     // Move to new block number
                     prev = height;
@@ -884,7 +907,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
                 // Clear cumulative values
                 totalEth = uint(sheet.remainNum);
-                totalTokenValue = decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.remainNum);
+                totalTokenValue = sheetPrice * uint(sheet.remainNum);
             }
 
             if (!flag) {
@@ -910,8 +933,10 @@ contract NestMining is NestBase, INestMining, INestQuery {
     }
 
     // Deposit the accumulated dividends into nest ledger
-    function _collect(PriceChannel storage channel, address ntokenAddress, uint length, uint currentFee, uint newFee) private {
+    function _collect(PriceChannel storage channel, address ntokenAddress, uint length, uint currentFee, Config memory config) private returns (uint) {
 
+        uint newFee = uint(config.postFee) * DIMI_ETHER;
+        require(currentFee % newFee == 0, "NM:!fee");
         uint feeInfo = channel.feeInfo;
         uint oldFee = feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         
@@ -931,6 +956,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 channel.feeInfo = newFee | (((length & COLLECT_REWARD_MASK) + 1) << 128);
             }
         }
+
+        return currentFee / newFee;
     }
 
     /// @dev Settlement Commission
@@ -940,6 +967,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         if (tokenAddress != ntokenAddress) {
 
+            // TODO: 考虑通过调用_collect()方法实现
             PriceChannel storage channel = _channels[tokenAddress];
             uint count = channel.sheets.length & COLLECT_REWARD_MASK;
             uint feeInfo = channel.feeInfo;
@@ -974,7 +1002,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
             uint8(sheet.level),
             // Price
-            uint128(decodeFloat(sheet.priceFraction, sheet.priceExponent))
+            uint128(decodeFloat(sheet.priceFloat))
         );
     }
 
@@ -1022,7 +1050,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         while (index > 0) {
 
             PriceSheet memory sheet = sheets[--index];
-            if (uint(sheet.level) == 0) {
+            if (uint(sheet.shares) > 0) {
                 
                 uint blocks = (block.number - uint(sheet.height));
                 if (tokenAddress == NEST_TOKEN_ADDRESS) {
@@ -1040,7 +1068,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev Query the quantity of the target quotation
     /// @param tokenAddress Token address. The token can't mine. Please make sure you don't use the token address when calling
     /// @param index The index of the sheet
-    function getMinedBlocks(address tokenAddress, uint index) override external view returns (uint minedBlocks, uint count) {
+    /// @return minedBlocks Mined block period from previous block
+    /// @return totalShares Total shares of sheets in the block
+    function getMinedBlocks(address tokenAddress, uint index) override external view returns (uint minedBlocks, uint totalShares) {
         
         PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         PriceSheet memory sheet = sheets[index];
@@ -1050,7 +1080,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             return (0, 0);
         }
 
-        return _calcMinedBlocks(sheets, index, uint(sheet.height));
+        return _calcMinedBlocks(sheets, index, sheet);
     }
 
     /* ========== Accounts ========== */
@@ -1064,10 +1094,10 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // TODO: The user's locked nest and the mining pool's nest are stored together. When the nest is dug up, 
         // the problem of taking the locked nest as the ore drawing will appear
         // As it will take a long time for nest to finish mining, this problem will not be considered for the time being
-        Account storage account = _accounts[_accountMapping[msg.sender]];
-        uint balance = account.balances[tokenAddress].value;
-        require(balance >= value, "NM:!balance");
-        account.balances[tokenAddress].value = balance - value;
+        UINT storage balance = _accounts[_accountMapping[msg.sender]].balances[tokenAddress];
+        //uint balanceValue = balance.value;
+        //require(balanceValue >= value, "NM:!balance");
+        balance.value -= value;
         TransferHelper.safeTransfer(tokenAddress, msg.sender, value);
 
         return value;
@@ -1141,7 +1171,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param value token amount
     function _unfreeze(mapping(address=>UINT) storage balances, address tokenAddress, uint value) private {
         UINT storage balance = balances[tokenAddress];
-        balance.value = balance.value + value;
+        balance.value += value;
     }
 
     /// @dev freeze token and nest
@@ -1232,13 +1262,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         //mapping(address=>UINT) storage balances = accounts[addressIndex(msg.sender)].balances;
         UINT storage balance = balances[tokenAddress];
-        balance.value = balance.value + tokenValue;
+        balance.value += tokenValue;
 
         balance = balances[ntokenAddress];
-        balance.value = balance.value + ntokenValue;
+        balance.value += ntokenValue;
 
         balance = balances[NEST_TOKEN_ADDRESS];
-        balance.value = balance.value + nestValue;
+        balance.value += nestValue;
     }
 
     /* ========== INestQuery ========== */
@@ -1252,7 +1282,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
         PriceInfo memory priceInfo = _channels[tokenAddress].price;
         if (uint(priceInfo.remainNum) > 0) {
-            return (uint(priceInfo.height), decodeFloat(priceInfo.priceFraction, priceInfo.priceExponent));
+            return (uint(priceInfo.height), decodeFloat(priceInfo.priceFloat));
         }
         return (0, 0);
     }
@@ -1272,11 +1302,118 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         return (
             uint(priceInfo.height), 
-            decodeFloat(priceInfo.priceFraction, priceInfo.priceExponent),
-            decodeFloat(priceInfo.avgFraction, priceInfo.avgExponent),
-            (uint(priceInfo.sigmaSQ) * 1 ether) >> 48 // 波动率的平方
+            decodeFloat(priceInfo.priceFloat),
+            decodeFloat(priceInfo.avgFloat),
+            (uint(priceInfo.sigmaSQ) * 1 ether) >> 48
         );
     }
+
+    /// @dev Find the price at block number
+    /// @param tokenAddress Destination token address
+    /// @param height Destination block number
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    function findPrice(address tokenAddress, uint height) override external view returns (uint blockNumber, uint price) {
+
+        require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
+
+        PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+        PriceSheet memory sheet;
+
+        uint length = sheets.length;
+        uint left = 0;
+        uint right = length - 1;
+        uint index;
+
+        // If height is greater than max effect block number, use max effect block number
+        uint h = block.number - uint(_config.priceEffectSpan);
+        if (height > h) {
+            height = h;
+        }
+
+        // Find the index use Binary Search
+        while (left < right) {
+
+            index = (left + right) >> 1;
+            h = uint((sheet = sheets[index]).height);
+            if (height > h) {
+                left = index + 1;
+            } else if (height < h) {
+                right = index;
+            } else {
+                break;
+            }
+        }
+
+        // Calculate price
+        uint totalEthNum = 0;
+        uint totalTokenValue = 0;
+        h = 0;
+
+        // Find sheets forward
+        for (uint i = index; i < length;) {
+            
+            sheet = sheets[i++];
+            if (height < uint(sheet.height)) {
+                break;
+            }
+            if (uint(sheet.remainNum) > 0) {
+                h = uint(sheet.height);
+                totalEthNum += uint(sheet.remainNum);
+                totalTokenValue += decodeFloat(sheet.priceFloat) * uint(sheet.remainNum);
+            }
+        }
+
+        // Find sheets backward
+        for (uint i = index; i > 0;) {
+            
+            sheet = sheets[--i];
+            if (uint(sheet.remainNum) > 0) {
+                if (h == 0) {
+                    h = uint(sheet.height);
+                } else if (h != uint(sheet.height)) {
+                    break;
+                }
+                totalEthNum += uint(sheet.remainNum);
+                totalTokenValue += decodeFloat(sheet.priceFloat) * uint(sheet.remainNum);
+            }
+        }
+
+        if (totalEthNum > 0) {
+            return (h, totalTokenValue / totalEthNum);
+        }
+        return (0, 0);
+    }
+
+    function getLatestPrices(address tokenAddress, uint num) public view returns (uint[] memory) {
+        
+        uint[] memory array = new uint[](num <<= 1);
+        uint totalEthNum = 0;
+        uint totalTokenValue = 0;
+        uint height = 0;
+        uint h = block.number - uint(_config.priceEffectSpan);
+        
+        PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+        PriceSheet memory sheet;
+
+        uint index = sheets.length;
+        while (num > 0 && index > 0) {
+
+            if (height != uint((sheet = sheets[--index]).height)) {
+                if (totalEthNum > 0 && height < h) {
+                    array[--num] = totalTokenValue / totalEthNum;
+                    array[--num] = height;
+                }
+                totalEthNum = 0;
+                totalTokenValue = 0;
+            }
+
+            totalEthNum += uint(sheet.remainNum);
+            totalTokenValue += decodeFloat(sheet.priceFloat) * uint(sheet.remainNum);
+        }
+
+        return array;
+    } 
 
     /// @dev Get the latest effective price
     /// @param tokenAddress Destination token address
@@ -1291,7 +1428,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint index = sheets.length;
 
         // Find the effective sheet index
-        while (index > 0) { 
+        while (index > 0) {
+
             PriceSheet memory sheet = sheets[--index];
             if (uint(sheet.height) + uint(config.priceEffectSpan) < block.number && uint(sheet.remainNum) > 0) {
                 
@@ -1299,7 +1437,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 // Destination block number
                 uint height = uint(sheet.height);
                 uint totalEth = uint(sheet.remainNum);
-                uint totalTokenValue = decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.remainNum);
+                uint totalTokenValue = decodeFloat(sheet.priceFloat) * uint(sheet.remainNum);
                 
                 // Traverse the sheet in the block
                 while (index > 0 && uint(sheets[--index].height) == height) {
@@ -1311,7 +1449,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     totalEth += uint(sheet.remainNum);
 
                     // Cumulative number of tokens
-                    totalTokenValue += decodeFloat(sheet.priceFraction, sheet.priceExponent) * uint(sheet.remainNum);
+                    totalTokenValue += decodeFloat(sheet.priceFloat) * uint(sheet.remainNum);
                 }
 
                 // totalEth Must be greater than 0
@@ -1386,23 +1524,21 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /// @dev Encode the uint value as a floating-point representation in the form of fraction * 16 ^ exponent
     /// @param value Destination uint value
-    /// @return fraction fraction value
-    /// @return exponent exponent value
-    function encodeFloat(uint value) public pure returns (uint48 fraction, uint8 exponent) {
+    /// @return float format
+    function encodeFloat(uint value) public pure returns (uint56) {
         
         uint decimals = 0; 
-        while (value > 0xFFFFFFFFFFFF /* 281474976710655 */) {
+        while (value > 0x3FFFFFFFFFFFF) {
             value >>= 4;
             ++decimals;
         }
-
-        return (uint48(value), uint8(decimals));
+        return uint56((value << 6) | decimals);
     }
 
     /// @dev Decode the floating-point representation of fraction * 16 ^ exponent to uint
-    /// @param fraction fraction value
-    /// @param exponent exponent value
-    function decodeFloat(uint fraction, uint exponent) public pure returns (uint) {
-        return fraction << (exponent << 2);
+    /// @param floatValue fraction value
+    /// @return decode format
+    function decodeFloat(uint56 floatValue) public pure returns (uint) {
+        return (uint(floatValue) >> 6) << ((uint(floatValue) & 0x3F) << 2);
     }
 }

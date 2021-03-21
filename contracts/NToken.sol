@@ -34,9 +34,9 @@ contract NToken is NestBase, INToken {
     /// @param _symbol The symbol of NToken
     constructor (string memory _name, string memory _symbol) {
 
-    	GENESIS_BLOCK_NUMBER = block.number;
-    	name = _name;                                                               
-    	symbol = _symbol;
+        GENESIS_BLOCK_NUMBER = block.number;
+        name = _name;                                                               
+        symbol = _symbol;
         _state = block.number;
     }
 
