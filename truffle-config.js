@@ -18,11 +18,14 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
 // const infuraKey = "fj4jll3k.....";
 //
-// const fs = require('fs');
+const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
+
+const mnemonic = fs.readFileSync("../key.secret").toString().trim();
+const nodeaddr = fs.readFileSync("../nodeinfo.txt").toString().trim();
 
 module.exports = {
   /**
@@ -60,14 +63,15 @@ module.exports = {
 
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
-    // ropsten: {
-      // provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
-      // network_id: 3,       // Ropsten's id
-      // gas: 5500000,        // Ropsten has a lower block limit than mainnet
-      // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-      // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-      // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-    // },
+    rinkeby: {
+      provider: () => new HDWalletProvider(mnemonic, nodeaddr),
+      //provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
+      network_id: 4,       // Ropsten's id
+      gas: 8000000,        // Ropsten has a lower block limit than mainnet
+      confirmations: 0,    // # of confs to wait between deployments. (default: 0)
+      timeoutBlocks: 2000000000,  // # of blocks before a deployment times out  (minimum/default: 50)
+      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+    },
 
     // Useful for private networks
     // private: {
@@ -79,7 +83,7 @@ module.exports = {
 
   // Set default mocha options here, use special reporters etc.
   mocha: {
-    // timeout: 100000
+    timeout: 2000000000
   },
 
   // Configure your compilers
