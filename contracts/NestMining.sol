@@ -320,11 +320,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
         {
             mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
             _freeze(balances, tokenAddress, ethNum * tokenAmountPerEth);
-            if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-                _freeze(balances, NEST_TOKEN_ADDRESS, ethNum * ntokenAmountPerEth + pledgeNest * 1000 ether);
-            } else {
-                _freeze2(balances, ntokenAddress, ethNum * ntokenAmountPerEth, pledgeNest * 2000 ether);
-            }
+            // if (ntokenAddress == NEST_TOKEN_ADDRESS) {
+            //     _freeze(balances, NEST_TOKEN_ADDRESS, ethNum * ntokenAmountPerEth + pledgeNest * 2000 ether);
+            // } else {
+            //     _freeze2(balances, ntokenAddress, ethNum * ntokenAmountPerEth, pledgeNest * 2000 ether);
+            // }
+            _freeze2(balances, ntokenAddress, ethNum * ntokenAmountPerEth, pledgeNest * 2000 ether);
         }
         
         // 5. Deposit fee
@@ -389,48 +390,38 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
 
         // 5. Calculate the number of eth, token and nest needed, and freeze them
-        uint needTokenValue;
+        uint needEthNum;
         uint level = uint(sheet.level);
 
         // When the level of the sheet is less than 4, both the nest and the scale of the offer are doubled
         if (level < uint(config.maxBiteNestedLevel)) {
-            // Double scale sheet + the quantity used to buy token, three times total
-            require(msg.value == biteNum * 3 ether, "NM:!value");
             // Double scall sheet
-            needTokenValue = newTokenAmountPerEth * (biteNum << 1);
+            needEthNum = biteNum << 1;
             ++level;
         } 
         // When the level of the sheet reaches 4 or more, nest doubles, but the scale does not
         else {
-            // Single scale sheet + the quantity used to buy token, two times total
-            require(msg.value == biteNum * 2 ether, "NM:!value");
             // Single scale sheet
-            needTokenValue = newTokenAmountPerEth * biteNum;
+            needEthNum = biteNum;
             // It is possible that the length of a single chain exceeds 255. When the length of a chain reaches 4 
             // or more, there is no logical dependence on the specific value of the contract, and the count will 
             // not increase after it is accumulated to 255
             if (level < 255) ++level;
         }
+        require(msg.value == (needEthNum + biteNum) * 1 ether, "NM:!value");
 
         // Number of nest to be pledged
         uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
-
         // Freeze nest
         uint accountIndex = _addressIndex(msg.sender);
         {
             mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-            if (tokenAddress == NEST_TOKEN_ADDRESS) {
-                needTokenValue += needNest1k * 1000 ether;
-            } else {
-                _freeze(balances, NEST_TOKEN_ADDRESS, needNest1k * 1000 ether);        
-            }
-
-            // Freeze token
             uint backTokenValue = decodeFloat(sheet.priceFloat) * biteNum;
-            if (needTokenValue > backTokenValue) {
-                _freeze(balances, tokenAddress, needTokenValue - backTokenValue);
+            if (needEthNum * newTokenAmountPerEth > backTokenValue) {
+                _freeze2(balances, tokenAddress, needEthNum * newTokenAmountPerEth - backTokenValue, needNest1k * 1000 ether);
             } else {
-                _unfreeze(balances, tokenAddress, backTokenValue - needTokenValue);
+                _freeze(balances, NEST_TOKEN_ADDRESS, needNest1k * 1000 ether);
+                _unfreeze(balances, tokenAddress, backTokenValue - needEthNum * newTokenAmountPerEth);
             }
         }
 
@@ -446,8 +437,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         _stat(channel, sheets, config);
 
         // 8. Create price sheet
-        emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level << 8, newTokenAmountPerEth);
+        emit Post(tokenAddress, msg.sender, sheets.length, needEthNum, newTokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(needEthNum), needNest1k, level << 8, newTokenAmountPerEth);
     }
 
     /// @notice Call the function to buy ETH from a posted price sheet
@@ -483,45 +474,38 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
 
         // 5. Calculate the number of eth, token and nest needed, and freeze them
-        uint needTokenValue;
+        uint needEthNum;
         uint level = uint(sheet.level);
 
         // When the level of the sheet is less than 4, both the nest and the scale of the offer are doubled
         if (level < uint(config.maxBiteNestedLevel)) {
-            // Double scale sheet + the quantity used to buy token, three times total
-            require(msg.value == biteNum * 1 ether, "NM:!value");
             // Double scale sheet
-            needTokenValue = newTokenAmountPerEth * (biteNum << 1);
+            needEthNum = biteNum << 1;
             ++level;
         } 
         // When the level of the sheet reaches 4 or more, nest doubles, but the scale does not
         else {
-            // Single scale sheet + the quantity used to buy token, two times total
-            require(msg.value == 0, "NM:!value");
             // Single scale sheet
-            needTokenValue = newTokenAmountPerEth * biteNum;
+            needEthNum = biteNum;
             // It is possible that the length of a single chain exceeds 255. When the length of a chain reaches 4 
             // or more, there is no logical dependence on the specific value of the contract, and the count will 
             // not increase after it is accumulated to 255
             if (level < 255) ++level;
         }
-        
+        require(msg.value == (needEthNum - biteNum) * 1 ether, "NM:!value");
+
         // Number of nest to be pledged
         uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
-
         // Freeze nest
         uint accountIndex = _addressIndex(msg.sender);
-        {
-            mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-            if (tokenAddress == NEST_TOKEN_ADDRESS) {
-                needTokenValue += needNest1k * 1000 ether;
-            } else {
-                _freeze(balances, NEST_TOKEN_ADDRESS, needNest1k * 1000 ether);        
-            }
-
-            // Freeze token
-            _freeze(balances, tokenAddress, needTokenValue + decodeFloat(sheet.priceFloat) * biteNum);
-        }
+        
+        _freeze2(
+            _accounts[accountIndex].balances, 
+            tokenAddress, 
+            needEthNum * newTokenAmountPerEth + decodeFloat(sheet.priceFloat) * biteNum, 
+            needNest1k * 1000 ether
+        );
+            
         // 6. Update the biten sheet
         sheet.remainNum = uint32(sheet.remainNum - biteNum);
         sheet.ethNumBal = uint32(sheet.ethNumBal - biteNum);
@@ -534,8 +518,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         _stat(channel, sheets, config);
 
         // 8. Create price sheet
-        emit Post(tokenAddress, msg.sender, sheets.length, uint32(biteNum << 1), newTokenAmountPerEth);
-        _createPriceSheet(sheets, accountIndex, uint32(biteNum << 1), needNest1k, level << 8, newTokenAmountPerEth);
+        emit Post(tokenAddress, msg.sender, sheets.length, needEthNum, newTokenAmountPerEth);
+        _createPriceSheet(sheets, accountIndex, uint32(needEthNum), needNest1k, level << 8, newTokenAmountPerEth);
     }
 
     // Create price sheet
@@ -607,8 +591,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         if (accountIndex > 0) {
             // Return eth
-            if (uint128(total.ethNum) > 0) {
-                payable(address(uint160(indexAddress(accountIndex)))).transfer(uint(total.ethNum) * 1 ether);
+            if (uint(total.ethNum) > 0) {
+                payable(indexAddress(accountIndex)).transfer(uint(total.ethNum) * 1 ether);
             }
             // Freeze assets
             _unfreeze3(_accounts[accountIndex].balances, tokenAddress, uint(total.tokenValue), ntokenAddress, uint(total.ntokenValue), uint(total.nestValue));
@@ -694,7 +678,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             sheet.miner = uint32(0);
             // The price which is bite or ntoken dosen't mining
             if (uint(sheet.shares) == 0) {
-                value.tokenValue = uint128(decodeFloat(sheet.priceFloat) * uint(sheet.tokenNumBal));
+                //value.tokenValue = uint128(decodeFloat(sheet.priceFloat) * uint(sheet.tokenNumBal));
                 value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether);
             } 
             // Mining logic
@@ -702,7 +686,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 
                 (uint minedBlocks, uint totalShares) = _calcMinedBlocks(sheets, index, sheet);
 
-                // TODO: 可以合并
                 // nest mining
                 if (ntokenAddress == NEST_TOKEN_ADDRESS) {
                     value.nestValue = uint128(uint(sheet.nestNum1k) * 1000 ether + minedBlocks * uint(sheet.shares) * _redution(uint(sheet.height) - NEST_GENESIS_BLOCK) * 1 ether * uint(config.minerNestReward) / 10000 / totalShares);
@@ -777,8 +760,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
 
         // Return eth
-        if (uint128(total.ethNum) > 0) {
-            payable(address(uint160(indexAddress(accountIndex)))).transfer(uint(total.ethNum) * 1 ether);
+        if (uint(total.ethNum) > 0) {
+            payable(indexAddress(accountIndex)).transfer(uint(total.ethNum) * 1 ether);
         }
         // Unfreeze assets
         _unfreeze3(_accounts[accountIndex].balances, tokenAddress, uint(total.tokenValue), ntokenAddress, uint(total.ntokenValue), uint(total.nestValue));
@@ -998,7 +981,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
             uint index = sheets.length - offset;
             uint end = index - count;
-            while (index-- > end) {
+            while (index > end) {
+                --index;
                 result[i++] = _toPriceSheetView(sheets[index], index);
             }
         } 
@@ -1020,6 +1004,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return Estimated ore yield
     function estimate(address tokenAddress) override external view returns (uint) {
 
+        address ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
+        if (tokenAddress == ntokenAddress) {
+            return 0;
+        }
+        
         PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         uint index = sheets.length;
         while (index > 0) {
@@ -1027,12 +1016,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
             PriceSheet memory sheet = sheets[--index];
             if (uint(sheet.shares) > 0) {
                 
-                uint blocks = (block.number - uint(sheet.height));
-                if (tokenAddress == NEST_TOKEN_ADDRESS) {
+                uint blocks = block.number - uint(sheet.height);
+                if (ntokenAddress == NEST_TOKEN_ADDRESS) {
                     return blocks * _redution(block.number - NEST_GENESIS_BLOCK) * 1 ether;
                 }
                 
-                (uint blockNumber,) = INToken(INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress)).checkBlockInfo();
+                (uint blockNumber,) = INToken(ntokenAddress).checkBlockInfo();
                 return blocks * _redution(block.number - blockNumber) * 0.01 ether;
             }
         }
@@ -1051,12 +1040,31 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet = sheets[index];
         
         // The bite sheet or ntoken sheet dosen't mining
-        if (sheet.level > 0 /*|| INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress) == tokenAddress*/) {
+        if (uint(sheet.shares) == 0 /*|| INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress) == tokenAddress*/) {
             return (0, 0);
         }
 
         return _calcMinedBlocks(sheets, index, sheet);
     }
+
+    // function getMined(address tokenAddress, uint index) external view returns (uint) {
+    //     PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+    //     PriceSheet memory sheet = sheets[index];
+        
+    //     address ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
+    //     // The bite sheet or ntoken sheet dosen't mining
+    //     if (uint(sheet.shares) == 0 || tokenAddress == ntokenAddress) {
+    //         return 0;
+    //     }
+
+    //     (uint minedBlocks, uint totalShares) = _calcMinedBlocks(sheets, index, sheet);
+    //     if (ntokenAddress == NEST_TOKEN_ADDRESS) {
+    //         return minedBlocks * uint(sheet.shares) * _redution(uint(sheet.height) - NEST_GENESIS_BLOCK) * 1 ether / totalShares;
+    //     }
+
+    //     (uint blockNumber,) = INToken(INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress)).checkBlockInfo();
+    //     return minedBlocks * uint(sheet.shares) * _redution(uint(sheet.height) - blockNumber) * 0.01 ether / totalShares;
+    // }
 
     /* ========== Accounts ========== */
 
@@ -1164,13 +1172,20 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param nestValue nest amount
     function _freeze2(mapping(address=>UINT) storage balances, address tokenAddress, uint tokenValue, uint nestValue) private {
 
-        UINT storage balance = balances[tokenAddress];
-        uint balanceValue = balance.value;
-        if (balanceValue < tokenValue) {
-            TransferHelper.safeTransferFrom(tokenAddress, msg.sender, address(this), tokenValue - balanceValue);
-            balance.value = 0;
+        UINT storage balance;// = balances[tokenAddress];
+        uint balanceValue;// = balance.value;
+
+        if (NEST_TOKEN_ADDRESS == tokenAddress) {
+            nestValue += tokenValue;
         } else {
-            balance.value = balanceValue - tokenValue;
+            balance = balances[tokenAddress];
+            balanceValue = balance.value;
+            if (balanceValue < tokenValue) {
+                TransferHelper.safeTransferFrom(tokenAddress, msg.sender, address(this), tokenValue - balanceValue);
+                balance.value = 0;
+            } else {
+                balance.value = balanceValue - tokenValue;
+            }
         }
 
         balance = balances[NEST_TOKEN_ADDRESS];
@@ -1244,11 +1259,30 @@ contract NestMining is NestBase, INestMining, INestQuery {
     function _unfreeze3(mapping(address=>UINT) storage balances, address tokenAddress, uint tokenValue, address ntokenAddress, uint ntokenValue, uint nestValue) private {
 
         //mapping(address=>UINT) storage balances = accounts[addressIndex(msg.sender)].balances;
-        UINT storage balance = balances[tokenAddress];
-        balance.value += tokenValue;
+        // UINT storage balance = balances[tokenAddress];
+        // balance.value += tokenValue;
 
-        balance = balances[ntokenAddress];
-        balance.value += ntokenValue;
+        // balance = balances[ntokenAddress];
+        // balance.value += ntokenValue;
+
+        // balance = balances[NEST_TOKEN_ADDRESS];
+        // balance.value += nestValue;
+
+        UINT storage balance;// = balances[tokenAddress];
+        
+        if (ntokenAddress == tokenAddress) {
+            ntokenValue += tokenValue;
+        } else {
+            balance = balances[tokenAddress];
+            balance.value += tokenValue;
+        }
+
+        if (NEST_TOKEN_ADDRESS == ntokenAddress) {
+            nestValue == ntokenValue;
+        } else {
+            balance = balances[ntokenAddress];
+            balance.value += ntokenValue;
+        }
 
         balance = balances[NEST_TOKEN_ADDRESS];
         balance.value += nestValue;

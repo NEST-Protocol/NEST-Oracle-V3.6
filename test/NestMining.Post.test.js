@@ -343,5 +343,16 @@ contract("NestMining", async accounts => {
                 LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             }
         }
+
+        //receipt = await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.1) });
+        // list(address tokenAddress, uint offset, uint count, uint order)
+        let sheets = await nestMining.list(usdt.address, 0, 1, 1);
+
+        for (var i in sheets) {
+            console.log(sheets[i]);
+        }
+
+        let es = await nestMining.estimate(usdt.address);
+        console.log(es);
     });
 });
