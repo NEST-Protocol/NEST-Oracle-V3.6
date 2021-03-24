@@ -1,174 +1,173 @@
-# NEST3.6合约说明
+# NEST V3.6 Contract Specification
 
-## 1. 背景描述
-NEST3.6针对NEST3.5进行了一定的功能调整和较多的非功能性修改。
+## 1. Background
+NEST V3.6 has made certain functional adjustments and non-functional modifications based on NEST V3.5.
 
-### 1.1. 功能类
-1. 取消分红
-2. 添加投票治理模块（详情见产品文档），3.6上线后将通过投票的方式删除系统维护账号
-3. nest报价规模30eth，ntoken报价规模10eth，佣金由原来的根据规模比例计算改为固定值，nest和ntoken的佣金都设置为0.1eth
-4. 验证区块拟调整为20区块
-5. NN独立挖矿，出矿速度为nest全部出矿速度的15%
+### 1.1. Functional Class
+1. Cancel dividends
+2. Add voting-governance module (see product document for details), system maintained accounts can be deleted by voting after V3.6 releases
+3. The quotation scale of nest is 30eth, the quotation scale of ntoken is 10eth, the commission is changed from the original calculation based on the scale ratio to a fixed value, and the commissions of nest and ntoken are both set to 0.1eth
+4. The verification block is proposed to adjust to 20 blocks
+5. NestNode mining independently, the mining speed is 15% of the total mining speed of nest
 
-### 1.2. 非功能类
-1. 对合约结构进行了调整，重新定义了本次和将来允许变化和需要固定的合约、将DAO分为账本和DAO应用两个部分（目前只有一个应用：回购，将来可能会有更多的DAO应用）
-2. 对合约数据结构进行了调整，主要目标是为了节省gas消耗，调整后，一部分计算会有精度损失，但是精度损失控制在万亿分之一以内
+### 1.2. Non-functional Class
+1. Adjust the contract structure, redefine contracts which allowing changes and need to be fixed this time and in the future, and the DAO is divided into the ledger and the application (currently there is only one application: repurchase, there might be more DAO application in the future)
+2. Adjust the contract data structure. The main goal is to save gas consumption. After the adjustment, some calculations will have a loss of accuracy, but the accuracy loss will be controlled within one trillionth
 
-## 2. 合约结构
+## 2. Contract Structure
 
 ![avatar](nest36-contracts.svg)
 
-合约关系如上图所示，其中绿色的合约是需要实际部署的合约，其他则是接口定义或者抽象合约。有如下要点：
+The contract relationship is shown in the figure above. The green contract is the contract that needs to be actually deployed, and the others are interface definitions or abstract contracts. The main points are as follows:
 
-1. nest体系的合约都继承NestBase合约，NestBase合约主要实现了属于nest治理体系内的合约需要配合治理完成的逻辑。
+1. The contracts of the nest system all inherit the NestBase contract. The NestBase contract mainly implements the logic that the contracts belonging to the nest governance system which need to cooperate with the governance.
 
-2. NestGovernance是nest治理合约。包含了治理相关的功能，同时实现了nest体系内建合约地址的映射管理。
+2. NestGovernance is a nest governance contract, which includes governance-related functions and realizes the mapping management of the built-in contract address in the nest system.
 
-3. NestVote合约是nest系统的投票治理合约。部署时需要在NestGovernance中给其赋予管理权限。NestVote工作原理是通过在得票率达到设定阈值时给执行目标合约赋予治理权限来达到投票治理的目的。
+3. The NestVote contract is a voting governance contract for the nest system. It needs to be given management authority in NestGovernance during deployment. The working principle of NestVote is to achieve the purpose of voting governance by granting governance authority to execute the target contract when the voting rate reaches the set threshold.
 
-4. NTokenController合约负责nToken的创建和管理。
+4. The NTokenController contract is responsible for the creation and management of nToken.
 
-5. NestMining合约是挖矿合约。其实现了INestMining（挖矿接口）和INestQuery（价格查询接口），基本逻辑是NestMining通过报价挖矿的方式实现了一种价格生成的机制。NestMining在线上会部署两个，一个是nest挖矿合约，一个是ntoken挖矿合约。
+5. The NestMining contract is a mining contract. It implements INestMining (mining interface) and INestQuery (price query interface). The basic logic is that NestMining implements a price generation mechanism through quotation mining. NestMining will deploy two online, one is the nest mining contract and the other is the ntoken mining contract.
 
-6. NestPriceFacade是NestPrice的价格查询入口。负责给DeFi提供价格调用接口，同时完成收费逻辑。NestPriceFacade中查找价格查询接口合约时，使用了两级查询机制，其首先在一个映射中查找目标token是否有单独设置INestQuery合约，如果没有找到，就使用系统内建的合约地址进行查询，从而实现nest和ntoken可以分成不同的合约报价的功能。
+6. NestPriceFacade is the price query portal of NestPrice. Responsible for providing the price calling interface for DeFi, and completing the charging logic at the same time. When searching for the price query interface contract in NestPriceFacade, a two-level query mechanism is used. First, it finds whether the target token has a separate INestQuery contract in a mapping. If it is not found, it uses the built-in contract address for query to realize nest. And ntoken can be divided into different contract quotation functions.
 
-7. NNIncome是NestNode挖矿合约。3.6开始，NestNode挖矿和报价挖矿分离，NestNode根据区块来确定出矿量，出矿速度是nest总出矿速度的15%。
+7. NNIncome is the NestNode mining contract. Starting from 3.6, NestNode mining and quotation mining are separated. NestNode determines the amount of ore based on the block, and the rate of mine output is 15% of the total rate of nest.
 
-8. NestLedger是NestDAO合约的账本合约。3.6开始，DAO不再对应一个具体的合约，而是拆分成一个账本合约和多个DAO应用合约，账本合约用于接收并记录nest和ntoken的资金情况，DAO应用合约则是经过账本合约授权的合约，目前DAO应用合约只有一个回购，将来可能会上线更多的DAO应用合约。
+8. NestLedger is the ledger contract of the NestDAO contract. Starting from 3.6, DAO no longer corresponds to a specific contract, but is split into a ledger contract and multiple DAO application contracts. The ledger contract is used to receive and record the funds of nest and ntoken, and the DAO application contract is authorized by the ledger contract. Currently, there is only one repurchase for DAO application contracts, and more DAO application contracts may be launched in the future.
 
-9. NestRedeeming是回购合约。是DAO应用合约的一种实现。
+9. NestRedeeming is a repurchase contract. It is an implementation of DAO application contract.
 
-## 3. 接口说明
+## 3. Interface Description
 
 ### 3.1. INestMapping
-INestMapping定义了nest体系内建合约地址的映射管理，主要包含查询合约地址、修改合约地址。
+INestMapping defines the mapping management of the built-in contract address in the nest system, which mainly includes querying the contract address and modifying the contract address.
 
 ### 3.2. INestGovernance
-INestGovernance定义了nest治理相关的功能，继承自INestMapping，除了INestMapping的功能接口外，还包含了检查治理权限、设置治理权限。
+INestGovernance defines nest governance-related functions, inherited from INestMapping. In addition to the functional interface of INestMapping, it also includes checking governance permissions and setting governance permissions.
 
 ### 3.3. INestVote
-INestVote定义了nest投票治理相关的功能，主要包含发起投票、投票、执行投票。
+INestVote defines functions related to nest voting governance, mainly including initiating voting, voting, and executing voting.
 
 ### 3.4. INTokenController
-INTokenController定义了ntoken开通和管理相关的功能，主要包含开通ntoken、查询ntoken信息。
+INTokenController defines the functions related to ntoken activation and management, including opening ntoken and querying ntoken information.
 
 ### 3.5. INestMining
-INestMining定义了nest挖矿相关的功能，主要包含报价、吃单、查询报价单。
+INestMining defines the functions related to nest mining, mainly including quotation, taking orders, and querying quotations.
 
 ### 3.6. INestQuery
-INestQuery定义了nest价格查询相关的功能，主要包含查询价格、查询最新价格。
+INestQuery defines functions related to nest price query, which mainly includes query price and query the latest price.
 
 ### 3.7. INestPriceFacade
-INestPriceFacade定义了nest价格调用相关的功能，和INestQuery一一对应，但是多了收费逻辑。
+INestPriceFacade defines the functions related to nest price call, which corresponds to INestQuery one-to-one, but has more charging logic.
 
 ### 3.8. INestLedger
-INestLedger定义了nest账本相关的功能，主要包含存入收益、支付、结算。
+INestLedger defines the functions related to the nest ledger, which mainly includes depositing income, payment, and settlement.
 
 ### 3.9. INestRedeeming
-INestRedeeming定义了回购相关的功能。主要包含查看回购额度、回购。
+INestRedeeming defines functions related to repurchase. It mainly includes checking the repurchase quota and repurchase.
 
-## 4. 数据结构
-3.6对数据结构进了一些调整，主要目标是为了节省gas消耗，一部分计算会有精度损失，但是损失控制在万亿分之一以内。下面列出重要的数据结构。
+## 4. Data Structure
+The V3.6 has made some adjustments to the data structure. The main goal is to save gas consumption. Some calculations will have a loss of accuracy, but the loss is controlled within one trillion. The important data structures are listed below.
 
-### 4.1. 报价单
+### 4.1. PriceSheet
 
 ```javascript
-    ///dev 报价单信息。(占256位，一个以太坊存储单元)
+    ///@dev Definitions for the price sheet, include the full information. (use 256bits, a storage unit in ethereum evm)
     struct PriceSheet {
         
-        // 矿工注册编号。通过矿工注册的方式，将矿工地址（160位）映射为32位整数，最多可以支持注册40亿矿工
+        // Index of miner account in _accounts. for this way, mapping an address(which need 160bits) to a 32bits 
+        // integer, support 4billion accounts
         uint32 miner;
 
-        // 挖矿所在区块高度
+        // The block number of this price sheet packaged
         uint32 height;
 
-        // 报价剩余规模
+        // The remain number of this price sheet
         uint32 remainNum;
 
-        // 剩余的eth数量
+        // The eth number which miner will got
         uint32 ethNumBal;
 
-        // 剩余的token对应的eth数量
+        // The eth number which equivalent to token's value which miner will got
         uint32 tokenNumBal;
 
-        // nest抵押数量（单位: 1000nest）
-        uint32 nestNum1k;
+        // The pledged number of nest in this sheet. (unit: 1000nest)
+        uint24 nestNum1k;
 
-        // 当前报价单的深度。0表示初始报价，大于0表示吃单报价
+        // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
         uint8 level;
 
-        // 价格改为这种表示方式，可能损失精度，误差控制在1/10^14以内
-        // 价格的指数. price = priceFraction * 16 ^ priceExponent
-        uint8 priceExponent;
+        // Post fee shares, if there are many sheets in one block, this value is used to divide up mining value
+        uint8 shares;
 
-        // 价格分数值. price = priceFraction * 16 ^ priceExponent
-        uint48 priceFraction;
+        // Represent price as this way, may lose precision, the error less than 1/10^14
+        // price = priceFraction * 16 ^ priceExponent
+        uint56 priceFloat;
     }
 ```
 
-报价单数据结构将矿工地址和价格两个字段进行了处理，从而使得整个报价单占用的空间可以压缩到256位。
+The data structure of the quotation sheet processes the two fields of the miner's address and the price, so that the space occupied by the entire quotation sheet can be compressed to 256 bits.
 
-1. 将地址改为注册编号，每个矿工（验证者）地址会在挖矿合约内有一个唯一对应的注册账号信息，包含矿工地址，token余额等信息，同时通过一个编号来对矿工进行标示，这样将原来占用160位的地址信息映射成占用32位的整形数据，理论上大约可以注册40亿个地址，如果注册地址满了，则需要通过更新挖矿合约来解决。
+1. Change the address to the registration number. Each miner (verifier) address will have a unique corresponding registered account information in the mining contract, including the miner address, token balance and other information. At the same time, a number is used to mark the miner, so Mapping the original 160-bit address information into 32-bit plastic data, theoretically about 4 billion addresses can be registered. If the registered address is full, it needs to be resolved by updating the mining contract.
 
-2. 将原来128位的价格字段改为形如fraction * 16 ^ exponent的表示方式。由于不同的token小数位有较大差异，币价也是天差地别，固定小数位的表示方式难以满足，因此采用这种类似浮点的表示方法，理论上可以提供14位有效数字，精度损失控制在万亿分之一以内。下面是这种表示的编码和解码的代码。
+2. 2)	Change the original 128-bit price field to a representation of fraction * 16 ^ exponent. Because the decimal places of different tokens are quite different, the price of the currency is also different, and the fixed decimal place is difficult to meet. Therefore, using this floating-point-like representation method can theoretically provide 14 significant digits, with loss of precision Keep it within one part per trillion. Below is the code for encoding and decoding of this representation.
 
 ```javascript
-    /// @dev 将uint值编码成fraction * 16 ^ exponent形式的浮点表示形式
-    /// @param value 目标uint值
-    /// @return fraction 分数值
-    /// @return exponent 指数值
-    function encodeFloat(uint value) public pure returns (uint48 fraction, uint8 exponent) {
-
+    /// @dev Encode the uint value as a floating-point representation in the form of fraction * 16 ^ exponent
+    /// @param value Destination uint value
+    /// @return float format
+    function encodeFloat(uint value) public pure returns (uint56) {
+        
         uint decimals = 0; 
-        while (value > 0xFFFFFFFFFFFF /* 281474976710655 */) {
+        while (value > 0x3FFFFFFFFFFFF) {
             value >>= 4;
             ++decimals;
         }
-
-        return (uint48(value), uint8(decimals));
+        return uint56((value << 6) | decimals);
     }
 
-    /// @dev 将fraction * 16 ^ exponent形式的浮点表示形式解码成uint
-    /// @param fraction 分数值
-    /// @param exponent 指数值
-    function decodeFloat(uint fraction, uint exponent) public pure returns (uint) {
-        return fraction << (exponent << 2);
+    /// @dev Decode the floating-point representation of fraction * 16 ^ exponent to uint
+    /// @param floatValue fraction value
+    /// @return decode format
+    function decodeFloat(uint56 floatValue) public pure returns (uint) {
+        return (uint(floatValue) >> 6) << ((uint(floatValue) & 0x3F) << 2);
     }
 ```
 
-### 4.2. 价格信息
+### 4.2. PriceInfo
 
 ```javascript
-    /// @dev 价格信息。
+    /// @dev Definitions for the price information
     struct PriceInfo {
 
-        // 记录报价单的索引，为下一次从报价单此处继续更新价格信息做准备
+        // Record the index of price sheet, for update price information from price sheet next time.
         uint32 index;
 
-        // 报价单所处区块的高度
+        // The block number of this price
         uint32 height;
 
-        // 剩余的有效报价单的总规模
+        // The remain number of this price sheet
         uint32 remainNum;
 
-        // 价格的浮动表示
-        uint8 priceExponent;
-        uint48 priceFraction;
+        // Price, represent as float
+        // Represent price as this way, may lose precision, the error less than 1/10^14
+        uint56 priceFloat;
 
-        // 平均价格的浮动表示
-        uint8 avgExponent;
-        uint48 avgFraction;
+        // Avg Price, represent as float
+        // Represent price as this way, may lose precision, the error less than 1/10^14
+        uint56 avgFloat;
         
-        // 波动率的平方。需要除以2^48
+        // Square of price volatility, need divide by 2^48
         uint48 sigmaSQ;
     }
 ```
 
-1. 价格信息中，将价格、平均价格改为前面提到的浮点表示法。
+1. In the price information, the price and average price are changed to the floating point notation mentioned above.
 
-2. 波动率的平方改为48位整形表示，实际值需要除以2^48，实现中假定波动率不会达到1，如果出现这种极端情况，则此字段的值为0xFFFFFFFFFFFF。
+2. The square of the volatility is changed to a 48-bit integer representation. The actual value needs to be divided by 2^48. In the implementation, it is assumed that the volatility will not reach 1. If this extreme situation occurs, the value of this field is 0xFFFFFFFFFFFF.
 
-## 5. 部署方式
+## 5. Deployment method
 
-## 6. 应用场景
+## 6. Application scenarios
 

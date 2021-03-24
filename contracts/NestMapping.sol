@@ -18,8 +18,10 @@ abstract contract NestMapping is NestBase, INestMapping {
     address _nestNodeAddress;
     /// @dev INestLedger implemention contract address
     address _nestLedgerAddress;
-    /// @dev INestMining implemention contract address
+    /// @dev INestMining implemention contract address for nest
     address _nestMiningAddress;
+    /// @dev INestMining implemention contract address for ntoken
+    address _ntokenMiningAddress;
     /// @dev INestPriceFacade implemention contract address
     address _nestPriceFacadeAddress;
     /// @dev INestVote implemention contract address
@@ -38,7 +40,8 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @param nestTokenAddress Address of nest token contract
     /// @param nestNodeAddress Address of nest node contract
     /// @param nestLedgerAddress INestLedger implemention contract address
-    /// @param nestMiningAddress INestMining implemention contract address
+    /// @param nestMiningAddress INestMining implemention contract address for nest
+    /// @param ntokenMiningAddress INestMining implemention contract address for ntoken
     /// @param nestPriceFacadeAddress INestPriceFacade implemention contract address
     /// @param nestVoteAddress INestVote implemention contract address
     /// @param nestQueryAddress INestQuery implemention contract address
@@ -49,6 +52,7 @@ abstract contract NestMapping is NestBase, INestMapping {
         address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
+        address ntokenMiningAddress,
         address nestPriceFacadeAddress,
         address nestVoteAddress,
         address nestQueryAddress,
@@ -67,6 +71,9 @@ abstract contract NestMapping is NestBase, INestMapping {
         }
         if (nestMiningAddress != address(0)) {
             _nestMiningAddress = nestMiningAddress;
+        }
+        if (ntokenMiningAddress != address(0)) {
+            _ntokenMiningAddress = ntokenMiningAddress;
         }
         if (nestPriceFacadeAddress != address(0)) {
             _nestPriceFacadeAddress = nestPriceFacadeAddress;
@@ -89,7 +96,8 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @return nestTokenAddress Address of nest token contract
     /// @return nestNodeAddress Address of nest node contract
     /// @return nestLedgerAddress INestLedger implemention contract address
-    /// @return nestMiningAddress INestMining implemention contract address
+    /// @return nestMiningAddress INestMining implemention contract address for nest
+    /// @return ntokenMiningAddress INestMining implemention contract address for ntoken
     /// @return nestPriceFacadeAddress INestPriceFacade implemention contract address
     /// @return nestVoteAddress INestVote implemention contract address
     /// @return nestQueryAddress INestQuery implemention contract address
@@ -100,6 +108,7 @@ abstract contract NestMapping is NestBase, INestMapping {
         address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
+        address ntokenMiningAddress,
         address nestPriceFacadeAddress,
         address nestVoteAddress,
         address nestQueryAddress,
@@ -111,6 +120,7 @@ abstract contract NestMapping is NestBase, INestMapping {
             _nestNodeAddress,
             _nestLedgerAddress,
             _nestMiningAddress,
+            _ntokenMiningAddress,
             _nestPriceFacadeAddress,
             _nestVoteAddress,
             _nestQueryAddress,
@@ -131,9 +141,13 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @return INestLedger implemention contract address
     function getNestLedgerAddress() override external view returns (address) { return _nestLedgerAddress; }
 
-    /// @dev Get INestMining implemention contract address
-    /// @return INestMining implemention contract address
+    /// @dev Get INestMining implemention contract address for nest
+    /// @return INestMining implemention contract address for nest
     function getNestMiningAddress() override external view returns (address) { return _nestMiningAddress; }
+
+    /// @dev Get INestMining implemention contract address for ntoken
+    /// @return INestMining implemention contract address for ntoken
+    function getNTokenMiningAddress() override external view returns (address) { return _ntokenMiningAddress; }
 
     /// @dev Get INestPriceFacade implemention contract address
     /// @return INestPriceFacade implemention contract address

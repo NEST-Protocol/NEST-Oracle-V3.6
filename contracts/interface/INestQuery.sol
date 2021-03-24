@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev Nest price query interface
+/// @dev This interface defines the methods for price query
 interface INestQuery {
     
     /// @dev Get the latest trigger price

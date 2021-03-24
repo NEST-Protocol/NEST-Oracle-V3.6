@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./INestMapping.sol";
 
-/// @dev Defines methods for nest governance contract
+/// @dev This interface defines the governance methods
 interface INestGovernance is INestMapping {
 
     /// @dev Set governance authority

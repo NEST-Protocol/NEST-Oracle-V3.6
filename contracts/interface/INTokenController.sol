@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.0;
 
+///@dev This interface defines the methods for ntoken management
 interface INTokenController {
     
     /// @notice when the auction of a token gets started

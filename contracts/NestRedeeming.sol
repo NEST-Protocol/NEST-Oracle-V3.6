@@ -54,6 +54,8 @@ contract NestRedeeming is NestBase, INestRedeeming {
             _nestLedgerAddress, 
             //address nestMiningAddress
             ,
+            //address ntokenMiningAddress
+            ,
             //address nestPriceFacadeAddress
             _nestPriceFacadeAddress, 
             //address nestVoteAddress

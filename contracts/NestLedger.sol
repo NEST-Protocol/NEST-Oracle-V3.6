@@ -73,7 +73,7 @@ contract NestLedger is NestBase, INestLedger {
     }
 
     /// @dev The function returns eth rewards of specified ntoken
-    /// @param ntokenAddress The notoken address
+    /// @param ntokenAddress The ntoken address
     function totalRewards(address ntokenAddress) override external view returns (uint) {
 
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {

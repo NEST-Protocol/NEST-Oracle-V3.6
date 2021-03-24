@@ -1,32 +1,65 @@
-# NEST的DAO合约
+# NestRedeeming
 
-## 1. 合约说明
-    NEST的DAO合约。
+## 1. Interface Description
+    The contract is for redeeming nest token and getting ETH in return
 
-## 2. 接口说明
+## 2. Method Description
 
-### 2.1. 添加ntoken收益
-    
-    /// @dev 添加ntoken收益
-    /// @param ntokenAddress ntoken地址
-    function addReward(address ntokenAddress) external payable;
+### 2.1. Modify configuration
 
-### 2.2. 回购
+```javascript
+    /// @dev Modify configuration
+    /// @param config Configuration object
+    function setConfig(Config memory config) external;
+```
+```javascript
+    /// @dev Redeem configuration structure
+    struct Config {
 
+        // Redeem activate threshold, when the circulation of token exceeds this threshold, 
+        // activate redeem (Unit: 10000 ether). 500 
+        uint32 activeThreshold;
+
+        // The number of nest redeem per block. 1000
+        uint16 nestPerBlock;
+
+        // The maximum number of nest in a single redeem. 300000
+        uint32 nestLimit;
+
+        // The number of ntoken redeem per block. 10
+        uint16 ntokenPerBlock;
+
+        // The maximum number of ntoken in a single redeem. 3000
+        uint32 ntokenLimit;
+
+        // Price deviation limit, beyond this upper limit stop redeem (10000 based). 500
+        uint16 priceDeviationLimit;
+    }
+```
+
+### 2.2. Get configuration
+
+```javascript
+    /// @dev Get configuration
+    /// @return Configuration object
+    function getConfig() external view returns (Config memory);
+```
+
+### 2.3. Redeem ntokens for ethers
+
+```javascript
     /// @dev Redeem ntokens for ethers
     /// @notice Ethfee will be charged
     /// @param ntokenAddress The address of ntoken
-    /// @param amount  The amount of ntoken
+    /// @param amount The amount of ntoken
     function redeem(address ntokenAddress, uint amount) external payable;
+```
 
-### 2.3. 查看ntoken的收益
+### 2.4. Get the current amount available for repurchase
 
-    /// @dev The function returns eth rewards of specified ntoken
-    /// @param ntokenAddress The notoken address
-    function totalRewards(address ntokenAddress) external view returns (uint);
-
-### 2.4. 查看当前的回购额度
-
+```javascript
     /// @dev Get the current amount available for repurchase
     /// @param ntokenAddress The address of ntoken
-    function quotaOf(address ntokenAddress) external view returns (uint quota);
+    function quotaOf(address ntokenAddress) external view returns (uint);
+```
+

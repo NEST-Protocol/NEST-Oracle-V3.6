@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev This interface defined the mining method of nest.
+/// @dev This interface defines the mining methods for nest
 interface INestMining {
     
     /// @dev Post event
@@ -75,7 +75,7 @@ interface INestMining {
         // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
         uint8 level;
 
-        // Post fee shares
+        // Post fee shares, if there are many sheets in one block, this value is used to divide up mining value
         uint8 shares;
 
         // The token price. (1eth equivalent to (price) token)
@@ -91,6 +91,16 @@ interface INestMining {
     /// @dev Get configuration
     /// @return Configuration object
     function getConfig() external view returns (Config memory);
+
+    /// @dev Set the ntokenAddress from tokenAddress, if ntokenAddress is equals to tokenAddress, means the token is disabled
+    /// @param tokenAddress Destination token address
+    /// @param ntokenAddress The ntoken address
+    function setNTokenAddress(address tokenAddress, address ntokenAddress) external;
+
+    /// @dev Get the ntokenAddress from tokenAddress, if ntokenAddress is equals to tokenAddress, means the token is disabled
+    /// @param tokenAddress Destination token address
+    /// @return The ntoken address
+    function getNTokenAddress(address tokenAddress) external view returns (address);
 
     /* ========== Mining ========== */
 
@@ -135,7 +145,7 @@ interface INestMining {
     /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
     /// @param tokenAddress The address of TOKEN contract
     /// @param indices A list of indices of sheets w.r.t. `token`
-    function closeList(address tokenAddress, uint32[] memory indices) external;
+    function closeList(address tokenAddress, uint[] memory indices) external;
 
     /// @notice Close two batch of price sheets passed VERIFICATION-PHASE
     /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
@@ -143,7 +153,7 @@ interface INestMining {
     /// @param indices1 A list of indices of sheets w.r.t. `token1`
     /// @param tokenAddress2 The address of TOKEN2 contract
     /// @param indices2 A list of indices of sheets w.r.t. `token2`
-    function closeList2(address tokenAddress1, uint32[] memory indices1, address tokenAddress2, uint32[] memory indices2) external;
+    function closeList2(address tokenAddress1, uint[] memory indices1, address tokenAddress2, uint[] memory indices2) external;
 
     /// @dev The function updates the statistics of price sheets
     ///     It calculates from priceInfo to the newest that is effective.

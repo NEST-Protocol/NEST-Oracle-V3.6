@@ -41,7 +41,9 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
             //address nestLedgerAddress
             _nestLedgerAddress, 
             //address nestMiningAddress
-            , 
+            ,
+            //address ntokenMiningAddress
+            ,
             //address nestPriceFacadeAddress
             , 
             //address nestVoteAddress

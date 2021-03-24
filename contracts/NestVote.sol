@@ -92,6 +92,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             _nestLedgerAddress, 
             //address nestMiningAddress
             _nestMiningAddress, 
+            //address ntokenMiningAddress
+            ,
             //address nestPriceFacadeAddress
             ,
             //address nestVoteAddress

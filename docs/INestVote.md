@@ -1,74 +1,195 @@
-# NEST投票合约
+# INestVote
 
-## 1. 合约说明
-    NEST投票合约。
+## 1. Interface Description
+   This interface defines the methods for voting
 
-## 2. 接口说明
+## 2. Method Description
 
-### 2.1. 发起投票
+### 2.1. Modify configuration
 
-    /// @dev 发起投票
-    /// @param contractAddress 投票执行合约地址(需要实现IVotePropose接口)
-    /// @param brief 投票内容描述
+```javascript
+    /// @dev Modify configuration
+    /// @param config Configuration object
+    function setConfig(Config memory config) external;
+```
+```javascript
+     /// @dev Voting contract configuration structure
+     struct Config {
+ 
+         // Proportion of votes required (10000 based). 5100
+         uint32 acceptance;
+ 
+         // Voting time cycle (seconds). 5 * 86400
+         uint64 voteDuration;
+ 
+         // The number of nest votes need to be staked. 100000 nest
+         uint96 proposalStaking;
+     }
+```
+
+### 2.2. Get configuration
+
+```javascript
+    /// @dev Get configuration
+    /// @return Configuration object
+    function getConfig() external view returns (Config memory);
+```
+
+### 2.3. Initiate a voting proposal
+
+```javascript
+    /// @dev Initiate a voting proposal
+    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param brief Brief of this propose
     function propose(address contractAddress, string memory brief) external;
+```
+    Note: This method will triggers the NIPSubmitted event, See also 3.1.
 
-    投票合约需要实现如下接口
-    /// @dev 投票合约需要实现的接口
-    interface IVotePropose {
+### 2.4. vote
 
-        /// @dev 投票通过后需要执行的代码
-        function run() external;
-    }
+```javascript
+    /// @dev vote
+    /// @param index Index of proposal
+    /// @param value Amount of nest to vote
+    function vote(uint index, uint value) external;
+```
+    Note: This method will triggers the NIPVote event, See also 3.2.
+    
+### 2.5. Withdraw the nest of the vote
 
-### 2.2. 进行投票
+```javascript
+    /// @dev Withdraw the nest of the vote. If the target vote is in the voting state, the corresponding number of votes will be cancelled
+    /// @param index Index of the proposal
+    function withdraw(uint index) external;
+```
 
-    /// @dev 进行投票
-    /// @param proposeIndex 投票编号
-    /// @param value 投票的权重
-    function vote(uint proposeIndex, uint value) external;
+### 2.6. Execute the proposal
 
-### 2.3. 撤销投票
+```javascript
+    /// @dev Execute the proposal
+    /// @param index Index of the proposal
+    function execute(uint index) external;
+```
+    Note: This method will triggers the NIPExecute event, See also 3.3.
 
-    /// @dev 撤销投票
-    /// @param proposeIndex 投票编号
-    /// @param value 投票的权重
-    function revoke(uint proposeIndex, uint value) external;
+### 2.7. Cancel the proposal
 
-### 2.4. 执行投票
+```javascript
+    /// @dev Cancel the proposal
+    /// @param index Index of the proposal
+    function calcel(uint index) external;
+```
 
-    /// @dev 执行投票
-    /// @param proposeIndex 投票编号
-    function execute(uint proposeIndex) external;
+### 2.8. Get proposal information
 
-### 2.5. 取回投票的nest
+```javascript
+    /// @dev Get proposal information
+    /// @param index Index of the proposal
+    /// @return Proposal information
+    function getProposeInfo(uint index) external view returns (ProposalView memory);
+```
+```javascript
+    // Proposal
+    struct ProposalView {
 
-    /// @dev 取回投票的nest
-    /// @param proposeIndex 投票编号
-    function withdraw(uint proposeIndex) external;
+        // Index of proposal
+        uint index;
+        
+        // The immutable field and the variable field are stored separately
+        /* ========== Immutable field ========== */
 
-### 2.6. 已经质押的nest数量
+        // Brief of this proposal
+        string brief;
 
-    /// @dev 已经质押的nest数量
-    /// @param proposeIndex 投票编号
-    function stakedNestNum(uint proposeIndex) external view returns (uint);
+        // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+        address contractAddress;
 
-### 2.7. 获取投票信息
+        // Voting start time
+        uint48 startTime;
 
-    /// @dev 获取投票信息
-    /// @param proposeIndex 投票编号
-    /// @return 投票信息结构体
-    function getProposeInfo(uint proposeIndex) external view returns (Proposal memory);
+        // Voting stop time
+        uint48 stopTime;
 
-    // 提案
-    struct Proposal {
-        // 提案描述
-        string description;
-        uint32 state;  // 0: proposed | 1: accepted | 2: rejected
-        uint32 startTime;
-        uint32 endTime;
-        uint64 voters;
-        uint128 stakedNestAmount;
-        address contractAddr;
+        // Proposer
         address proposer;
+
+        // Staked nest amount
+        uint96 staked;
+
+        /* ========== Mutable field ========== */
+
+        // Gained value
+        // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
+        // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
+        uint96 gainValue;
+
+        // The state of this proposal
+        uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
+
+        // The executor of this proposal
         address executor;
+
+        // The execution time (if any, such as block number or time stamp) is placed in the contract and is limited by the contract itself
+
+        // Circulation of nest
+        uint96 nestCirculation;
     }
+```
+
+### 2.9. Get the cumulative number of voting proposals
+
+```javascript
+    /// @dev Get the cumulative number of voting proposals
+    /// @return The cumulative number of voting proposals
+    function getProposeCount() external view returns (uint);
+```
+
+### 2.10. List proposals by page
+
+```javascript
+    /// @dev List proposals by page
+    /// @param offset Skip previous (offset) records
+    /// @param count Return (count) records
+    /// @param order Order. 0 reverse order, non-0 positive order
+    /// @return List of price proposals
+    function list(uint offset, uint count, uint order) external view returns (ProposalView[] memory);
+```
+
+### 2.11. Get Circulation of nest
+
+```javascript
+    /// @dev Get Circulation of nest
+    /// @return Circulation of nest
+    function getNestCirculation() external view returns (uint);
+```
+
+## 3. Event Description
+
+### 3.1. Event of submitting a voting proposal
+
+```javascript 
+    /// @dev Event of submitting a voting proposal
+    /// @param proposer Proposer address
+    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param index Index of proposal
+    event NIPSubmitted(address proposer, address contractAddress, uint index);
+```
+
+### 3.2. Voting event
+
+```javascript 
+    /// @dev Voting event
+    /// @param voter Voter address
+    /// @param index Index of proposal
+    /// @param amount Amount of nest to vote
+    event NIPVote(address voter, uint index, uint amount);
+```
+
+### 3.3. Proposal execute event
+
+```javascript 
+    /// @dev Proposal execute event
+    /// @param executor Executor address
+    /// @param index Index of proposal
+    event NIPExecute(address executor, uint index);
+```

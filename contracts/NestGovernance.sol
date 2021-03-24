@@ -49,7 +49,14 @@ contract NestGovernance is NestMapping, INestGovernance {
     /// @param addr Destination address
     /// @param flag Permission weight. The permission of the target address must be greater than this weight to pass the check
     /// @return True indicates permission
-    function checkGovernance(address addr, uint flag) override external view returns (bool) {
+    function checkGovernance(address addr, uint flag) override public view returns (bool) {
         return _governanceMapping[addr].flag > flag;
+    }
+
+    /// @dev This method is for ntoken in created in nest3.0
+    /// @param addr Destination address
+    /// @return True indicates permission
+    function checkOwners(address addr) external view returns (bool) {
+        return checkGovernance(addr, 0);
     }
 }

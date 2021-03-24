@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev The contract is for redeeming nest token and getting ETH in return
+/// @dev This interface defines the methods for redeeming
 interface INestRedeeming {
 
     /// @dev Redeem configuration structure

@@ -34,7 +34,6 @@ contract NestBase {
     /// @param value Transfer amount
     function transfer(address tokenAddress, address to, uint value) external onlyGovernance {
         if (tokenAddress == address(0)) {
-            //address(uint160(to)).transfer(value);
             payable(to).transfer(value);
         } else {
             TransferHelper.safeTransfer(tokenAddress, to, value);

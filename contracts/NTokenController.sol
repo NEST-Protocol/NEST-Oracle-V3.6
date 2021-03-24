@@ -23,20 +23,9 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev A mapping for all ntoken
     mapping(address=>uint) public _nTokenTags;
 
-    /// @dev Contract address of NestMining
-    address public _nestMiningAddress;
-    
     address immutable NEST_TOKEN_ADDRESS;
     
     /* ========== Governance ========== */
-
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
-    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
-    function update(address nestGovernanceAddress) override public {
-        super.update(nestGovernanceAddress);
-        _nestMiningAddress = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
-    }
 
     /// @dev Modify configuration
     /// @param config Configuration object

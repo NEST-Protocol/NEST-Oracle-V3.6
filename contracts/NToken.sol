@@ -14,7 +14,7 @@ contract NToken is NestBase, INToken {
     // ntoken genesis block number
     uint256 immutable public GENESIS_BLOCK_NUMBER;
     // INestMining implemention contract address
-    address _nestMiningAddress;
+    address _ntokenMiningAddress;
     
     // token information
     string public name;
@@ -44,7 +44,7 @@ contract NToken is NestBase, INToken {
     /// @param nestGovernanceAddress 治理合约地址
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
-        _nestMiningAddress = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
+        _ntokenMiningAddress = INestGovernance(nestGovernanceAddress).getNTokenMiningAddress();
     }
 
     /// @dev Mint 
@@ -52,7 +52,7 @@ contract NToken is NestBase, INToken {
     /// @param account The account of NToken to add
     function mint(uint256 amount, address account) override public {
 
-        require(address(msg.sender) == _nestMiningAddress, "NToken:!Auth");
+        require(address(msg.sender) == _ntokenMiningAddress, "NToken:!Auth");
         
         // 目标地址增加余额
         _balances[account] += amount;
@@ -78,7 +78,7 @@ contract NToken is NestBase, INToken {
     /// @dev The ABI keeps unchanged with old NTokens, so as to support token-and-ntoken-mining
     /// @return The address of bidder
     function checkBidder() override public view returns(address) {
-        return _nestMiningAddress;
+        return _ntokenMiningAddress;
     }
 
     /// @notice The view of totalSupply

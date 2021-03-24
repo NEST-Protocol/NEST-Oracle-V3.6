@@ -9,7 +9,8 @@ interface INestMapping {
     /// @param nestTokenAddress Address of nest token contract
     /// @param nestNodeAddress Address of nest node contract
     /// @param nestLedgerAddress INestLedger implemention contract address
-    /// @param nestMiningAddress INestMining implemention contract address
+    /// @param nestMiningAddress INestMining implemention contract address for nest
+    /// @param ntokenMiningAddress INestMining implemention contract address for ntoken
     /// @param nestPriceFacadeAddress INestPriceFacade implemention contract address
     /// @param nestVoteAddress INestVote implemention contract address
     /// @param nestQueryAddress INestQuery implemention contract address
@@ -20,6 +21,7 @@ interface INestMapping {
         address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
+        address ntokenMiningAddress,
         address nestPriceFacadeAddress,
         address nestVoteAddress,
         address nestQueryAddress,
@@ -31,7 +33,8 @@ interface INestMapping {
     /// @return nestTokenAddress Address of nest token contract
     /// @return nestNodeAddress Address of nest node contract
     /// @return nestLedgerAddress INestLedger implemention contract address
-    /// @return nestMiningAddress INestMining implemention contract address
+    /// @return nestMiningAddress INestMining implemention contract address for nest
+    /// @return ntokenMiningAddress INestMining implemention contract address for ntoken
     /// @return nestPriceFacadeAddress INestPriceFacade implemention contract address
     /// @return nestVoteAddress INestVote implemention contract address
     /// @return nestQueryAddress INestQuery implemention contract address
@@ -42,6 +45,7 @@ interface INestMapping {
         address nestNodeAddress,
         address nestLedgerAddress,
         address nestMiningAddress,
+        address ntokenMiningAddress,
         address nestPriceFacadeAddress,
         address nestVoteAddress,
         address nestQueryAddress,
@@ -61,9 +65,13 @@ interface INestMapping {
     /// @return INestLedger implemention contract address
     function getNestLedgerAddress() external view returns (address);
 
-    /// @dev Get INestMining implemention contract address
-    /// @return INestMining implemention contract address
+    /// @dev Get INestMining implemention contract address for nest
+    /// @return INestMining implemention contract address for nest
     function getNestMiningAddress() external view returns (address);
+
+    /// @dev Get INestMining implemention contract address for ntoken
+    /// @return INestMining implemention contract address for ntoken
+    function getNTokenMiningAddress() external view returns (address);
 
     /// @dev Get INestPriceFacade implemention contract address
     /// @return INestPriceFacade implemention contract address

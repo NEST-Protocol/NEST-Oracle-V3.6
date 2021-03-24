@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev nest voting interface
+/// @dev This interface defines the methods for voting
 interface INestVote {
 
     /// @dev Event of submitting a voting proposal

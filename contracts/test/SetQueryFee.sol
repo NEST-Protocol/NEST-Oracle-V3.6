@@ -34,6 +34,7 @@ contract SetQueryPrice is IVotePropose {
             , //address nestNodeAddress,
             , //address nestLedgerAddress,
             , //address nestMiningAddress,
+            , //address nestMiningAddress,
             address nestPriceFacadeAddress,
             , //address nestVoteAddress,
             , //address nestQueryAddress,

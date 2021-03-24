@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev Price call entry
+/// @dev This interface defines the methods for price call entry
 interface INestPriceFacade {
     
     /// @dev Price call entry configuration structure
