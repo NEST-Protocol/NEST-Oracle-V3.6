@@ -18,4 +18,5 @@ The NEST Oracle Smart Contract 3.6 is a solidity smart contract implementation o
 | NestVote | INestVote | 0xC75bd10B11E498083075876B3D6e1e6df1427De6 |
 | NNIncome | NNIncome |0x3DA5c9aafc6e6D6839E62e2fB65825869019F291 |
 | NTokenController| INTokenController | 0xc39dC1385a44fBB895991580EA55FC10e7451cB3 |
+| NestStaking35 | --- | 0x5BC253b9fE40d92f8a01e62899A77ae124F68C5a |
 
