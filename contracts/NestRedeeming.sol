@@ -28,7 +28,8 @@ contract NestRedeeming is NestBase, INestRedeeming {
         // block.number * quotaPerBlock - quota
         uint128 quota;
 
-        // Redeem threshold by circulation of ntoken, when this value equal to config.activeThreshold, redeeming is enabled without checking the circulation of the ntoken
+        // Redeem threshold by circulation of ntoken, when this value equal to config.activeThreshold, 
+        // redeeming is enabled without checking the circulation of the ntoken
         // When config.activeThreshold modified, it will check whether repo is enabled again according to the circulation
         uint32 threshold;
     }
@@ -81,14 +82,12 @@ contract NestRedeeming is NestBase, INestRedeeming {
         return _config;
     }
 
-    receive() payable external {
-    }
-
     /// @dev Redeem ntokens for ethers
     /// @notice Ethfee will be charged
     /// @param ntokenAddress The address of ntoken
     /// @param amount The amount of ntoken
-    function redeem(address ntokenAddress, uint amount) override external payable {
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    function redeem(address ntokenAddress, uint amount, address paybackAddress) override external payable {
         
         // 1. Load configuration
         Config memory config = _config;
@@ -103,8 +102,6 @@ contract NestRedeeming is NestBase, INestRedeeming {
         }
 
         // 3. Query price
-        // Record the current balance, used to check whether there is a call price when the return
-        uint balance = address(this).balance;
         (
             /* uint latestPriceBlockNumber */, 
             uint latestPriceValue,
@@ -112,34 +109,14 @@ contract NestRedeeming is NestBase, INestRedeeming {
             /* uint triggeredPriceValue */,
             uint triggeredAvgPrice,
             /* uint triggeredSigma */
-        ) = INestPriceFacade(_nestPriceFacadeAddress).latestPriceAndTriggeredPriceInfo { value: msg.value } (ntokenAddress);
-        // Calculate return quantity
-        balance = address(this).balance - (balance - msg.value);
-        if (balance > 0) {
-            payable(msg.sender).transfer(balance);
-        }
+        ) = INestPriceFacade(_nestPriceFacadeAddress).latestPriceAndTriggeredPriceInfo { value: msg.value } (ntokenAddress, paybackAddress);
 
         // 4. Calculate the number of eth that can be exchanged for redeem
         uint value = amount * 1 ether / latestPriceValue;
-        uint quota;
 
-        // 5. Calculation of redeem quota
-        // nest redeeming quota
-        if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-            quota = block.number * uint(config.nestPerBlock) * 1 ether - ri.quota;
-            if (quota > uint(config.nestLimit) * 1 ether) {
-                quota = uint(config.nestLimit) * 1 ether;
-            }
-            redeemInfo.quota = uint128(block.number * uint(config.nestPerBlock) * 1 ether - (quota - amount));
-        } 
-        // ntoken redeeming quota
-        else {
-            quota = block.number * uint(config.ntokenPerBlock) * 1 ether - ri.quota;
-            if (quota > uint(config.ntokenLimit) * 1 ether) {
-                quota = uint(config.ntokenLimit) * 1 ether;
-            }
-            redeemInfo.quota = uint128(block.number * uint(config.ntokenPerBlock) * 1 ether - (quota - amount));
-        }
+        // 5. Calculate redeem quota
+        (uint quota, uint scale) = _quotaOf(config, ri, ntokenAddress);
+        redeemInfo.quota = uint128(scale - (quota - amount));
 
         // 6. Check the redeeming amount and price deviation
         // This check is not required
@@ -171,23 +148,38 @@ contract NestRedeeming is NestBase, INestRedeeming {
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
             // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here
-            if (IERC20(ntokenAddress).totalSupply() < uint(config.activeThreshold) * 10000 ether) return 0;
+            if (IERC20(ntokenAddress).totalSupply() < uint(config.activeThreshold) * 10000 ether) 
+            {
+                return 0;
+            }
         }
 
-        // 3. Calculation of redeem quota
-        uint quota;
-        if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-            quota = block.number * uint(config.nestPerBlock) * 1 ether - ri.quota;
-            if (quota > uint(config.nestLimit) * 1 ether) {
-                quota = uint(config.nestLimit) * 1 ether;
-            }
-        } else {
-            quota = block.number * uint(config.ntokenPerBlock) * 1 ether - ri.quota;
-            if (quota > uint(config.ntokenLimit) * 1 ether) {
-                quota = uint(config.ntokenLimit) * 1 ether;
-            }
-        } 
-
+        // 3. Calculate redeem quota
+        (uint quota, ) = _quotaOf(config, ri, ntokenAddress);
         return quota;
+    }
+
+    // Calculate redeem quota
+    function _quotaOf(Config memory config, RedeemInfo memory ri, address ntokenAddress) private view returns (uint quota, uint scale) {
+
+        // Calculate redeem quota
+        uint quotaPerBlock;
+        uint quotaLimit;
+        // nest config
+        if (ntokenAddress == NEST_TOKEN_ADDRESS) {
+            quotaPerBlock = uint(config.nestPerBlock);
+            quotaLimit = uint(config.nestLimit);
+        } 
+        // ntoken config
+        else {
+            quotaPerBlock = uint(config.ntokenPerBlock);
+            quotaLimit = uint(config.ntokenLimit);
+        }
+        // Calculate
+        scale = block.number * quotaPerBlock * 1 ether;
+        quota = scale - ri.quota;
+        if (quota > quotaLimit * 1 ether) {
+            quota = quotaLimit * 1 ether;
+        }
     }
 }

@@ -55,8 +55,8 @@ contract NestLedger is NestBase, INestLedger {
         } else {
             Config memory config = _config;
             UINT storage balance = _ntokenLedger[ntokenAddress];
-            balance.value = balance.value + msg.value * uint(config.nestRewardScale) / 10000;
-            _nestLedger = _nestLedger + msg.value * uint(config.ntokenRedardScale) / 10000;
+            balance.value += msg.value * uint(config.ntokenRedardScale) / 10000;
+            _nestLedger += msg.value * uint(config.nestRewardScale) / 10000;
         }
     }
 

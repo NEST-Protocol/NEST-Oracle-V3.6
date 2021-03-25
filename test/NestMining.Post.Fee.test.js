@@ -276,7 +276,7 @@ contract("NestMining", async accounts => {
             console.log(receipt);
         }
 
-        skipBlocks(20);
+        await skipBlocks(20);
 
         var index = 0;
         for (var i = 1; i < 256; i += 10) {

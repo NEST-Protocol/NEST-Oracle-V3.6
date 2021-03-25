@@ -273,7 +273,8 @@ contract("NestMining", async accounts => {
             return val.toNumber() / 1000000.0;
         };
 
-        for (var i = 1; i < 40; ++i) {
+        var i = 1;
+        for (i = 1; i < 40; ++i) {
             let ethNum = 30;
             let usdtPrice = USDT(1714);
             let value = ETHER(30 + 0.1);
@@ -285,23 +286,95 @@ contract("NestMining", async accounts => {
             });
         }
 
-        skipBlocks(20);
+        let receipt = await nestMining.biteEth(usdt.address, 37, 30, USDT(2000), { from: account1, value: ETHER(60 - 30) });
+        console.log('== biteEth ' + i);
+        LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+            nestMining: await ethDouble(nestMining.address),
+            nestLedger: await ethDouble(nestLedger.address)
+        });
 
-        // var index = 0;
-        // for (var i = 1; i < 40; ++i) {
-        //     let receipt = await nestMining.close(usdt.address, index++);
-        //     console.log('== close ' + i);
-        //     LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
-        //         nestMining: await ethDouble(nestMining.address),
-        //         nestLedger: await ethDouble(nestLedger.address)
-        //     });
-        // }
+        receipt = await nestMining.biteToken(usdt.address, 39, 60, USDT(1000), { from: account0, value: ETHER(120 + 60) });
+        console.log('== biteToken ' + i);
+        LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+            nestMining: await ethDouble(nestMining.address),
+            nestLedger: await ethDouble(nestLedger.address)
+        });
+
+        ++i;
+        ++i;
+        for (; i < 80; ++i) {
+            let ethNum = 30;
+            let usdtPrice = USDT(1714);
+            let value = ETHER(30 + 0.1);
+            let receipt = await nestMining.post(usdt.address, ethNum, usdtPrice, { value: value });
+            console.log('== post ' + i);
+            LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+                nestMining: await ethDouble(nestMining.address),
+                nestLedger: await ethDouble(nestLedger.address)
+            });
+        }
+
+        receipt = await nestMining.settle(usdt.address);
+        console.log('== settle ' + i);
+        LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+            nestMining: await ethDouble(nestMining.address),
+            nestLedger: await ethDouble(nestLedger.address)
+        });
+
+        for (; i < 120; ++i) {
+            let ethNum = 30;
+            let usdtPrice = USDT(1714);
+            let value = ETHER(30 + 0.1);
+            let receipt = await nestMining.post(usdt.address, ethNum, usdtPrice, { value: value });
+            console.log('== post ' + i);
+            LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+                nestMining: await ethDouble(nestMining.address),
+                nestLedger: await ethDouble(nestLedger.address)
+            });
+        }
+
+        await skipBlocks(20);
+
         var arr = [];
         var index = 0;
-        for (var i = 0; i < 40; ++i) {
+        for (i = 1; i < 40; ++i) {
             arr.push(index++);
         }
-        await nestMining.closeList(usdt.address, arr);
+        receipt = await nestMining.closeList(usdt.address, arr);
+        console.log(receipt);
+        LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+            nestMining: await ethDouble(nestMining.address),
+            nestLedger: await ethDouble(nestLedger.address)
+        });
+
+        receipt = await nestMining.close(usdt.address, index++);
+        ++i;
+        receipt = await nestMining.close(usdt.address, index++);
+        ++i;
+        arr = [];
+        for (; i < 80; ++i) {
+            arr.push(index++);
+        }
+        receipt = await nestMining.closeList(usdt.address, arr);
+        console.log(receipt);
+        LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+            nestMining: await ethDouble(nestMining.address),
+            nestLedger: await ethDouble(nestLedger.address)
+        });
+
+        arr = [];
+        for (; i < 120; ++i) {
+            arr.push(index++);
+        }
+        receipt = await nestMining.closeList(usdt.address, arr);
+        console.log(receipt);
+        LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
+            nestMining: await ethDouble(nestMining.address),
+            nestLedger: await ethDouble(nestLedger.address)
+        });
+        
+        receipt = await nestMining.settle(usdt.address);
+        console.log('== settle ' + i);
         LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
             nestMining: await ethDouble(nestMining.address),
             nestLedger: await ethDouble(nestLedger.address)
