@@ -713,6 +713,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 } 
                 // ntoken mining
                 else {
+
                     // The limit blocks can be mined
                     if (minedBlocks > uint(config.ntokenMinedBlockLimit)) {
                         minedBlocks = uint(config.ntokenMinedBlockLimit);
@@ -780,8 +781,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
             total.ethNum += value.ethNum;
             total.tokenValue += value.tokenValue;
-            total.nestValue += value.nestValue;
             total.ntokenValue += value.ntokenValue;
+            total.nestValue += value.nestValue;
         }
 
         // Return eth
@@ -1373,7 +1374,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint length = sheets.length;
         uint left = 0;
         uint right = length - 1;
-        uint index;
+        uint index = 0;
 
         // If height is greater than max effect block number, use max effect block number
         uint h = block.number - uint(_config.priceEffectSpan);
@@ -1416,9 +1417,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
 
         // Find sheets backward
-        for (uint i = index; i > 0;) {
+        while (index > 0) {
             
-            sheet = sheets[--i];
+            sheet = sheets[--index];
             if ((remainNum = uint(sheet.remainNum)) > 0) {
                 if (h == 0) {
                     h = uint(sheet.height);
@@ -1448,6 +1449,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         uint index = sheets.length;
 
+        // TODO: 参考lastPriceList进行优化
         // Find the effective sheet index
         while (index > 0) {
 
@@ -1489,6 +1491,34 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return An array which length is num * 2, each two element expresses one price like blockNumber｜price
     function lastPriceList(address tokenAddress, uint count) override external view returns (uint[] memory) {
         
+        // uint[] memory array = new uint[](count <<= 1);
+        // uint totalEthNum = 0;
+        // uint totalTokenValue = 0;
+        // uint height = 0;
+        // uint h = block.number - uint(_config.priceEffectSpan);
+        
+        // PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+        // PriceSheet memory sheet;
+
+        // uint index = sheets.length;
+        // while (count > 0 && index > 0) {
+
+        //     if (height != uint((sheet = sheets[--index]).height)) {
+        //         if (totalEthNum > 0 && height < h) {
+        //             array[--count] = totalTokenValue / totalEthNum;
+        //             array[--count] = height;
+        //         }
+        //         totalEthNum = 0;
+        //         totalTokenValue = 0;
+        //     }
+
+        //     uint remainNum = uint(sheet.remainNum);
+        //     totalEthNum += remainNum;
+        //     totalTokenValue += decodeFloat(sheet.priceFloat) * remainNum;
+        // }
+
+        // return array;
+
         uint[] memory array = new uint[](count <<= 1);
         uint totalEthNum = 0;
         uint totalTokenValue = 0;
@@ -1499,9 +1529,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet;
 
         uint index = sheets.length;
-        while (count > 0 && index > 0) {
+        while (count > 0 && index >= 0) {
 
-            if (height != uint((sheet = sheets[--index]).height)) {
+            if (index == 0 || height != uint((sheet = sheets[--index]).height)) {
                 if (totalEthNum > 0 && height < h) {
                     array[--count] = totalTokenValue / totalEthNum;
                     array[--count] = height;
