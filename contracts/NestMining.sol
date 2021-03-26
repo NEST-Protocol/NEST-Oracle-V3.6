@@ -1443,43 +1443,71 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     function latestPrice(address tokenAddress) override public view returns (uint blockNumber, uint price) {
 
+        // require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
+
+        // Config memory config = _config;
+        // PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+        // uint index = sheets.length;
+
+        // // TODO: 参考lastPriceList进行优化
+        // // Find the effective sheet index
+        // while (index > 0) {
+
+        //     PriceSheet memory sheet = sheets[--index];
+        //     uint remainNum = uint(sheet.remainNum);
+        //     if (uint(sheet.height) + uint(config.priceEffectSpan) < block.number && remainNum > 0) {
+                
+        //         // Calculate the price according to the sheet in the block
+        //         // Destination block number
+        //         uint height = uint(sheet.height);
+        //         uint totalEth = remainNum;
+        //         uint totalTokenValue = decodeFloat(sheet.priceFloat) * remainNum;
+                
+        //         // Traverse the sheet in the block
+        //         while (index > 0 && uint(sheets[--index].height) == height) {
+                    
+        //             // Find the sheet
+        //             sheet = sheets[index];
+
+        //             // Cumulative eth quantity
+        //             remainNum = uint(sheet.remainNum);
+        //             totalEth += remainNum;
+
+        //             // Cumulative number of tokens
+        //             totalTokenValue += decodeFloat(sheet.priceFloat) * remainNum;
+        //         }
+
+        //         // totalEth Must be greater than 0
+        //         return (height, totalTokenValue / totalEth);
+        //     }
+        // }
+
+        // return (0, 0);
+
         require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
 
-        Config memory config = _config;
+        uint totalEthNum = 0;
+        uint totalTokenValue = 0;
+        uint height = 0;
+        uint h = block.number - uint(_config.priceEffectSpan);
+        
         PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+        PriceSheet memory sheet;
+
         uint index = sheets.length;
+        while (index >= 0) {
 
-        // TODO: 参考lastPriceList进行优化
-        // Find the effective sheet index
-        while (index > 0) {
-
-            PriceSheet memory sheet = sheets[--index];
-            uint remainNum = uint(sheet.remainNum);
-            if (uint(sheet.height) + uint(config.priceEffectSpan) < block.number && remainNum > 0) {
-                
-                // Calculate the price according to the sheet in the block
-                // Destination block number
-                uint height = uint(sheet.height);
-                uint totalEth = remainNum;
-                uint totalTokenValue = decodeFloat(sheet.priceFloat) * remainNum;
-                
-                // Traverse the sheet in the block
-                while (index > 0 && uint(sheets[--index].height) == height) {
-                    
-                    // Find the sheet
-                    sheet = sheets[index];
-
-                    // Cumulative eth quantity
-                    remainNum = uint(sheet.remainNum);
-                    totalEth += remainNum;
-
-                    // Cumulative number of tokens
-                    totalTokenValue += decodeFloat(sheet.priceFloat) * remainNum;
+            if (index == 0 || height != uint((sheet = sheets[--index]).height)) {
+                if (totalEthNum > 0 && height < h) {
+                    return (height, totalTokenValue / totalEthNum);
                 }
-
-                // totalEth Must be greater than 0
-                return (height, totalTokenValue / totalEth);
+                totalEthNum = 0;
+                totalTokenValue = 0;
             }
+
+            uint remainNum = uint(sheet.remainNum);
+            totalEthNum += remainNum;
+            totalTokenValue += decodeFloat(sheet.priceFloat) * remainNum;
         }
 
         return (0, 0);
@@ -1518,6 +1546,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // }
 
         // return array;
+
+        require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
 
         uint[] memory array = new uint[](count <<= 1);
         uint totalEthNum = 0;

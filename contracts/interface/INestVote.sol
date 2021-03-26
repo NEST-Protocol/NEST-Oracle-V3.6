@@ -111,7 +111,7 @@ interface INestVote {
 
     /// @dev Cancel the proposal
     /// @param index Index of the proposal
-    function calcel(uint index) external;
+    function cancel(uint index) external;
 
     /// @dev Get proposal information
     /// @param index Index of the proposal

@@ -257,7 +257,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
     /// @dev Cancel the proposal
     /// @param index Index of the proposal
-    function calcel(uint index) override external noContract {
+    function cancel(uint index) override external noContract {
 
         // 1. Load proposal
         Proposal memory p = _proposalList[index];
@@ -273,12 +273,10 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         IERC20(_nestTokenAddress).transfer(p.proposer, uint(p.staked));
     }
 
-    /// @dev Get proposal information
-    /// @param index Index of the proposal
-    /// @return Proposal information
-    function getProposeInfo(uint index) override external view returns (ProposalView memory) {
-        
-        Proposal memory proposal = _proposalList[index];
+    // Convert PriceSheet to PriceSheetView
+    //function _toPriceSheetView(PriceSheet memory sheet, uint index) private view returns (PriceSheetView memory) {
+    function _toProposalView(Proposal memory proposal, uint index, uint nestCirculation) private pure returns (ProposalView memory) {
+
         return ProposalView(
             // Index of the proposal
             index,
@@ -313,8 +311,15 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             proposal.executor,
 
             // Circulation of nest
-            uint96(getNestCirculation())
+            uint96(nestCirculation)
         );
+    }
+
+    /// @dev Get proposal information
+    /// @param index Index of the proposal
+    /// @return Proposal information
+    function getProposeInfo(uint index) override external view returns (ProposalView memory) {
+        return _toProposalView(_proposalList[index], index, getNestCirculation());
     }
 
     /// @dev Get the cumulative number of voting proposals
@@ -332,7 +337,6 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         
         Proposal[] storage proposalList = _proposalList;
         ProposalView[] memory result = new ProposalView[](count);
-        Proposal memory proposal;
         uint nestCirculation = getNestCirculation();
         uint i = 0;
 
@@ -342,53 +346,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             uint index = proposalList.length - offset;
             uint end = index - count;
             while (index > end) {
-
-                proposal = proposalList[--index];
-                result[i++] = ProposalView(
-                    // Index of the proposal
-                    index,
-
-                    // Brief of proposal
-                    //string brief;
-                    proposal.brief,
-
-                    // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
-                    //address contractAddress;
-                    proposal.contractAddress,
-
-                    // Voting start time
-                    //uint48 startTime;
-                    proposal.startTime,
-
-                    // Voting stop time
-                    //uint48 stopTime;
-                    proposal.stopTime,
-
-                    // Proposer
-                    //address proposer;
-                    proposal.proposer,
-
-                    // Staked nest amount
-                    //uint96 staked;
-                    proposal.staked,
-
-                    // Gained value
-                    // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
-                    // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
-                    //uint96 gainValue;
-                    proposal.gainValue,
-
-                    // The state of this proposal
-                    //uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
-                    proposal.state,
-
-                    // The executor of this proposal
-                    //address executor;
-                    proposal.executor,
-
-                    // Circulation of nest
-                    uint96(nestCirculation)
-                );
+                --index;
+                result[i++] = _toProposalView(proposalList[index], index, nestCirculation);
             }
         } 
         // Positive sequence
@@ -397,53 +356,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             uint index = offset;
             uint end = index + count;
             while (index < end) {
-
-                proposal = proposalList[index];
-                result[i++] = ProposalView(
-                    // Index of the proposal
-                    index++,
-
-                    // Brief of proposal
-                    //string brief;
-                    proposal.brief,
-
-                    // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
-                    //address contractAddress;
-                    proposal.contractAddress,
-
-                    // Voting start time
-                    //uint48 startTime;
-                    proposal.startTime,
-
-                    // Voting stop time
-                    //uint48 stopTime;
-                    proposal.stopTime,
-
-                    // Proposer
-                    //address proposer;
-                    proposal.proposer,
-
-                    // Staked nest amount
-                    //uint96 staked;
-                    proposal.staked,
-
-                    // Gained value
-                    // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
-                    // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
-                    //uint96 gainValue;
-                    proposal.gainValue,
-
-                    // The state of this proposal
-                    //uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
-                    proposal.state,
-
-                    // The executor of this proposal
-                    //address executor;
-                    proposal.executor,
-
-                    // Circulation of nest
-                    uint96(nestCirculation)
-                );
+                result[i++] = _toProposalView(proposalList[index], index, nestCirculation);
+                ++index;
             }
         }
 
