@@ -295,7 +295,7 @@ contract("NestMining", async accounts => {
         for (i = 1; i < 4; ++i) {
             arr.push(index++);
         }
-        receipt = await nestMining.closeList2(usdt.address, arr, nest.address, arr);
+        receipt = await nestMining.closeList2(usdt.address, arr, arr);
         console.log(receipt);
         LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
             nestMining: await ethDouble(nestMining.address),

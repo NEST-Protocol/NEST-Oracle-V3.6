@@ -149,11 +149,10 @@ interface INestMining {
 
     /// @notice Close two batch of price sheets passed VERIFICATION-PHASE
     /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
-    /// @param tokenAddress1 The address of TOKEN1 contract
-    /// @param indices1 A list of indices of sheets w.r.t. `token1`
-    /// @param tokenAddress2 The address of TOKEN2 contract
-    /// @param indices2 A list of indices of sheets w.r.t. `token2`
-    function closeList2(address tokenAddress1, uint[] memory indices1, address tokenAddress2, uint[] memory indices2) external;
+    /// @param tokenAddress The address of TOKEN1 contract
+    /// @param tokenIndices A list of indices of sheets w.r.t. `token`
+    /// @param ntokenIndices A list of indices of sheets w.r.t. `ntoken`
+    function closeList2(address tokenAddress, uint[] memory tokenIndices, uint[] memory ntokenIndices) external;
 
     /// @dev The function updates the statistics of price sheets
     ///     It calculates from priceInfo to the newest that is effective.

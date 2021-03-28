@@ -682,15 +682,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /// @notice Close two batch of price sheets passed VERIFICATION-PHASE
     /// @dev Empty sheets but in VERIFICATION-PHASE aren't allowed
-    /// @param tokenAddress1 The address of TOKEN1 contract
-    /// @param indices1 A list of indices of sheets w.r.t. `token1`
-    /// @param tokenAddress2 The address of TOKEN2 contract
-    /// @param indices2 A list of indices of sheets w.r.t. `token2`
+    /// @param tokenAddress The address of TOKEN1 contract
+    /// @param tokenIndices A list of indices of sheets w.r.t. `token`
+    /// @param ntokenIndices A list of indices of sheets w.r.t. `ntoken`
     function closeList2(
-        address tokenAddress1, 
-        uint[] memory indices1, 
-        address tokenAddress2, 
-        uint[] memory indices2
+        address tokenAddress, 
+        uint[] memory tokenIndices, 
+        uint[] memory ntokenIndices
     ) override external {
         
         Config memory config = _config;
@@ -700,17 +698,17 @@ contract NestMining is NestBase, INestMining, INestQuery {
         (
             uint accountIndex1, 
             Tunple memory value1,
-            address ntokenAddress1 
-        ) = _closeList(config, channels[tokenAddress1], tokenAddress1, indices1);
+            address ntokenAddress 
+        ) = _closeList(config, channels[tokenAddress], tokenAddress, tokenIndices);
 
         (
             uint accountIndex2, 
             Tunple memory value2,
             //address ntokenAddress2, 
-        ) = _closeList(config, channels[tokenAddress2], tokenAddress2, indices2);
+        ) = _closeList(config, channels[ntokenAddress], ntokenAddress, ntokenIndices);
 
         require(accountIndex1 == accountIndex2, "NM:!miner");
-        require(ntokenAddress1 == tokenAddress2, "NM:!tokenAddress");
+        //require(ntokenAddress1 == tokenAddress2, "NM:!tokenAddress");
         require(uint(value2.ntokenValue) == 0, "NM!ntokenValue");
 
         // Return eth
@@ -721,9 +719,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // Unfreeze assets
         _unfreeze3(
             _accounts[accountIndex1].balances, 
-            tokenAddress1, 
+            tokenAddress, 
             uint(value1.tokenValue), 
-            ntokenAddress1, 
+            ntokenAddress, 
             uint(value1.ntokenValue) + uint(value2.tokenValue) /* + uint(value2.ntokenValue) */, 
             uint(value1.nestValue) + uint(value2.nestValue)
         );
@@ -866,7 +864,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                         // mining
                         INest_NToken(ntokenAddress).increaseTotal(mined);
                     }
-                    //value.nestValue = uint96(uint(sheet.nestNum1k) * 1000 ether);
                 }
             }
 
