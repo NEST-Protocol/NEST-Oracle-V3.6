@@ -271,7 +271,7 @@ contract("NestMining", async accounts => {
         
         {
             // 1. 发起报价
-            console.log('发起报价');
+            console.log('1. 发起报价');
             let receipt = await nestMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.1) });
             console.log(receipt);
             balance0 = await showBalance(account0, '发起一次报价后');
@@ -308,9 +308,10 @@ contract("NestMining", async accounts => {
             await skipBlocks(20);
 
             // 2. 关闭报价单
+            console.log('2. 关闭报价单');
             receipt = await nestMining.close(hbtc.address, 0);
-
             console.log(receipt);
+
             balance0 = await showBalance(account0, '关闭报价单后');
 
             // account0余额
@@ -376,8 +377,8 @@ contract("NestMining", async accounts => {
             {
                 let latestPrice = await nestMining.latestPrice(hbtc.address);
                 LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
-                let triggeredPrice = await nestMining.triggeredPrice(hbtc.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}', triggeredPrice);
+                let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
+                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, avgPrice={avgPrice}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
                 LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             }
             await nestMining.stat(hbtc.address);
@@ -386,11 +387,12 @@ contract("NestMining", async accounts => {
                 let latestPrice = await nestMining.latestPrice(hbtc.address);
                 LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
                 let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
+                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, avgPrice={avgPrice}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
                 LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             }
 
-            receipt = await nestMining.post(hbtc.address, 30, HBTC(2570), { value: ETHER(30.1) });
+            console.log('3. 第二次报价');
+            receipt = await nestMining.post(hbtc.address, 30, HBTC(258), { value: ETHER(30.1) });
             console.log(receipt);
 
             await skipBlocks(20);
@@ -400,18 +402,36 @@ contract("NestMining", async accounts => {
                 let latestPrice = await nestMining.latestPrice(hbtc.address);
                 LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
                 let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
+                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, avgPrice={avgPrice}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
                 LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             }
 
+            console.log('4. 第三次报价');
+            receipt = await nestMining.post(hbtc.address, 30, HBTC(234), { value: ETHER(30.1) });
+            console.log(receipt);
+
+            await skipBlocks(20);
+            await nestMining.stat(hbtc.address);
+            
+            // 查看价格
+            {
+                let latestPrice = await nestMining.latestPrice(hbtc.address);
+                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
+                let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
+                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, avgPrice={avgPrice}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
+                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
+            }
+
+            console.log('4. 第二次关闭');
             receipt = await nestMining.close(hbtc.address, 1);
             console.log(receipt);
 
-            let pi = await nestMining.findPrice(hbtc.address, 6000);
+            console.log('blockNumber: ' + (await web3.eth.getBlockNumber() - 23));
+            let pi = await nestMining.findPrice(hbtc.address, await web3.eth.getBlockNumber() - 23);
             LOG('blockNumber: {blockNumber}, price: {price}', pi);
 
-            let arr = await nestMining.lastPriceList(hbtc.address, 1);
             LOG('------------------------');
+            let arr = await nestMining.lastPriceList(hbtc.address, 3);
             for (var i in arr) {
                 console.log(arr[i].toString());
             }

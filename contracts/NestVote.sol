@@ -208,10 +208,10 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
         // 2. In the proposal state, the number of votes obtained needs to be updated
         if (uint(_proposalList[index].state) == PROPOSAL_STATE_PROPOSED) {
-            _proposalList[index].gainValue = uint96(_proposalList[index].gainValue - balanceValue);
+            _proposalList[index].gainValue = uint96(uint(_proposalList[index].gainValue) - balanceValue);
         }
 
-        // 4. Return staked nest
+        // 3. Return staked nest
         IERC20(_nestTokenAddress).transfer(address(msg.sender), balanceValue);
     }
 
