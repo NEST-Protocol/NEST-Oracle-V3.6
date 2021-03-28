@@ -68,7 +68,7 @@ contract NestLedger is NestBase, INestLedger {
             _nestLedger += msg.value;
         } else {
             UINT storage balance = _ntokenLedger[ntokenAddress];
-            balance.value = balance.value + msg.value;
+            balance.value += msg.value;
         }
     }
 
@@ -95,7 +95,7 @@ contract NestLedger is NestBase, INestLedger {
                 _nestLedger -= value;
             } else {
                 UINT storage balance = _ntokenLedger[ntokenAddress];
-                balance.value = balance.value - value;
+                balance.value -= value;
             }
             payable(to).transfer(value);
         } else {
@@ -114,10 +114,10 @@ contract NestLedger is NestBase, INestLedger {
 
         if (tokenAddress == address(0)) {
             if (ntokenAddress == NEST_TOKEN_ADDRESS) {
-                _nestLedger = _nestLedger + msg.value - value;
+                _nestLedger += msg.value - value;
             } else {
                 UINT storage balance = _ntokenLedger[ntokenAddress];
-                balance.value = balance.value + msg.value - value;
+                balance.value += msg.value - value;
             }
             payable(to).transfer(value);
         } else {
@@ -127,7 +127,7 @@ contract NestLedger is NestBase, INestLedger {
                     _nestLedger += msg.value;
                 } else {
                     UINT storage balance = _ntokenLedger[ntokenAddress];
-                    balance.value = balance.value + msg.value;
+                    balance.value += msg.value;
                 }
             }
         }

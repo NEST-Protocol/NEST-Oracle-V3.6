@@ -691,39 +691,40 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint[] memory ntokenIndices
     ) override external {
         
+        // TODO: 用户故意将ntokenAddress传递给tokenAddress参数是否有套利空间
         Config memory config = _config;
         mapping(address=>PriceChannel) storage channels = _channels;
         
         // Call _closeList() method to close price sheets
         (
             uint accountIndex1, 
-            Tunple memory value1,
+            Tunple memory total1,
             address ntokenAddress 
         ) = _closeList(config, channels[tokenAddress], tokenAddress, tokenIndices);
 
         (
             uint accountIndex2, 
-            Tunple memory value2,
+            Tunple memory total2,
             //address ntokenAddress2, 
         ) = _closeList(config, channels[ntokenAddress], ntokenAddress, ntokenIndices);
 
         require(accountIndex1 == accountIndex2, "NM:!miner");
         //require(ntokenAddress1 == tokenAddress2, "NM:!tokenAddress");
-        require(uint(value2.ntokenValue) == 0, "NM!ntokenValue");
+        require(uint(total2.ntokenValue) == 0, "NM!ntokenValue");
 
         // Return eth
-        // if (uint(value1.ethNum) > 0) {
-        //     payable(indexAddress(accountIndex1)).transfer(uint(value1.ethNum + value2.ethNum) * 1 ether);
+        // if (uint(total1.ethNum) > 0) {
+        //     payable(indexAddress(accountIndex1)).transfer(uint(total1.ethNum + total2.ethNum) * 1 ether);
         // }
-        payable(indexAddress(accountIndex1)).transfer((uint(value1.ethNum) + uint(value2.ethNum)) * 1 ether);
+        payable(indexAddress(accountIndex1)).transfer((uint(total1.ethNum) + uint(total2.ethNum)) * 1 ether);
         // Unfreeze assets
         _unfreeze3(
             _accounts[accountIndex1].balances, 
             tokenAddress, 
-            uint(value1.tokenValue), 
+            uint(total1.tokenValue), 
             ntokenAddress, 
-            uint(value1.ntokenValue) + uint(value2.tokenValue) /* + uint(value2.ntokenValue) */, 
-            uint(value1.nestValue) + uint(value2.nestValue)
+            uint(total1.ntokenValue) + uint(total2.tokenValue)/* + uint(total2.ntokenValue) */, 
+            uint(total1.nestValue) + uint(total2.nestValue)
         );
     }
 
@@ -791,7 +792,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 || uint(sheet.remainNum) == 0
         )) {
 
-            value.nestValue = uint96(uint(sheet.nestNum1k) * 1000 ether);
             // The price which is bite or ntoken dosen't mining
             // if (uint(sheet.shares) == 0) {
             //     //value.tokenValue = uint128(decodeFloat(sheet.priceFloat) * uint(sheet.tokenNumBal));
@@ -832,6 +832,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                         minedBlocks = uint(config.ntokenMinedBlockLimit);
                     }
                     
+                    // TODO: mined变量和value.ntokenValue合并
                     uint mined = (
                         minedBlocks 
                         * uint(sheet.shares) 
@@ -867,8 +868,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 }
             }
 
-            value.tokenValue = decodeFloat(sheet.priceFloat) * uint(sheet.tokenNumBal);
             value.ethNum = uint64(sheet.ethNumBal);
+            value.tokenValue = decodeFloat(sheet.priceFloat) * uint(sheet.tokenNumBal);
+            value.nestValue = uint96(uint(sheet.nestNum1k) * 1000 ether);
             
             // Set sheet.miner to 0, express the sheet is closed
             sheet.miner = uint32(0);
