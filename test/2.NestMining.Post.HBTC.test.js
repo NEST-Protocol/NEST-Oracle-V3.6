@@ -325,7 +325,8 @@ contract("NestMining", async accounts => {
             // nestMining余额
             assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
             assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(256 * 30)));
-            assert.equal(0, (await nhbtc.balanceOf(nestMining.address)).cmp(nHBTC(10 * 4 * 1.00)));
+            //assert.equal(0, (await nhbtc.balanceOf(nestMining.address)).cmp(nHBTC(10 * 4 * 1.00)));
+            assert.equal(0, (await nhbtc.balanceOf(nestMining.address)).cmp(nHBTC(0)));
             assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000 + 100000)));
 
             // nestLedger余额
@@ -356,7 +357,8 @@ contract("NestMining", async accounts => {
             // nestMining余额
             assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
             assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(0)));
-            assert.equal(0, (await nhbtc.balanceOf(nestMining.address)).cmp(nHBTC(10 * 4 * 0.05)));
+            //assert.equal(0, (await nhbtc.balanceOf(nestMining.address)).cmp(nHBTC(10 * 4 * 0.05)));
+            assert.equal(0, (await nhbtc.balanceOf(nestMining.address)).cmp(nHBTC(0)));
             assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
 
             // nestLedger余额
@@ -426,12 +428,24 @@ contract("NestMining", async accounts => {
             receipt = await nestMining.close(hbtc.address, 1);
             console.log(receipt);
 
-            console.log('blockNumber: ' + (await web3.eth.getBlockNumber() - 23));
-            let pi = await nestMining.findPrice(hbtc.address, await web3.eth.getBlockNumber() - 23);
+            console.log('blockNumber: ' + (await web3.eth.getBlockNumber() - 0));
+            let pi = await nestMining.findPrice(hbtc.address, await web3.eth.getBlockNumber() - 0);
             LOG('blockNumber: {blockNumber}, price: {price}', pi);
 
             LOG('------------------------');
             let arr = await nestMining.lastPriceList(hbtc.address, 3);
+            for (var i in arr) {
+                console.log(arr[i].toString());
+            }
+
+            LOG('------------------------');
+            arr = await nestMining.lastPriceList(hbtc.address, 4);
+            for (var i in arr) {
+                console.log(arr[i].toString());
+            }
+
+            LOG('------------------------');
+            arr = await nestMining.lastPriceList(hbtc.address, 5);
             for (var i in arr) {
                 console.log(arr[i].toString());
             }

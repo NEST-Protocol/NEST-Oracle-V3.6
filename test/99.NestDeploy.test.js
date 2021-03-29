@@ -1,4 +1,3 @@
-
 // const BN = require("bn.js");
 // const $hcj = require("./hcore.js");
 
@@ -52,6 +51,7 @@
 //         nestVote: 0xC75bd10B11E498083075876B3D6e1e6df1427De6
 //         nnIncome: 0x3DA5c9aafc6e6D6839E62e2fB65825869019F291
 //         nTokenController: 0xc39dC1385a44fBB895991580EA55FC10e7451cB3
+//         setQueryPrice: 0x661D928e196797389Af5826BFE590345E0E2d6C0
 //         */
 
 //         // 部署测试币

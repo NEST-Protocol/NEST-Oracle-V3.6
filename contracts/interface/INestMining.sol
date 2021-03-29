@@ -188,8 +188,7 @@ interface INestMining {
     /// @dev Withdraw assets
     /// @param tokenAddress Destination token address
     /// @param value The value to withdraw
-    /// @return Actually withdrawn
-    function withdraw(address tokenAddress, uint value) external returns (uint);
+    function withdraw(address tokenAddress, uint value) external;
 
     /// @dev View the number of assets specified by the user
     /// @param tokenAddress Destination token address

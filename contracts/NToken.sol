@@ -40,8 +40,9 @@ contract NToken is NestBase, INToken {
         _state = block.number;
     }
 
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
+    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
         _ntokenMiningAddress = INestGovernance(nestGovernanceAddress).getNTokenMiningAddress();
@@ -62,6 +63,22 @@ contract NToken is NestBase, INToken {
         //_totalSupply = _totalSupply.add(amount);
         //lastestMintAtHeight = block.number;
         _state = (((_state >> 128) + amount) << 128) | block.number;
+    }
+
+    /// @dev Mint 
+    /// @param value The amount of NToken to add
+    function increaseTotal(uint256 value) override public {
+
+        require(address(msg.sender) == _ntokenMiningAddress, "NToken:!Auth");
+        
+        // 目标地址增加余额
+        _balances[msg.sender] += value;
+
+        // 增加发行量
+        // _totalSupply和lastestMintAtHeight共用一个存储
+        //_totalSupply = _totalSupply.add(value);
+        //lastestMintAtHeight = block.number;
+        _state = (((_state >> 128) + value) << 128) | block.number;
     }
         
     /// @notice The view of variables about minting 
