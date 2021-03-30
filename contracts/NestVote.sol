@@ -155,7 +155,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             //address proposer;
             msg.sender,
 
-            config.proposalStaking,
+            uint96(uint(config.proposalStaking) * 1 ether),
 
             uint96(0), 
             
@@ -165,7 +165,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         ));
 
         // Stake nest
-        IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking));
+        IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking) * 1 ether);
 
         emit NIPSubmitted(msg.sender, contractAddress, index);
     }
@@ -344,7 +344,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         if (order == 0) {
 
             uint index = proposalList.length - offset;
-            uint end = index - count;
+            uint end = index > count ? index - count : 0;
             while (index > end) {
                 --index;
                 result[i++] = _toProposalView(proposalList[index], index, nestCirculation);

@@ -17,10 +17,10 @@
     struct Config {
         
         // nest reward scale(10000 based). 2000
-        uint32 nestRewardScale;
+        uint16 nestRewardScale;
 
         // ntoken reward scale(10000 based). 8000
-        uint32 ntokenRedardScale;
+        uint16 ntokenRedardScale;
     }
 ```
 

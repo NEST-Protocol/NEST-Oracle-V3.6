@@ -52,6 +52,7 @@
 //         nnIncome: 0x3DA5c9aafc6e6D6839E62e2fB65825869019F291
 //         nTokenController: 0xc39dC1385a44fBB895991580EA55FC10e7451cB3
 //         setQueryPrice: 0x661D928e196797389Af5826BFE590345E0E2d6C0
+//         setQueryPrice: 0xD83C860d3A27cC5EddaB68EaBFCF9cc8ad38F15D
 //         */
 
 //         // 部署测试币

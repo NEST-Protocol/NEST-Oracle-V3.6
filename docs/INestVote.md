@@ -13,18 +13,18 @@
     function setConfig(Config memory config) external;
 ```
 ```javascript
-     /// @dev Voting contract configuration structure
-     struct Config {
- 
-         // Proportion of votes required (10000 based). 5100
-         uint32 acceptance;
- 
-         // Voting time cycle (seconds). 5 * 86400
-         uint64 voteDuration;
- 
-         // The number of nest votes need to be staked. 100000 nest
-         uint96 proposalStaking;
-     }
+    /// @dev Voting contract configuration structure
+    struct Config {
+
+        // Proportion of votes required (10000 based). 5100
+        uint32 acceptance;
+
+        // Voting time cycle (seconds). 5 * 86400
+        uint64 voteDuration;
+
+        // The number of nest votes need to be staked. 100000 nest
+        uint96 proposalStaking;
+    }
 ```
 
 ### 2.2. Get configuration

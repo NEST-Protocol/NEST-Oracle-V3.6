@@ -202,7 +202,7 @@ contract NTokenController is NestBase, INTokenController {
         if (order == 0) {
 
             uint index = nTokenTagList.length - offset;
-            uint end = index - count;
+            uint end = index > count ? index - count : 0;
             while (index > end) {
                 result[i++] = nTokenTagList[--index];
             }
