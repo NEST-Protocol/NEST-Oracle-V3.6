@@ -276,8 +276,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         address ntokenAddress = _getNTokenAddress(tokenAddress);
         require(ntokenAddress != address(0) && ntokenAddress != tokenAddress, "NM:!tokenAddress");
         // Unit of nest is different, but the total supply already exceeded the number of this issue. No additional judgment will be made
-        // ntoken is mint when the price sheet is closed (or retrieved), this may be the problem that the user 
-        // intentionally does not close or retrieve, which leads to the inaccurate judgment of the total amount. ignore
+        // ntoken is mint when the price sheet is closed (or withdrawn), this may be the problem that the user
+        // intentionally does not close or withdraw, which leads to the inaccurate judgment of the total amount. ignore
         require(INToken(ntokenAddress).totalSupply() < uint(config.doublePostThreshold) * 10000 ether, "NM:!post2");        
 
         // 3. Load token channel and sheets
@@ -423,7 +423,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
         // When the level of the sheet is less than 4, both the nest and the scale of the offer are doubled
         if (level < uint(config.maxBiteNestedLevel)) {
-            // Double scall sheet
+            // Double scale sheet
             needEthNum = biteNum << 1;
             ++level;
         } 
@@ -1041,7 +1041,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         else if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || currentFee != oldFee) {
             // Save reward
             INestLedger(_nestLedgerAddress).carveReward { 
-                value: currentFee + oldFee * (COLLECT_REWARD_MASK - (feeInfo >> 128)) 
+                value: currentFee + oldFee * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
             } (ntokenAddress);
             // Update fee information
             channel.feeInfo = currentFee | (((length + 1) & COLLECT_REWARD_MASK) << 128);
@@ -1060,16 +1060,16 @@ contract NestMining is NestBase, INestMining, INestQuery {
         if (tokenAddress != ntokenAddress) {
 
             PriceChannel storage channel = _channels[tokenAddress];
-            uint count = channel.sheets.length & COLLECT_REWARD_MASK;
+            uint length = channel.sheets.length & COLLECT_REWARD_MASK;
             uint feeInfo = channel.feeInfo;
 
             // Save reward
             INestLedger(_nestLedgerAddress).carveReward { 
-                value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (count - (feeInfo >> 128))
+                value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (length - (feeInfo >> 128))
             } (ntokenAddress);
 
             // Manual settlement does not need to update Commission variables
-            channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (count << 128);
+            channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (length << 128);
         }
     }
 
