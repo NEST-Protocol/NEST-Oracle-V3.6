@@ -117,20 +117,20 @@ The data structure of the quotation sheet processes the two fields of the miner'
     /// @dev Encode the uint value as a floating-point representation in the form of fraction * 16 ^ exponent
     /// @param value Destination uint value
     /// @return float format
-    function encodeFloat(uint value) public pure returns (uint56) {
-        
-        uint decimals = 0; 
+    function encodeFloat(uint value) private pure returns (uint56) {
+
+        uint exponent = 0; 
         while (value > 0x3FFFFFFFFFFFF) {
             value >>= 4;
-            ++decimals;
+            ++exponent;
         }
-        return uint56((value << 6) | decimals);
+        return uint56((value << 6) | exponent);
     }
 
     /// @dev Decode the floating-point representation of fraction * 16 ^ exponent to uint
     /// @param floatValue fraction value
     /// @return decode format
-    function decodeFloat(uint56 floatValue) public pure returns (uint) {
+    function decodeFloat(uint56 floatValue) private pure returns (uint) {
         return (uint(floatValue) >> 6) << ((uint(floatValue) & 0x3F) << 2);
     }
 ```

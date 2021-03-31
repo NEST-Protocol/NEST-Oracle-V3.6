@@ -107,7 +107,7 @@ interface INestPriceFacade {
         uint triggeredSigmaSQ
     );
 
-    /// @dev Get the latest trigger price. (token and ntoken）
+    /// @dev Get the latest trigger price. (token and ntoken)
     /// @param tokenAddress Destination token address
     /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
     /// @return blockNumber The block number of price

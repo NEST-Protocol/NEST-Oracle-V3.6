@@ -228,13 +228,13 @@
 //             voteDuration: 5 * 86400,
     
 //             // 投票需要抵押的nest数量。100000 nest
-//             proposalStaking: 100000
+//             proposalStaking: '100000000000000000000000'
 //         });
 
 //         await nTokenController.setConfig({
 
 //             // 开通ntoken需要支付的nest数量。10000 ether
-//             openFeeNestAmount: 10000,
+//             openFeeNestAmount: '10000000000000000000000',
 
 //             // ntoken管理功能启用状态。0：未启用，1：已启用
 //             state: 1

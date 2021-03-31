@@ -60,7 +60,7 @@ interface INestQuery {
         uint triggeredSigmaSQ
     );
 
-    /// @dev Get the latest trigger price. (token and ntoken）
+    /// @dev Get the latest trigger price. (token and ntoken)
     /// @param tokenAddress Destination token address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)

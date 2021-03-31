@@ -344,6 +344,7 @@ contract("NestMining", async accounts => {
 
             LOG(USDT(pooled + bite - lost).toString());
             //assert.equal(0, balance.pool.usdt.cmp(USDT(pooled + bite - lost)));
+            assert.equal(0, balance.pool.nest.cmp(ETHER(100000 * (1 + 4 + 16 + 64) + 400 * 10 * 0.8)));
         }
         {
             let balance = await showBalance(account1, '关闭后，account1');
@@ -353,6 +354,7 @@ contract("NestMining", async accounts => {
         
             LOG(USDT(pooled + bite - lost).toString());
             //assert.equal(0, balance.pool.usdt.cmp(USDT(pooled + bite - lost)));
+            assert.equal(0, balance.pool.nest.cmp(ETHER(100000 * (2 + 8 + 32 + 128))));
         }
 
         {
