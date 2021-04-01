@@ -28,17 +28,17 @@ contract NestBase {
         _governance = nestGovernanceAddress;
     }
 
-    /// @dev Transfer funds from current contracts
-    /// @param tokenAddress Destination token address.（0 means eth）
-    /// @param to Transfer in address
-    /// @param value Transfer amount
-    function transfer(address tokenAddress, address to, uint value) external onlyGovernance {
-        if (tokenAddress == address(0)) {
-            payable(to).transfer(value);
-        } else {
-            TransferHelper.safeTransfer(tokenAddress, to, value);
-        }
-    }
+    // /// @dev Transfer funds from current contracts
+    // /// @param tokenAddress Destination token address.（0 means eth）
+    // /// @param to Transfer in address
+    // /// @param value Transfer amount
+    // function transfer(address tokenAddress, address to, uint value) external onlyGovernance {
+    //     if (tokenAddress == address(0)) {
+    //         payable(to).transfer(value);
+    //     } else {
+    //         TransferHelper.safeTransfer(tokenAddress, to, value);
+    //     }
+    // }
 
     //---------modifier------------
 

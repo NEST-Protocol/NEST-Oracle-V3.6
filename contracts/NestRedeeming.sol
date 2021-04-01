@@ -120,10 +120,10 @@ contract NestRedeeming is NestBase, INestRedeeming {
 
         // 6. Check the redeeming amount and price deviation
         // This check is not required
-        // require(quota >= amount, "NestDAO:!amount");
+        // require(quota >= amount, "NestRedeeming:!amount");
         require(
-            latestPriceValue <= triggeredAvgPrice * (10000 + uint(config.priceDeviationLimit)) / 10000 && 
-            latestPriceValue >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)) / 10000, "NestRedeeming:!price");
+            latestPriceValue * 10000 <= triggeredAvgPrice * (10000 + uint(config.priceDeviationLimit)) && 
+            latestPriceValue * 10000 >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)), "NestRedeeming:!price");
         
         // 7. Ntoken transferred to redeem
         address nestLedgerAddress = _nestLedgerAddress;

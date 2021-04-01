@@ -155,7 +155,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
             //address proposer;
             msg.sender,
 
-            uint96(uint(config.proposalStaking) * 1 ether),
+            config.proposalStaking,
 
             uint96(0), 
             
@@ -165,7 +165,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         ));
 
         // Stake nest
-        IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking) * 1 ether);
+        IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking));
 
         emit NIPSubmitted(msg.sender, contractAddress, index);
     }
@@ -235,8 +235,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         IERC20 nest = IERC20(_nestTokenAddress);
 
         // Calculate the circulation of nest
-        uint nestCirculation = getNestCirculation();
-        require(uint(p.gainValue) >= nestCirculation * uint(config.acceptance) / 10000, "NestVote:!gainValue");
+        uint nestCirculation = _getNestCirculation(nest);
+        require(uint(p.gainValue) * 10000 >= nestCirculation * uint(config.acceptance), "NestVote:!gainValue");
 
         // 3. Temporarily grant execution permission
         INestGovernance(governance).setGovernance(p.contractAddress, 1);

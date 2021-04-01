@@ -157,7 +157,7 @@ contract("NestMining", async accounts => {
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
-        await nestGovernance.registerAddress("nest.dao.redeeming", nestRedeeming.address);
+        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
 
         // 更新合约地址
         await nestLedger.update(nestGovernance.address);
@@ -172,7 +172,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRedardScale: 8000
+            ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({
@@ -273,7 +273,7 @@ contract("NestMining", async accounts => {
         await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // 修改nHBTC信息
-        await nestGovernance.registerAddress("nest.nToken.offerMain", nestMining.address);
+        await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
         await nhbtc.changeMapping(nestGovernance.address);
         await nn.setContracts(nnIncome.address);
     });

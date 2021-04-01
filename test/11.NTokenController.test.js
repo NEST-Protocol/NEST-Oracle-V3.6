@@ -12,6 +12,7 @@ const NNIncome = artifacts.require("NNIncome");
 const NToken = artifacts.require("NToken");
 const NTokenController = artifacts.require("NTokenController");
 const TestERC20 = artifacts.require("TestERC20");
+const ERC20 = artifacts.require("ERC20");
 const IBNEST = artifacts.require("IBNEST");
 const NNToken = artifacts.require("NNToken");
 const Nest_NToken = artifacts.require("Nest_NToken");
@@ -85,7 +86,7 @@ contract("NestMining", async accounts => {
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
-        await nestGovernance.registerAddress("nest.dao.redeeming", nestRedeeming.address);
+        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
 
         // 更新合约地址
         await nestLedger.update(nestGovernance.address);
@@ -100,7 +101,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRedardScale: 8000
+            ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({
@@ -201,7 +202,7 @@ contract("NestMining", async accounts => {
         await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // 修改nHBTC信息
-        await nestGovernance.registerAddress("nest.nToken.offerMain", nestMining.address);
+        await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
         //await nhbtc.changeMapping(nestGovernance.address);
         await nn.setContracts(nnIncome.address);
 
@@ -376,6 +377,243 @@ contract("NestMining", async accounts => {
 
             receipt = await nestMining.close(hbtc.address, 1);
             console.log(receipt);
+
+            // config
+            console.log('修改配置前');
+            console.log(await nTokenController.getConfig());
+
+            await nTokenController.setConfig({
+                // The number of nest needed to pay for opening ntoken. 10000 ether
+                openFeeNestAmount: '12345678901234567890123',
+
+                // ntoken management is enabled. 0: not enabled, 1: enabled
+                state: 0
+            });
+            console.log('修改配置后');
+            console.log(await nTokenController.getConfig());
+
+            // token mapping
+            assert.equal(await nTokenController.getTokenAddress(nest.address), usdt.address);
+            assert.equal(await nTokenController.getTokenAddress(nhbtc.address), hbtc.address);
+
+            assert.equal(await nTokenController.getNTokenAddress(usdt.address), nest.address);
+            assert.equal(await nTokenController.getNTokenAddress(hbtc.address), nhbtc.address);
+
+            await nTokenController.setNTokenMapping(usdt.address, nhbtc.address, 1);
+            await nTokenController.setNTokenMapping(hbtc.address, nest.address, 0);
+            let yfi = await TestERC20.new('YFI', 'YFI', 18);
+            let nYFI = await TestERC20.new('nYFI', 'nYFI', 18);
+            await nTokenController.setNTokenMapping(yfi.address, nYFI.address, 1);
+
+            // 2. 列出所有的ntoken信息
+            let list = await nTokenController.list(0, 3, 1);
+            for (var i in list) {
+                let tag = list[i];
+                if (tag.tokenAddress == '0x0000000000000000000000000000000000000000') {
+                    continue;
+                }
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            assert.equal(await nTokenController.getTokenAddress(nYFI.address), yfi.address);
+            assert.equal(await nTokenController.getTokenAddress(nest.address), hbtc.address);
+            assert.equal(await nTokenController.getTokenAddress(nhbtc.address), usdt.address);
+
+            assert.equal(await nTokenController.getNTokenAddress(yfi.address), nYFI.address);
+            assert.equal(await nTokenController.getNTokenAddress(usdt.address), nhbtc.address);
+            assert.equal(await nTokenController.getNTokenAddress(hbtc.address), nest.address);
+
+            // disable yfi
+            console.log('disable yfi');
+            await nTokenController.disable(yfi.address);
+            list = await nTokenController.list(0, 3, 1);
+            for (var i in list) {
+                let tag = list[i];
+                if (tag.tokenAddress == '0x0000000000000000000000000000000000000000') {
+                    continue;
+                }
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            // disable usdt
+            console.log('disable usdt');
+            await nTokenController.disable(usdt.address);
+            list = await nTokenController.list(0, 3, 1);
+            for (var i in list) {
+                let tag = list[i];
+                if (tag.tokenAddress == '0x0000000000000000000000000000000000000000') {
+                    continue;
+                }
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            // disable hbtc
+            console.log('disable hbtc');
+            await nTokenController.disable(hbtc.address);
+            list = await nTokenController.list(0, 3, 1);
+            for (var i in list) {
+                let tag = list[i];
+                if (tag.tokenAddress == '0x0000000000000000000000000000000000000000') {
+                    continue;
+                }
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            // enable hbtc
+            console.log('enable hbtc');
+            await nTokenController.enable(hbtc.address);
+            list = await nTokenController.list(0, 3, 1);
+            for (var i in list) {
+                let tag = list[i];
+                if (tag.tokenAddress == '0x0000000000000000000000000000000000000000') {
+                    continue;
+                }
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            // enable nYFI
+            console.log('enable nYFI');
+            await nTokenController.enable(nYFI.address);
+            list = await nTokenController.list(0, 3, 1);
+            for (var i in list) {
+                let tag = list[i];
+                if (tag.tokenAddress == '0x0000000000000000000000000000000000000000') {
+                    continue;
+                }
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            // enable usdt
+            console.log('enable usdt');
+            await nTokenController.enable(usdt.address);
+            list = await nTokenController.list(0, 3, 1);
+            for (var i in list) {
+                let tag = list[i];
+                if (tag.tokenAddress == '0x0000000000000000000000000000000000000000') {
+                    continue;
+                }
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            // getNTokenTag
+            {
+                let tag = await nTokenController.getNTokenTag(yfi.address);
+                let token = await ERC20.at(tag.tokenAddress);
+                let ntoken = await ERC20.at(tag.ntokenAddress);
+                console.log({
+                    tokenAddress: tag.tokenAddress,
+                    token: {
+                        name: await token.name(),
+                        totalSupply: (await token.totalSupply()).toString()
+                    },
+                    ntokenAddress: tag.ntokenAddress,
+                    ntoken: {
+                        name: await ntoken.name(),
+                        totalSupply: (await ntoken.totalSupply()).toString()
+                    },
+                    state: tag.state
+                });
+            }
+
+            console.log('nTokenCount: ' + await nTokenController.getNTokenCount());
         }
     });
 });

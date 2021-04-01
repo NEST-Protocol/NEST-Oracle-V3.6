@@ -12,7 +12,7 @@ interface INestLedger {
         uint16 nestRewardScale;
 
         // ntoken reward scale(10000 based). 8000
-        uint16 ntokenRedardScale;
+        uint16 ntokenRewardScale;
     }
     
     /// @dev Modify configuration

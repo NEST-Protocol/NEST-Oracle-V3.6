@@ -210,10 +210,10 @@ contract NestMining is NestBase, INestMining, INestQuery {
         _genesisBlockNumberCache[ntokenAddress] = 0;
         _addressCache[tokenAddress] = _addressCache[ntokenAddress] = address(0);
 
-        // Reload
-        _getNTokenAddress(tokenAddress);
-        _getNTokenAddress(ntokenAddress);
-        _getNTokenGenesisBlock(ntokenAddress);
+        // // Reload
+        // _getNTokenAddress(tokenAddress);
+        // _getNTokenAddress(ntokenAddress);
+        // _getNTokenGenesisBlock(ntokenAddress);
     }
 
     /// @dev Set the ntokenAddress from tokenAddress, if ntokenAddress is equals to tokenAddress, means the token is disabled

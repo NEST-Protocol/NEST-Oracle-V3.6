@@ -85,7 +85,7 @@ contract("NestMining", async accounts => {
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
-        await nestGovernance.registerAddress("nest.dao.redeeming", nestRedeeming.address);
+        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
 
         // 更新合约地址
         await nestLedger.update(nestGovernance.address);
@@ -100,7 +100,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRedardScale: 8000
+            ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({
@@ -201,7 +201,7 @@ contract("NestMining", async accounts => {
         await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // 修改nHBTC信息
-        await nestGovernance.registerAddress("nest.nToken.offerMain", nestMining.address);
+        await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
         await nhbtc.changeMapping(nestGovernance.address);
         await nn.setContracts(nnIncome.address);
 
@@ -281,5 +281,32 @@ contract("NestMining", async accounts => {
 
         earned = await nnIncome.earnedNest(account1);
         console.log("account1 earned nest: " + earned);
+
+        // config
+        console.log(await nestRedeeming.getConfig());
+        await nestRedeeming.setConfig({
+            // 单轨询价费用。0.01ether
+            // 调用价格改为在NestPriceFacade里面确定。需要考虑退回的情况
+            //fee: '10000000000000000',
+    
+            // 激活回购阈值，当ntoken的发行量超过此阈值时，激活回购（单位：10000 ether）。500
+            activeThreshold: 200,
+    
+            // 每区块回购nest数量。1000
+            nestPerBlock: 800,
+    
+            // 单次回购nest数量上限。300000
+            nestLimit: 240000,
+    
+            // 每区块回购ntoken数量。10
+            ntokenPerBlock: 12,
+    
+            // 单次回购ntoken数量上限。3000
+            ntokenLimit: 3600,
+    
+            // 价格偏差上限，超过此上限停止回购（万分制）。500
+            priceDeviationLimit: 200
+        });
+        console.log(await nestRedeeming.getConfig());
     });
 });

@@ -60,6 +60,5 @@ contract PostInOneBlock {
     }
 
     receive() external payable {
-
     }
 }

@@ -47,6 +47,7 @@ contract NTokenController is NestBase, INTokenController {
         
         uint index = _nTokenTags[tokenAddress];
         if (index == 0) {
+
             _nTokenTagList.push(NTokenTag(
                 // address ntokenAddress;
                 ntokenAddress,
@@ -63,6 +64,7 @@ contract NTokenController is NestBase, INTokenController {
             ));
             _nTokenTags[tokenAddress] = _nTokenTags[ntokenAddress] = _nTokenTagList.length;
         } else {
+
             NTokenTag memory tag = _nTokenTagList[index - 1];
             tag.ntokenAddress = ntokenAddress;
             tag.tokenAddress = tokenAddress;
@@ -71,6 +73,7 @@ contract NTokenController is NestBase, INTokenController {
             tag.state = uint8(state);
 
             _nTokenTagList[index - 1] = tag;
+            _nTokenTags[tokenAddress] = _nTokenTags[ntokenAddress] = index;
         }
     }
 
@@ -178,7 +181,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @return ntoken information
     function getNTokenTag(address tokenAddress) override external view returns (NTokenTag memory) 
     {
-        return _nTokenTagList[_nTokenTags[tokenAddress]];
+        return _nTokenTagList[_nTokenTags[tokenAddress] - 1];
     }
 
     /// @dev Get opened ntoken count

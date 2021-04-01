@@ -12,6 +12,7 @@ const NNIncome = artifacts.require("NNIncome");
 const NToken = artifacts.require("NToken");
 const NTokenController = artifacts.require("NTokenController");
 const TestERC20 = artifacts.require("TestERC20");
+const ERC20 = artifacts.require("ERC20");
 const IBNEST = artifacts.require("IBNEST");
 const NNToken = artifacts.require("NNToken");
 const Nest_NToken = artifacts.require("Nest_NToken");
@@ -48,7 +49,7 @@ contract("NestMining", async accounts => {
         // 部署3.6合约
         // const NestGovernance = artifacts.require("NestGovernance");
         let nestGovernance = await NestGovernance.new();
-        let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nestGovernance.address, account1); 
+        //let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nestGovernance.address, account1); 
 
         // const NestLedger = artifacts.require("NestLedger");
         let nestLedger = await NestLedger.new(nest.address);
@@ -194,7 +195,7 @@ contract("NestMining", async accounts => {
         });
 
         // 添加ntoken映射
-        await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
+        //await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
         await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
         // 给投票合约授权
         await nestGovernance.setGovernance(nestVote.address, 1);
@@ -202,22 +203,28 @@ contract("NestMining", async accounts => {
 
         // 修改nHBTC信息
         await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
-        await nhbtc.changeMapping(nestGovernance.address);
+        //await nhbtc.changeMapping(nestGovernance.address);
         await nn.setContracts(nnIncome.address);
 
-        // 添加ntoken映射
         // 初始化usdt余额
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
         await nest.transfer(nestMining.address, ETHER('8000000000'));
 
+        // 开通nhbtc
+        await hbtc.approve(nTokenController.address, 1, { from: account1 });
+        await nest.approve(nTokenController.address, ETHER(10000), { from: account1 });
+        await nTokenController.open(hbtc.address, { from: account1 });
+        let nhbtcAddress = await nTokenController.getNTokenAddress(hbtc.address);
+        let nhbtc = await NToken.at(nhbtcAddress);
+
+        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
         const skipBlocks = async function(blockCount) {
             for (var i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
             }
         };
-
         // 显示余额
         const getBalance = async function(account) {
             let balances = {
@@ -247,73 +254,145 @@ contract("NestMining", async accounts => {
             return balances;
         };
 
-        let balance0 = await showBalance(account0, 'account0');
-        let balance1 = await showBalance(account1, 'account1');
-        assert.equal(0, balance1.balance.hbtc.cmp(HBTC('10000000')));
+        // 1. 获取和设置配置
+        console.log(await nestLedger.getConfig());
+        let receipt = await nestLedger.setConfig({
+            // nest reward scale(10000 based). 2000
+            nestRewardScale: 3000,
 
-        // account0余额
-        assert.equal(0, balance0.balance.hbtc.cmp(HBTC('10000000')));
-        assert.equal(0, balance0.balance.nest.cmp(ETHER('1000000000')));
-        assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
-        assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
-
-        // nestMining余额
-        assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
-        assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(0)));
-        assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
-
-        await nest.approve(nestMining.address, ETHER('1000000000'));
-        await hbtc.approve(nestMining.address, HBTC('10000000'));
-        await nest.approve(nestMining.address, ETHER('1000000000'), { from: account1 });
-        await hbtc.approve(nestMining.address, HBTC('10000000'), { from: account1 });
-
-        // 读取配置
-        let config = await nestPriceFacade.getConfig();
-        console.log(config);
-        // account1发起投票
-        await nest.approve(nestVote.address, ETHER('1000000000'));
-        await nest.approve(nestVote.address, ETHER('1000000000'), { from: account1 });
-
-        // propose(address contractAddress, string memory brief) override external noContract
-        let setQueryPrice = await SetQueryPrice.new(nestGovernance.address, { from: account1 });
-        await nestVote.propose(setQueryPrice.address, '修改配置', { from: account1 });
-
-        // account0投票
-
-        let p = (await nestVote.list(0, 1, 0))[0];
-        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
-        await nestVote.vote(0, ETHER('319999999'), { from: account0 });
-        p = (await nestVote.list(0, 1, 0))[0];
-        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
-        await nestVote.vote(0, ETHER('700000000'), { from: account1 });
-        p = (await nestVote.list(0, 1, 0))[0];
-        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
-        await nestVote.vote(0, ETHER('1'), { from: account1 });
-        p = (await nestVote.list(0, 1, 0))[0];
-        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
-
-        // account1执行投票
-        await nestVote.execute(0);
-
-        // 读取配置
-        config = await nestPriceFacade.getConfig();
-        console.log(config);
-
-        // config
-        console.log('修改配置前');
-        console.log(await nestVote.getConfig());
-
-        await nestVote.setConfig({
-            // Proportion of votes required (10000 based). 5100
-            acceptance: 8100,
-
-            // Voting time cycle (seconds). 5 * 86400
-            voteDuration: 86400,
-
-            // The number of nest votes need to be staked. 100000 nest
-            proposalStaking: '1234567890123'
+            // ntoken reward scale(10000 based). 8000
+            ntokenRewardScale: 7000
         });
-        console.log('修改配置前');
-        console.log(await nestVote.getConfig());
+        console.log(receipt);
+        console.log(await nestLedger.getConfig());
+
+        // 2. setApplication
+        await nestLedger.addReward(nest.address, { value: ETHER(10) });
+        assert.equal(0, ETHER(10).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(10).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+        await nestLedger.carveReward(nest.address, { value: ETHER(10) });
+        assert.equal(0, ETHER(20).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(20).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.setApplication(account0, 1);
+        await nestLedger.pay(nest.address, '0x0000000000000000000000000000000000000000', account1, ETHER(20));
+        assert.equal(0, ETHER(0).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        // carveReward
+        await nestLedger.carveReward(nhbtc.address, { value: ETHER(20) });
+        assert.equal(0, ETHER(20).cmp(await ethBalance(nestLedger.address)));
+        console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+        console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
+        assert.equal(0, ETHER(20 * 3 / 10).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(20 * 7 / 10).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.setConfig({
+            // nest reward scale(10000 based). 2000
+            nestRewardScale: 2000,
+
+            // ntoken reward scale(10000 based). 8000
+            ntokenRewardScale: 8000
+        });
+
+        await nestLedger.carveReward(nhbtc.address, { value: ETHER(40) });
+        assert.equal(0, ETHER(60).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(20 * 3 / 10 + 40 * 2 / 10).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(20 * 7 / 10 + 40 * 8 / 10).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.pay(nest.address, '0x0000000000000000000000000000000000000000', account1, ETHER(20 * 3 / 10 + 40 * 2 / 10));
+        await nestLedger.pay(nhbtc.address, '0x0000000000000000000000000000000000000000', account1, ETHER(20 * 7 / 10 + 40 * 8 / 10));
+        assert.equal(0, ETHER(0).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        // addReward
+        await nestLedger.setConfig({
+            // nest reward scale(10000 based). 2000
+            nestRewardScale: 3000,
+
+            // ntoken reward scale(10000 based). 8000
+            ntokenRewardScale: 7000
+        });
+        await nestLedger.addReward(nhbtc.address, { value: ETHER(20) });
+        assert.equal(0, ETHER(20).cmp(await ethBalance(nestLedger.address)));
+        console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+        console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(20).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.setConfig({
+            // nest reward scale(10000 based). 2000
+            nestRewardScale: 2000,
+
+            // ntoken reward scale(10000 based). 8000
+            ntokenRewardScale: 8000
+        });
+
+        await nestLedger.addReward(nhbtc.address, { value: ETHER(40) });
+        assert.equal(0, ETHER(60).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(60).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.pay(nest.address, '0x0000000000000000000000000000000000000000', account1, ETHER(0));
+        await nestLedger.pay(nhbtc.address, '0x0000000000000000000000000000000000000000', account1, ETHER(60));
+        assert.equal(0, ETHER(0).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        // settle
+        await nestLedger.setConfig({
+            // nest reward scale(10000 based). 2000
+            nestRewardScale: 3000,
+
+            // ntoken reward scale(10000 based). 8000
+            ntokenRewardScale: 7000
+        });
+
+        // 2. setApplication
+        await nestLedger.addReward(nest.address, { value: ETHER(10) });
+        assert.equal(0, ETHER(10).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(10).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+        await nestLedger.carveReward(nest.address, { value: ETHER(10) });
+        assert.equal(0, ETHER(20).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(20).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.setApplication(account0, 1);
+        await nestLedger.settle(nest.address, '0x0000000000000000000000000000000000000000', account1, ETHER(20), { value: ETHER(1)});
+        assert.equal(0, ETHER(1).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(1).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        // carveReward
+        await nestLedger.carveReward(nhbtc.address, { value: ETHER(20) });
+        assert.equal(0, ETHER(21).cmp(await ethBalance(nestLedger.address)));
+        console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+        console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
+        assert.equal(0, ETHER(1 + 20 * 3 / 10).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(20 * 7 / 10).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.setConfig({
+            // nest reward scale(10000 based). 2000
+            nestRewardScale: 2000,
+
+            // ntoken reward scale(10000 based). 8000
+            ntokenRewardScale: 8000
+        });
+
+        await nestLedger.carveReward(nhbtc.address, { value: ETHER(40) });
+        assert.equal(0, ETHER(61).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(1 + 20 * 3 / 10 + 40 * 2 / 10).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(20 * 7 / 10 + 40 * 8 / 10).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
+
+        await nestLedger.settle(nest.address, '0x0000000000000000000000000000000000000000', account1, ETHER(20 * 3 / 10 + 40 * 2 / 10), { value: ETHER(2) });
+        await nestLedger.settle(nhbtc.address, '0x0000000000000000000000000000000000000000', account1, ETHER(20 * 7 / 10 + 40 * 8 / 10), { value: ETHER(3) });
+        assert.equal(0, ETHER(6).cmp(await ethBalance(nestLedger.address)));
+        assert.equal(0, ETHER(3).cmp(new BN(await nestLedger.totalRewards(nest.address))));
+        assert.equal(0, ETHER(3).cmp(new BN(await nestLedger.totalRewards(nhbtc.address))));
     });
 });

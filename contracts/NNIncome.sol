@@ -103,11 +103,11 @@ contract NNIncome is NestBase {
         uint subAmount = _generatedNest - _infoMapping[address(tx.origin)];
         uint thisAmount = subAmount * balance / NEST_NODE_TOTALSUPPLY;
 
-        require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(tx.origin), thisAmount), "NNIncome:!transfer");
         _infoMapping[address(tx.origin)] = _generatedNest;
-        
         // Update latest block number of operationed
         _latestBlock = block.number;
+
+        require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(tx.origin), thisAmount), "NNIncome:!transfer");
     }
 
     //---------view----------------
