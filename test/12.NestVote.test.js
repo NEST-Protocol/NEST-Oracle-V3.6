@@ -295,6 +295,9 @@ contract("NestMining", async accounts => {
         // account1执行投票
         await nestVote.execute(0);
 
+        await nestVote.withdraw(0);
+        await nestVote.withdraw(0, { from: account1 });
+
         // 读取配置
         config = await nestPriceFacade.getConfig();
         console.log(config);
@@ -313,7 +316,118 @@ contract("NestMining", async accounts => {
             // The number of nest votes need to be staked. 100000 nest
             proposalStaking: '1234567890123'
         });
-        console.log('修改配置前');
+        console.log('修改配置后');
         console.log(await nestVote.getConfig());
+
+        // view
+        console.log('getProposeCount() = ' + await nestVote.getProposeCount());
+        let list = await nestVote.list(0, 2, 0);
+        for (var i in list) {
+            console.log(list[i]);
+        }
+
+        // vote2
+        let setQueryPrice2 = await SetQueryPrice.new(nestGovernance.address, { from: account0 });
+        await nestVote.propose(setQueryPrice2.address, '还原配置', { from: account0 });
+        
+        await nest.approve(nestVote.address, ETHER('1000000000'));
+        await nest.approve(nestVote.address, ETHER('1000000000'), { from: account1 });
+        
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(1, ETHER('319999999'), { from: account0 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(1, ETHER('700000000'), { from: account1 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(1, ETHER('1'), { from: account1 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(1, ETHER('610000000'), { from: account0 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+
+        await nestVote.execute(1);
+
+        await nestVote.withdraw(1);
+        await nestVote.withdraw(1, { from: account1 });
+
+        // vote3
+        await nestVote.setConfig({
+            // Proportion of votes required (10000 based). 5100
+            acceptance: 8100,
+
+            // Voting time cycle (seconds). 5 * 86400
+            voteDuration: 2,
+
+            // The number of nest votes need to be staked. 100000 nest
+            proposalStaking: '100000000000000000000000'
+        });
+
+        let setQueryPrice3 = await SetQueryPrice.new(nestGovernance.address, { from: account0 });
+        await nestVote.propose(setQueryPrice3.address, '取消投票', { from: account0 });
+        
+        await nest.approve(nestVote.address, ETHER('1000000000'));
+        await nest.approve(nestVote.address, ETHER('1000000000'), { from: account1 });
+        
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(2, ETHER('319999999'), { from: account0 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(2, ETHER('700000000'), { from: account1 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(2, ETHER('1'), { from: account1 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(2, ETHER('610000000'), { from: account0 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+
+        await skipBlocks(30);
+        await nestVote.cancel(2);
+
+        await nestVote.withdraw(2);
+        await nestVote.withdraw(2, { from: account1 });
+
+        // vote4
+        let setQueryPrice4 = await SetQueryPrice.new(nestGovernance.address, { from: account0 });
+        await nestVote.propose(setQueryPrice3.address, '撤销投票', { from: account0 });
+        
+        await nest.approve(nestVote.address, ETHER('1000000000'));
+        await nest.approve(nestVote.address, ETHER('1000000000'), { from: account1 });
+        
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(3, ETHER('319999999'), { from: account0 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(3, ETHER('700000000'), { from: account1 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(3, ETHER('1'), { from: account1 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.vote(3, ETHER('610000000'), { from: account0 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+
+        console.log('取消。。。');
+        await nestVote.withdraw(3);
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+        await nestVote.withdraw(3, { from: account1 });
+        p = (await nestVote.list(0, 1, 0))[0];
+        console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
+
+        await skipBlocks(30);
+        await nestVote.cancel(3);
+
+        let plist = await nestVote.list(0, 5, 0);
+        for (var i in plist) {
+            console.log(plist[i]);
+        }
     });
 });
