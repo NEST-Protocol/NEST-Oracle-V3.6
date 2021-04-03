@@ -359,7 +359,7 @@ contract("NestMining", async accounts => {
             acceptance: 8100,
 
             // Voting time cycle (seconds). 5 * 86400
-            voteDuration: 2,
+            voteDuration: 5,
 
             // The number of nest votes need to be staked. 100000 nest
             proposalStaking: '100000000000000000000000'

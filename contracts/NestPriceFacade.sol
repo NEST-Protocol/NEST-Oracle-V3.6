@@ -6,6 +6,7 @@ import "./interface/INestPriceFacade.sol";
 import "./interface/INestQuery.sol";
 import "./interface/INestLedger.sol";
 import "./interface/INestGovernance.sol";
+import "./interface/INTokenController.sol";
 import "./NestBase.sol";
 
 /// @dev Price call entry
@@ -17,6 +18,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
     Config _config;
     address _nestLedgerAddress;
     address _nestQueryAddress;
+    address _nTokenControllerAddress;
 
     /// @dev Unit of post fee. 0.0001 ether
     uint constant DIMI_ETHER = 0.0001 ether; // 1 ether / 10000;
@@ -26,6 +28,9 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
 
     /// @dev The inestquery address mapped by this address is preferred for price query, which can be used to separate nest price query and token price query. (tokenAddress=>INestQuery)
     mapping(address=>address) _nestQueryMapping;
+
+    /// @dev Mapping from token address to ntoken address. tokenAddress=>ntokenAddress
+    mapping(address=>address) _addressCache;
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
@@ -53,7 +58,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
             //address nnIncomeAddress
             , 
             //address nTokenControllerAddress
-              
+            _nTokenControllerAddress
+
         ) = INestGovernance(nestGovernanceAddress).getBuiltinAddress();
     }
 
@@ -106,6 +112,35 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         return addr;
     }
 
+    /// @dev Set the ntokenAddress from tokenAddress
+    /// @param tokenAddress Destination token address
+    /// @param ntokenAddress The ntoken address
+    function setNTokenAddress(address tokenAddress, address ntokenAddress) external onlyGovernance {
+        _addressCache[tokenAddress] = ntokenAddress;
+    }
+
+    /// @dev Get the ntokenAddress from tokenAddress
+    /// @param tokenAddress Destination token address
+    /// @return The ntoken address
+    function getNTokenAddress(address tokenAddress) external view returns (address) {
+        return _addressCache[tokenAddress];
+    }
+
+    // Get ntoken address of from token address
+    function _getNTokenAddress(address tokenAddress) private returns (address) {
+        
+        address ntokenAddress = _addressCache[tokenAddress];
+        if (ntokenAddress == address(0)) {
+            if (
+                (ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress)) 
+                    != address(0)
+            ) {
+                _addressCache[tokenAddress] = ntokenAddress;
+            }
+        }
+        return ntokenAddress;
+    }
+
     // Payment of transfer fee
     function _pay(address tokenAddress, uint fee, address paybackAddress) private {
 
@@ -115,7 +150,9 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         } else {
             require(msg.value == fee, "NestPriceFacade:!fee");
         }
-        INestLedger(_nestLedgerAddress).addReward { value: fee } (tokenAddress);
+        INestLedger(_nestLedgerAddress).addReward { 
+            value: fee 
+        } (_getNTokenAddress(tokenAddress));
     }
 
     /// @dev Get the latest trigger price

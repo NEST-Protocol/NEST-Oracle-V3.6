@@ -66,7 +66,7 @@ interface INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function triggeredPrice2(address tokenAddress) external returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
+    function triggeredPrice2(address tokenAddress) external view returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
 
     /// @dev Get the full information of latest trigger price. (token and ntoken)
     /// @param tokenAddress Destination token address
@@ -80,7 +80,7 @@ interface INestQuery {
     /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
     //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
     //          it means that the volatility has exceeded the range that can be expressed
-    function triggeredPriceInfo2(address tokenAddress) external returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ);
+    function triggeredPriceInfo2(address tokenAddress) external view returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ);
 
     /// @dev Get the latest effective price. (token and ntoken)
     /// @param tokenAddress Destination token address
@@ -88,5 +88,5 @@ interface INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function latestPrice2(address tokenAddress) external returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
+    function latestPrice2(address tokenAddress) external view returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
 }

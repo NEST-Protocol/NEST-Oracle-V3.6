@@ -911,6 +911,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint index = uint(p0.index);
         // The latest block number for which the price has been calculated
         uint prev = uint(p0.height);
+        // TODO: 考虑是否需要加载p0里面的价格信息
         // Eth count variable used to calculate price
         uint totalEthNum = 0; 
         // Token count variable for price calculation
@@ -937,13 +938,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
                     // Calculate average price and Volatility
                     // Calculation method of volatility of follow-up price
-                    if (prev > 0) {
+                    if (uint(p0.priceFloat) > 0) {
                         // Calculate average price
                         // avgPrice[i + 1] = avgPrice[i] * 95% + price[i] * 5%
                         p0.avgFloat = encodeFloat((decodeFloat(p0.avgFloat) * 19 + price) / 20);
 
                         // It is inevitable that height greatter than p0.height
-                        //if (height > uint(p0.height)) 
+                        //if (prev > uint(p0.height)) 
                         {
                             // 当token的精度极高或者token相对于eth价值极低时，price可能非常大，可能存在溢出问题，暂不考虑
                             uint tmp = (price << 48) / decodeFloat(p0.priceFloat);
@@ -958,7 +959,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                             // sigmaSQ[i + 1] = sigmaSQ[i] * 95% + (earn ^ 2 / seconds) * 5%
                             tmp = (
                                 uint(p0.sigmaSQ) * 19 + 
-                                ((tmp * tmp / ETHEREUM_BLOCK_TIMESPAN / (height - uint(p0.height))) >> 48)
+                                ((tmp * tmp / ETHEREUM_BLOCK_TIMESPAN / (prev - uint(p0.height))) >> 48)
                             ) / 20;
 
                             // The current implementation assumes that the volatility cannot exceed 1, and 
@@ -984,9 +985,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     // Update price
                     p0.remainNum = uint32(totalEthNum);
                     p0.priceFloat = encodeFloat(price);
-
-                    // Move to new block number
-                    prev = height;
                 }
 
                 // Clear cumulative values
@@ -997,14 +995,17 @@ contract NestMining is NestBase, INestMining, INestQuery {
             if (flag) {
                 break;
             }
+
+            // Cumulative price information
             totalEthNum += uint(sheet.remainNum);
             totalTokenValue += decodeFloat(sheet.priceFloat) * uint(sheet.remainNum);
+            // Move to new block number
+            prev = height;
         }
 
         // Update price infomation
         if (index > uint(p0.index)) {
             p0.index = uint32(index);
-            p0.height = uint32(prev);
             channel.price = p0;
         }
     }
@@ -1631,14 +1632,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function triggeredPrice2(address tokenAddress) override external returns (
+    function triggeredPrice2(address tokenAddress) override external view returns (
         uint blockNumber,
         uint price, 
         uint ntokenBlockNumber,
         uint ntokenPrice
     ) {
         (blockNumber, price) = triggeredPrice(tokenAddress);
-        (ntokenBlockNumber, ntokenPrice) = triggeredPrice(_getNTokenAddress(tokenAddress));
+        (ntokenBlockNumber, ntokenPrice) = triggeredPrice(_addressCache[tokenAddress]);
     }
 
     /// @dev Get the full information of latest trigger price. (token and ntoken)
@@ -1653,7 +1654,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
     //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447,
     //          it means that the volatility has exceeded the range that can be expressed
-    function triggeredPriceInfo2(address tokenAddress) override external returns (
+    function triggeredPriceInfo2(address tokenAddress) override external view returns (
         uint blockNumber,
         uint price,
         uint avgPrice,
@@ -1669,7 +1670,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             ntokenPrice,
             ntokenAvgPrice,
             ntokenSigmaSQ
-        ) = triggeredPriceInfo(_getNTokenAddress(tokenAddress));
+        ) = triggeredPriceInfo(_addressCache[tokenAddress]);
     }
 
     /// @dev Get the latest effective price. (token and ntoken)
@@ -1678,14 +1679,14 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function latestPrice2(address tokenAddress) override external returns (
+    function latestPrice2(address tokenAddress) override external view returns (
         uint blockNumber,
         uint price,
         uint ntokenBlockNumber,
         uint ntokenPrice
     ) {
         (blockNumber, price) = latestPrice(tokenAddress);
-        (ntokenBlockNumber, ntokenPrice) = latestPrice(_getNTokenAddress(tokenAddress));
+        (ntokenBlockNumber, ntokenPrice) = latestPrice(_addressCache[tokenAddress]);
     }
 
     /* ========== Tools and methods ========== */

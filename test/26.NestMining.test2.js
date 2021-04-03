@@ -206,15 +206,13 @@ contract("NestMining", async accounts => {
         await nn.setContracts(nnIncome.address);
 
         // 初始化usdt余额
-        await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
-        await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
         await usdt.transfer(account0, USDT('10000000'), { from: account1 });
         await usdt.transfer(account1, USDT('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
-        await nest.transfer(nestMining.address, ETHER('6000000000'));
-        await nest.transfer(nnIncome.address, ETHER('2000000000'));
-        await nn.transfer(account1, 300);// 30
+        await nest.transfer(nestMining.address, ETHER('8000000000'));
 
+        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
+        
         const skipBlocks = async function(blockCount) {
             for (var i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
@@ -226,14 +224,12 @@ contract("NestMining", async accounts => {
             let balances = {
                 balance: {
                     eth: await ethBalance(account),
-                    hbtc: await hbtc.balanceOf(account),
-                    nhbtc: await nhbtc.balanceOf(account),
+                    usdt: await usdt.balanceOf(account),
                     nest: await nest.balanceOf(account)
                 },
                 pool: {
                     eth: ETHER(0),
-                    hbtc: await nestMining.balanceOf(hbtc.address, account),
-                    nhbtc: await nestMining.balanceOf(nhbtc.address, account),
+                    usdt: await nestMining.balanceOf(usdt.address, account),
                     nest: await nestMining.balanceOf(nest.address, account)
                 }
             };
@@ -244,109 +240,143 @@ contract("NestMining", async accounts => {
             console.log(msg);
             let balances = await getBalance(account);
 
-            LOG('balance: {eth}eth, {nest}nest, {hbtc}hbtc, {nhbtc}nhbtc', balances.balance);
-            LOG('pool: {eth}eth, {nest}nest, {hbtc}hbtc, {nhbtc}nhbtc', balances.pool);
+            LOG('balance: {eth}eth, {nest}nest, {usdt}usdt', balances.balance);
+            LOG('pool: {eth}eth, {nest}nest, {usdt}usdt', balances.pool);
 
             return balances;
         };
 
-        if (false) {
-            // 发起报价
-            await usdt.approve(nestMining.address, USDT('10000000'));
-            await nest.approve(nestMining.address, ETHER('1000000000'));
-            await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.1)});
-            //await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.099) });
-            await skipBlocks(20);
-            await nestMining.close(usdt.address, 0);
-            await nestMining.close(nest.address, 0);
+        if (true) {
+            console.log('配置');
 
-            //console.log('miningNest: ' + await nnIncome.miningNest());
-            let earned = await nnIncome.earnedNest(account0);
-            console.log("account1 earned nest: " + earned);
+            console.log(await nestMining.getConfig());
+            await nestMining.setConfig({
+                // Eth number of each post. 30
+                // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
+                postEthUnit: 10,
 
-            earned = await nnIncome.earnedNest(account1);
-            console.log("account1 earned nest: " + earned);
+                // Post fee(0.0001eth，DIMI_ETHER). 1000
+                postFeeUnit: 1000,
+
+                // Proportion of miners digging(10000 based). 8000
+                minerNestReward: 8000,
+                
+                // The proportion of token dug by miners is only valid for the token created in version 3.0
+                // (10000 based). 9500
+                minerNTokenReward: 9500,
+
+                // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
+                doublePostThreshold: 500,
+                
+                // The limit of ntoken mined blocks. 100
+                ntokenMinedBlockLimit: 100,
+
+                // -- Public configuration
+                // The number of times the sheet assets have doubled. 4
+                maxBiteNestedLevel: 4,
+                
+                // Price effective block interval. 20
+                priceEffectSpan: 20,
+
+                // The amount of nest to pledge for each post（Unit: 1000). 100
+                pledgeNest: 100
+            });
+            console.log(await nestMining.getConfig());
         }
 
         if (true) {
-            console.log('nn of account0: ' + await nn.balanceOf(account0));
-            console.log('nn of account1: ' + await nn.balanceOf(account1));
+            console.log('恢复配置');
 
-            console.log('earned of account0: ' + await nnIncome.earnedNest(account0));
-            console.log('earned of account1: ' + await nnIncome.earnedNest(account1));
+            console.log(await nestMining.getConfig());
+            await nestMining.setConfig({
+                // Eth number of each post. 30
+                // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
+                postEthUnit: 30,
 
-            console.log('getLatestBlock(): ' + await nnIncome.getLatestBlock());
-            console.log('blockNumber: ' + await web3.eth.getBlockNumber());
+                // Post fee(0.0001eth，DIMI_ETHER). 1000
+                postFeeUnit: 1000,
 
-            console.log('nest of account0: ' + await nest.balanceOf(account0));
-            console.log('nest of account1: ' + await nest.balanceOf(account1));
+                // Proportion of miners digging(10000 based). 8000
+                minerNestReward: 8000,
+                
+                // The proportion of token dug by miners is only valid for the token created in version 3.0
+                // (10000 based). 9500
+                minerNTokenReward: 9500,
 
-            await nnIncome.claimNest({ from: account0 });
-            await nnIncome.claimNest({ from: account1 });
-        
-            console.log('nest of account0: ' + await nest.balanceOf(account0));
-            console.log('nest of account1: ' + await nest.balanceOf(account1));
+                // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
+                doublePostThreshold: 500,
+                
+                // The limit of ntoken mined blocks. 100
+                ntokenMinedBlockLimit: 100,
 
-            await skipBlocks(100);
+                // -- Public configuration
+                // The number of times the sheet assets have doubled. 4
+                maxBiteNestedLevel: 4,
+                
+                // Price effective block interval. 20
+                priceEffectSpan: 20,
 
-            await nnIncome.claimNest({ from: account1 });
-            await nnIncome.claimNest({ from: account0 });
-        
-            console.log('nest of account0: ' + await nest.balanceOf(account0));
-            console.log('nest of account1: ' + await nest.balanceOf(account1));
-
-            assert.equal(0, ETHER(1000001848 + 103 * 60 * 1200/1500).cmp(await nest.balanceOf(account0)));
-            assert.equal(0, ETHER(1000000024 + 101 * 60 * 300/1500).cmp(await nest.balanceOf(account1)));
+                // The amount of nest to pledge for each post（Unit: 1000). 100
+                pledgeNest: 100
+            });
+            console.log(await nestMining.getConfig());
         }
 
-        if (false) {
-            
-            for (var bn = new BN(800000); bn.cmp(new BN(24000000 * 1.5)) < 0; bn = bn.add(new BN(800000))) {
-
-                let r = await nnIncome._redution(bn); 
-                console.log(bn.toString() + ": " + r.toString());
-
-                let b = new BN(400);
-                //let z = new BN(1);
-                let m = new BN(1);
-                let n = bn.div(new BN(2400000));
-                if (n.cmp(new BN(10)) < 0) {
-                    for (var i = new BN(0); i.cmp(n) < 0; i = i.add(new BN(1))) {
-                        //b = b.mul(new BN(80)).div(new BN(100));
-                        b = b.mul(new BN(80));
-                        m = m.mul(new BN(100));
+        if (true) {
+            console.log('closeList()');
+            await nest.setTotalSupply(ETHER(5000000 - 1));
+            await usdt.approve(nestMining.address, USDT(10000000));
+            await nest.approve(nestMining.address, ETHER(10000000));
+            await nestMining.post(usdt.address, 30, USDT(1600), { value: ETHER(30.7) });
+            for (var i = 0; i < 30; ++i) {
+                await nestMining.close(usdt.address, 0);
+                let mi = await nestMining.getMinedBlocks(usdt.address, 0);
+                console.log({
+                    index: i,
+                    usdt: (await nestMining.balanceOf(usdt.address, account0)).toString(),
+                    nest: (await nestMining.balanceOf(nest.address, account0)).toString(),
+                    mined: {
+                        minedBlocks: mi.minedBlocks.toString(),
+                        totalShares: mi.totalShares.toString()
                     }
-                    b = b.div(m);
-                    LOG('r: {r}, b: {b}', {r,b});
-                    assert.equal(0, r.cmp(b));
+                });
+            
+                if (i < 20) {
+                    assert.equal(0, new BN(await nestMining.balanceOf(usdt.address, account0)).cmp(USDT(0)));
+                    assert.equal(0, new BN(await nestMining.balanceOf(nest.address, account0)).cmp(ETHER(0)));
                 } else {
-                    assert.equal(0, r.cmp(new BN(40)));
+                    assert.equal(0, new BN(await nestMining.balanceOf(usdt.address, account0)).cmp(USDT(1600 * 30)));
+                    assert.equal(0, new BN(await nestMining.balanceOf(nest.address, account0)).cmp(ETHER(100000 + 400 * 10 * 80 / 100)));
                 }
             }
         }
 
-        if (false) {
-
-            for (var bn = new BN(800000); bn.cmp(new BN(24000000 * 1.5)) < 0; bn = bn.add(new BN(800000))) {
-
-                let r = await nestMining._redution(bn); 
-                console.log(bn.toString() + ": " + r.toString());
-
-                let b = new BN(400);
-                //let z = new BN(1);
-                let m = new BN(1);
-                let n = bn.div(new BN(2400000));
-                if (n.cmp(new BN(10)) < 0) {
-                    for (var i = new BN(0); i.cmp(n) < 0; i = i.add(new BN(1))) {
-                        //b = b.mul(new BN(80)).div(new BN(100));
-                        b = b.mul(new BN(80));
-                        m = m.mul(new BN(100));
+        if (true) {
+            console.log('closeList2()');
+            await nest.setTotalSupply(ETHER('1000000000'));
+            await usdt.approve(nestMining.address, USDT(10000000));
+            await nest.approve(nestMining.address, ETHER(10000000));
+            await nestMining.post2(usdt.address, 30, USDT(1570), ETHER(51200), { value: ETHER(60.3) });
+            for (var i = 0; i < 30; ++i) {
+                await nestMining.closeList2(usdt.address, [1], [0]);
+                let mi = await nestMining.getMinedBlocks(usdt.address, 1);
+                console.log({
+                    index: i,
+                    usdt: (await nestMining.balanceOf(usdt.address, account0)).toString(),
+                    nest: (await nestMining.balanceOf(nest.address, account0)).toString(),
+                    estimate: (await nestMining.estimate(usdt.address)).toString(),
+                    mined: {
+                        minedBlocks: mi.minedBlocks.toString(),
+                        totalShares: mi.totalShares.toString()
                     }
-                    b = b.div(m);
-                    LOG('r: {r}, b: {b}', {r,b});
-                    assert.equal(0, r.cmp(b));
+                });
+
+                if (i < 20) {
+                    assert.equal(0, new BN(await nestMining.balanceOf(usdt.address, account0)).cmp(USDT(1600 * 30 - 1570 * 30)));
+                    assert.equal(0, new BN(await nestMining.balanceOf(nest.address, account0)).cmp(ETHER(0)));
                 } else {
-                    assert.equal(0, r.cmp(new BN(40)));
+                    assert.equal(0, new BN(await nestMining.balanceOf(usdt.address, account0)).cmp(USDT(1600 * 30)));
+                    assert.equal(0, new BN(await nestMining.balanceOf(nest.address, account0)).cmp(ETHER(200000 + 51200 * 30 + 400 * 34 * 80 / 100)));
                 }
             }
         }

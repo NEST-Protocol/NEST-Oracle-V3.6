@@ -87,6 +87,10 @@ contract NNIncome is NestBase {
         _latestBlock = block.number;
     }
 
+    function getLatestBlock() public view returns (uint) {
+        return _latestBlock;
+    }
+
     /// @dev Draw nest
     function claimNest() public noContract {
         

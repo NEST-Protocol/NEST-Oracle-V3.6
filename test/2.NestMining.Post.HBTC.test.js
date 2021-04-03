@@ -273,6 +273,7 @@ contract("NestMining", async accounts => {
             // 1. 发起报价
             console.log('1. 发起报价');
             let receipt = await nestMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.1) });
+
             console.log(receipt);
             balance0 = await showBalance(account0, '发起一次报价后');
             
