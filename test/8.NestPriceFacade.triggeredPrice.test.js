@@ -1,4 +1,3 @@
-
 const BN = require("bn.js");
 const $hcj = require("./hcore.js");
 
