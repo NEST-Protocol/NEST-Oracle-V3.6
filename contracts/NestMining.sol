@@ -237,10 +237,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         
         address ntokenAddress = _addressCache[tokenAddress];
         if (ntokenAddress == address(0)) {
-            if (
-                (ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress)) 
-                    != address(0)
-            ) {
+            ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
+            if (ntokenAddress != address(0)) {
                 _addressCache[tokenAddress] = ntokenAddress;
             }
         }
@@ -990,6 +988,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
                 // Clear cumulative values
                 totalEthNum = 0;
                 totalTokenValue = 0;
+                // Move to new block number
+                prev = height;
             }
 
             if (flag) {
@@ -999,8 +999,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // Cumulative price information
             totalEthNum += uint(sheet.remainNum);
             totalTokenValue += decodeFloat(sheet.priceFloat) * uint(sheet.remainNum);
-            // Move to new block number
-            prev = height;
         }
 
         // Update price infomation
@@ -1032,20 +1030,20 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint feeInfo = channel.feeInfo;
         uint oldFee = feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
-        // currentFee is 0, increase no fee counter
-        if (currentFee == 0) {
-            // channel.feeInfo = feeInfo + (1 << 128);
-            channel.feeInfo = feeInfo + 0x100000000000000000000000000000000;
-        }
         // length == 255 means is time to save reward
         // currentFee != oldFee means the fee is changed, need to settle
-        else if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || currentFee != oldFee) {
+        if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || (currentFee > 0 && currentFee != oldFee)) {
             // Save reward
             INestLedger(_nestLedgerAddress).carveReward { 
                 value: currentFee + oldFee * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
             } (ntokenAddress);
             // Update fee information
             channel.feeInfo = currentFee | (((length + 1) & COLLECT_REWARD_MASK) << 128);
+        }
+        // currentFee is 0, increase no fee counter
+        else if (currentFee == 0) {
+            // channel.feeInfo = feeInfo + (1 << 128);
+            channel.feeInfo = feeInfo + 0x100000000000000000000000000000000;
         }
 
         // Calculate share count
@@ -1072,10 +1070,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
             // Manual settlement does not need to update Commission variables
             channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (length << 128);
         }
-    }
-
-    function getFeeUnit(address tokenAddress) external view returns (uint) {
-        return _channels[tokenAddress].feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
     }
 
     // Convert PriceSheet to PriceSheetView

@@ -131,10 +131,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade {
         
         address ntokenAddress = _addressCache[tokenAddress];
         if (ntokenAddress == address(0)) {
-            if (
-                (ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress)) 
-                    != address(0)
-            ) {
+            ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
+            if (ntokenAddress != address(0)) {
                 _addressCache[tokenAddress] = ntokenAddress;
             }
         }

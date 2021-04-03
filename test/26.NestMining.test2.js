@@ -324,6 +324,11 @@ contract("NestMining", async accounts => {
 
         if (true) {
             console.log('closeList()');
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
             await nest.setTotalSupply(ETHER(5000000 - 1));
             await usdt.approve(nestMining.address, USDT(10000000));
             await nest.approve(nestMining.address, ETHER(10000000));
@@ -340,7 +345,11 @@ contract("NestMining", async accounts => {
                         totalShares: mi.totalShares.toString()
                     }
                 });
-            
+                console.log({
+                    account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                    account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                    accountCount: (await nestMining.getAccountCount()).toString()
+                });
                 if (i < 20) {
                     assert.equal(0, new BN(await nestMining.balanceOf(usdt.address, account0)).cmp(USDT(0)));
                     assert.equal(0, new BN(await nestMining.balanceOf(nest.address, account0)).cmp(ETHER(0)));
@@ -370,7 +379,11 @@ contract("NestMining", async accounts => {
                         totalShares: mi.totalShares.toString()
                     }
                 });
-
+                console.log({
+                    account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                    account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                    accountCount: (await nestMining.getAccountCount()).toString()
+                });
                 if (i < 20) {
                     assert.equal(0, new BN(await nestMining.balanceOf(usdt.address, account0)).cmp(USDT(1600 * 30 - 1570 * 30)));
                     assert.equal(0, new BN(await nestMining.balanceOf(nest.address, account0)).cmp(ETHER(0)));
@@ -379,6 +392,78 @@ contract("NestMining", async accounts => {
                     assert.equal(0, new BN(await nestMining.balanceOf(nest.address, account0)).cmp(ETHER(200000 + 51200 * 30 + 400 * 34 * 80 / 100)));
                 }
             }
+        }
+
+        if (true) {
+            console.log('list');
+
+            console.log('list1');
+            let list = await nestMining.list(usdt.address, 0, 3, 0);
+            for (var i in list) {
+                console.log(list[i]);
+            }
+
+            console.log('list2');
+            list = await nestMining.list(usdt.address, 0, 3, 1);
+            for (var i in list) {
+                console.log(list[i]);
+            }
+
+            console.log('list3');
+            list = await nestMining.list(nest.address, 0, 3, 0);
+            for (var i in list) {
+                console.log(list[i]);
+            }
+
+            console.log('list4');
+            list = await nestMining.list(nest.address, 0, 3, 1);
+            for (var i in list) {
+                console.log(list[i]);
+            }
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
+        }
+
+        if (false) {
+            console.log('getAccountIndex');
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
+            await nestMining._addressIndex(account1);
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
+            await nestMining._addressIndex(accounts[2]);
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
+            await nestMining._addressIndex(accounts[3]);
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
+            await nestMining._addressIndex(accounts[4]);
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
+            await nestMining._addressIndex(accounts[5]);
+            console.log({
+                account0Index: (await nestMining.getAccountIndex(account0)).toString(),
+                account1Index: (await nestMining.getAccountIndex(account1)).toString(),
+                accountCount: (await nestMining.getAccountCount()).toString()
+            });
         }
     });
 });
