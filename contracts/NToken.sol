@@ -48,23 +48,6 @@ contract NToken is NestBase, INToken {
         _ntokenMiningAddress = INestGovernance(nestGovernanceAddress).getNTokenMiningAddress();
     }
 
-    // /// @dev Mint 
-    // /// @param amount The amount of NToken to add
-    // /// @param account The account of NToken to add
-    // function mint(uint256 amount, address account) override public {
-
-    //     require(address(msg.sender) == _ntokenMiningAddress, "NToken:!Auth");
-        
-    //     // 目标地址增加余额
-    //     _balances[account] += amount;
-
-    //     // 增加发行量
-    //     // _totalSupply和lastestMintAtHeight共用一个存储
-    //     //_totalSupply = _totalSupply.add(amount);
-    //     //lastestMintAtHeight = block.number;
-    //     _state = (((_state >> 128) + amount) << 128) | block.number;
-    // }
-
     /// @dev Mint 
     /// @param value The amount of NToken to add
     function increaseTotal(uint256 value) override public {
