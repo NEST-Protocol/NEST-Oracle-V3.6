@@ -151,7 +151,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /// @dev The mask of batch settlement dividend. During the test, it is settled once every 16 sheets and 
     ///      once every 256 sheets of the online version
-    uint constant COLLECT_REWARD_MASK = 0xF;
+    uint constant COLLECT_REWARD_MASK = 0xFF;
     
     /// @dev Ethereum average block time interval, 14 seconds
     uint constant ETHEREUM_BLOCK_TIMESPAN = 14;
@@ -922,6 +922,11 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet;
         for (; ; ++index) {
 
+            // gas攻击分析，每笔报价，按照post计算，至少需要写入一个报价单，冻结两种资产，这需要消耗至少3万的gas
+            // 加上交易的基本费用，至少需要5万的gas，因此此外还有其他的读取，写入操作，每笔报价消耗的gas不可能少于7万的gas
+            // 攻击者最多可以累加20区块的待生成报价单，因此此计算要保证能够在一个区块内完成，需要保证计算每一个价格的消耗
+            // 不超过70000/20=3500的gas，根据当前逻辑，每计算一个价格需要读取一个存储单元（800）加上计算消耗，不可能
+            // 达到3500的危险值，因此不考虑gas攻击的情况
             // Traverse the sheets that has reached the effective interval from the current position
             bool flag = index >= length || (height = uint((sheet = sheets[index]).height)) >= effectBlock;
 
@@ -936,7 +941,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
                     // Calculate average price and Volatility
                     // Calculation method of volatility of follow-up price
-                    if (uint(p0.priceFloat) > 0) {
+                    uint tmp = decodeFloat(p0.priceFloat);
+                    if (tmp > 0) {
                         // Calculate average price
                         // avgPrice[i + 1] = avgPrice[i] * 95% + price[i] * 5%
                         p0.avgFloat = encodeFloat((decodeFloat(p0.avgFloat) * 19 + price) / 20);
@@ -945,7 +951,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
                         //if (prev > uint(p0.height)) 
                         {
                             // 当token的精度极高或者token相对于eth价值极低时，price可能非常大，可能存在溢出问题，暂不考虑
-                            uint tmp = (price << 48) / decodeFloat(p0.priceFloat);
+                            tmp = (price << 48) / tmp;
                             if (tmp > 0x1000000000000) {
                                 tmp = tmp - 0x1000000000000;
                             } else {
@@ -1071,6 +1077,18 @@ contract NestMining is NestBase, INestMining, INestQuery {
             channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (length << 128);
         }
     }
+
+    // function getSettleInfo(address tokenAddress) public view returns (uint length, uint fl) {
+
+    //     address ntokenAddress = _addressCache[tokenAddress];
+    //     // ntoken is no reward
+    //     if (tokenAddress != ntokenAddress) {
+
+    //         PriceChannel storage channel = _channels[tokenAddress];
+    //         length = channel.sheets.length & COLLECT_REWARD_MASK;
+    //         fl = channel.feeInfo >> 128;
+    //     }
+    // }
 
     // Convert PriceSheet to PriceSheetView
     function _toPriceSheetView(PriceSheet memory sheet, uint index) private view returns (PriceSheetView memory) {
@@ -1213,7 +1231,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint ntokenBalance = INToken(tokenAddress).balanceOf(address(this));
         if (ntokenBalance < value) {
             // mining
-            // TODO: 此逻辑放在此处，会导致升级切换挖矿合约时，老合约里面的ntoken无法取出
             INToken(tokenAddress).increaseTotal(value - ntokenBalance);
         }
 

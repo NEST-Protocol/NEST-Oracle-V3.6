@@ -386,7 +386,7 @@ contract("NestMining", async accounts => {
         p = (await nestVote.list(0, 1, 0))[0];
         console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
 
-        await skipBlocks(30);
+        await skipBlocks(200);
         await nestVote.cancel(2);
 
         await nestVote.withdraw(2);
@@ -422,7 +422,7 @@ contract("NestMining", async accounts => {
         p = (await nestVote.list(0, 1, 0))[0];
         console.log('得票率：' + (100.0 * p.gainValue / p.nestCirculation) + '%');
 
-        await skipBlocks(30);
+        await skipBlocks(200);
         await nestVote.cancel(3);
 
         let plist = await nestVote.list(0, 5, 0);
