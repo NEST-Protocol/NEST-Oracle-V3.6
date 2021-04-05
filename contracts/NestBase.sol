@@ -30,7 +30,7 @@ contract NestBase {
     }
 
     /// @dev Migrate funds from current contract to NestLedger
-    /// @param tokenAddress Destination token address.（0 means eth）
+    /// @param tokenAddress Destination token address.(0 means eth)
     /// @param value Migrate amount
     function migrate(address tokenAddress, uint value) external onlyGovernance {
 
