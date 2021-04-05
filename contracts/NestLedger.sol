@@ -91,6 +91,7 @@ contract NestLedger is NestBase, INestLedger {
     function pay(address ntokenAddress, address tokenAddress, address to, uint value) override external {
 
         require(_applications[msg.sender] > 0, "NestLedger:!app");
+
         if (tokenAddress == address(0)) {
             if (ntokenAddress == NEST_TOKEN_ADDRESS) {
                 _nestLedger -= value;
