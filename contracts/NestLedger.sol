@@ -30,7 +30,6 @@ contract NestLedger is NestBase, INestLedger {
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
-        require(uint(config.nestRewardScale) + uint(config.ntokenRewardScale) == 10000, "NestLedger:!sum");
         _config = config;
     }
 
@@ -56,8 +55,9 @@ contract NestLedger is NestBase, INestLedger {
         } else {
             Config memory config = _config;
             UINT storage balance = _ntokenLedger[ntokenAddress];
-            balance.value += msg.value * uint(config.ntokenRewardScale) / 10000;
-            _nestLedger += msg.value * uint(config.nestRewardScale) / 10000;
+            uint nestReward = msg.value * uint(config.nestRewardScale) / 10000;
+            balance.value += msg.value - nestReward;
+            _nestLedger += nestReward;
         }
     }
 
@@ -122,7 +122,6 @@ contract NestLedger is NestBase, INestLedger {
             }
             payable(to).transfer(value);
         } else {
-            TransferHelper.safeTransfer(tokenAddress, to, value);
             if (msg.value > 0) {
                 if (ntokenAddress == NEST_TOKEN_ADDRESS) {
                     _nestLedger += msg.value;
@@ -131,6 +130,7 @@ contract NestLedger is NestBase, INestLedger {
                     balance.value += msg.value;
                 }
             }
+            TransferHelper.safeTransfer(tokenAddress, to, value);
         }
     } 
 }

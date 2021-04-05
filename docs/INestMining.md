@@ -144,7 +144,6 @@
 ```javascript 
     /// @dev The function updates the statistics of price sheets
     ///     It calculates from priceInfo to the newest that is effective.
-    ///     Different from `_statOneBlock()`, it may cross multiple blocks.
     function stat(address tokenAddress) external;
 ``` 
 
@@ -203,12 +202,12 @@
     }
 ```
 
-### 2.13. Estimated ore yield
+### 2.13. Estimated mining amount
 
 ```javascript 
-    /// @dev Estimated ore yield
+    /// @dev Estimated mining amount
     /// @param tokenAddress Destination token address
-    /// @return Estimated ore yield
+    /// @return Estimated mining amount
     function estimate(address tokenAddress) external view returns (uint);
 ``` 
 

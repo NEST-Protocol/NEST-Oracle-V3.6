@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import "../lib/TransferHelper.sol";
 import "../interface/IVotePropose.sol";
 import "../interface/INestMapping.sol";
 import "../interface/INestPriceFacade.sol";

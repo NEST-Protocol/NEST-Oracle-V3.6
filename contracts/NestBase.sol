@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./lib/TransferHelper.sol";
 import "./interface/INestGovernance.sol";
+import "./interface/INestLedger.sol";
 
 /// @dev Base contract of nest
 contract NestBase {
@@ -28,13 +29,14 @@ contract NestBase {
         _governance = nestGovernanceAddress;
     }
 
-    /// @dev Transfer funds from current contracts
+    /// @dev Migrate funds from current contract to NestLedger
     /// @param tokenAddress Destination token address.（0 means eth）
-    /// @param to Transfer in address
-    /// @param value Transfer amount
-    function transfer(address tokenAddress, address to, uint value) external onlyGovernance {
+    /// @param value Migrate amount
+    function migrate(address tokenAddress, uint value) external onlyGovernance {
+
+        address to = INestGovernance(_governance).getNestLedgerAddress();
         if (tokenAddress == address(0)) {
-            payable(to).transfer(value);
+            INestLedger(to).addReward { value: value } (address(0));
         } else {
             TransferHelper.safeTransfer(tokenAddress, to, value);
         }

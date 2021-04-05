@@ -59,36 +59,32 @@ contract NNIncome is NestBase {
         require(balanceFrom > 0, "NNIncome:!balance");
 
         // Calculation of ore drawing increment
-        uint nestAmount = miningNest();
-        uint generatedNest = _generatedNest = _generatedNest + nestAmount;
+        uint generatedNest = _generatedNest = _generatedNest + miningNest();
+
+        // Update latest block number of operationed
+        _latestBlock = block.number;
 
         mapping(address=>uint) storage infoMapping = _infoMapping;
         // Calculation mining amount for (from)
-        uint subAmountFrom = generatedNest - infoMapping[address(from)];
-        uint thisAmountFrom = subAmountFrom * balanceFrom / NEST_NODE_TOTALSUPPLY;
+        uint thisAmountFrom = (generatedNest - infoMapping[address(from)]) * balanceFrom / NEST_NODE_TOTALSUPPLY;
+        infoMapping[address(from)] = generatedNest;
 
         if (thisAmountFrom > 0) {
             require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(from), thisAmountFrom), "NNIncome:!transfer from");
         }
-        infoMapping[address(from)] = generatedNest;
 
         // Calculation mining amount for (to)
         uint balanceTo = nn.balanceOf(address(to));
         if (balanceTo > 0) {
-            uint subAmountTo = generatedNest - infoMapping[address(to)];
-            uint thisAmountTo = subAmountTo * balanceTo / NEST_NODE_TOTALSUPPLY;
+            uint thisAmountTo = (generatedNest - infoMapping[address(to)]) * balanceTo / NEST_NODE_TOTALSUPPLY;
+            infoMapping[address(to)] = generatedNest;
+
             if (thisAmountTo > 0) {
                 require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(to), thisAmountTo), "NNIncome:!transfer to");
             }
+        } else {
+            infoMapping[address(to)] = generatedNest;
         }
-        infoMapping[address(to)] = generatedNest;
-
-        // Update latest block number of operationed
-        _latestBlock = block.number;
-    }
-
-    function getLatestBlock() public view returns (uint) {
-        return _latestBlock;
     }
 
     /// @dev Draw nest
@@ -96,22 +92,21 @@ contract NNIncome is NestBase {
         
         // Check balance
         IERC20 nn = IERC20(NEST_NODE_ADDRESS);
-        uint balance = nn.balanceOf(address(tx.origin));
+        uint balance = nn.balanceOf(address(msg.sender));
         require(balance > 0, "NNIncome:!balance");
 
-        // Trigger
-        uint nestAmount = miningNest();
-        _generatedNest = _generatedNest + nestAmount;
+        // Calculation of ore drawing increment
+        uint generatedNest = _generatedNest = _generatedNest + miningNest();
 
-        // Calculation for current mining
-        uint subAmount = _generatedNest - _infoMapping[address(tx.origin)];
-        uint thisAmount = subAmount * balance / NEST_NODE_TOTALSUPPLY;
-
-        _infoMapping[address(tx.origin)] = _generatedNest;
         // Update latest block number of operationed
         _latestBlock = block.number;
 
-        require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(tx.origin), thisAmount), "NNIncome:!transfer");
+        // Calculation for current mining
+        uint thisAmount = (generatedNest - _infoMapping[address(msg.sender)]) * balance / NEST_NODE_TOTALSUPPLY;
+
+        _infoMapping[address(msg.sender)] = generatedNest;
+
+        require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(msg.sender), thisAmount), "NNIncome:!transfer");
     }
 
     //---------view----------------
@@ -119,17 +114,16 @@ contract NNIncome is NestBase {
     /// @dev Calculation of ore drawing increment
     /// @return Ore drawing increment
     function miningNest() public view returns(uint) {
-        return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _latestBlock) * 15 ether / 100;
+        //return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _latestBlock) * 15 ether / 100;
+        return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _latestBlock) * 0.15 ether;
     }
 
     /// @dev Query the current available nest
     /// @param owner Destination address
     /// @return Number of nest currently available
     function earnedNest(address owner) public view returns(uint) {
-
-        uint totalNest = _generatedNest + miningNest();
         uint balance = IERC20(NEST_NODE_ADDRESS).balanceOf(address(owner));
-        return (totalNest - _infoMapping[owner]) * balance / NEST_NODE_TOTALSUPPLY;
+        return (_generatedNest + miningNest() - _infoMapping[owner]) * balance / NEST_NODE_TOTALSUPPLY;
     }
 
     // Nest ore drawing attenuation interval. 2400000 blocks, about one year

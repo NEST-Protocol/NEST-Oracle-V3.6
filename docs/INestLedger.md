@@ -19,8 +19,8 @@
         // nest reward scale(10000 based). 2000
         uint16 nestRewardScale;
 
-        // ntoken reward scale(10000 based). 8000
-        uint16 ntokenRewardScale;
+        // // ntoken reward scale(10000 based). 8000
+        // uint16 ntokenRewardScale;
     }
 ```
 

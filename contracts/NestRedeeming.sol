@@ -128,7 +128,6 @@ contract NestRedeeming is NestBase, INestRedeeming {
         // 7. Ntoken transferred to redeem
         address nestLedgerAddress = _nestLedgerAddress;
         TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, address(nestLedgerAddress), amount);
-        //payable(msg.sender).transfer(value);
         
         // 8. Settlement
         // If a token is not a real token, it should also have no funds in the account book and cannot complete the settlement. 

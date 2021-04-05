@@ -374,7 +374,8 @@ contract("NestMining", async accounts => {
             console.log('报价后调用价格');
             await nest.approve(nestMining.address, ETHER(1000000000));
             await usdt.approve(nestMining.address, USDT(1000000000));
-            await nestMining.post2(usdt.address, 30, USDT(1600), ETHER(65536), { value: ETHER(60.1) });
+            let receipt = await nestMining.post2(usdt.address, 30, USDT(1600), ETHER(65536), { value: ETHER(60.1) });
+            console.log(receipt);
 
             console.log('triggeredPrice()');
             let pi = await nestMining.triggeredPrice(usdt.address);
@@ -396,7 +397,8 @@ contract("NestMining", async accounts => {
             pi = await nestMining.findPrice(usdt.address, await web3.eth.getBlockNumber());
             console.log({
                 blockNumber: pi.blockNumber.toString(),
-                price: pi.price.toString()
+                price: pi.price.toString(),
+                bn: await web3.eth.getBlockNumber()
             });
 
             console.log('latestPrice()');
@@ -477,7 +479,8 @@ contract("NestMining", async accounts => {
             pi = await nestMining.findPrice(usdt.address, await web3.eth.getBlockNumber());
             console.log({
                 blockNumber: pi.blockNumber.toString(),
-                price: pi.price.toString()
+                price: pi.price.toString(),
+                bn: await web3.eth.getBlockNumber()
             });
 
             console.log('latestPrice()');
@@ -547,7 +550,9 @@ contract("NestMining", async accounts => {
             let prevUsdtPrice = new USDT(1600);
             let prevNestPrice = new ETHER(65535);
             for (var i = 0; i < 10; ++i) {
-                await nestMining.post2(usdt.address, 30, USDT(1600 + i * 10), ETHER(65536 + i * 655.36), { value: ETHER(60.1) });
+                let receipt = await nestMining.post2(usdt.address, 30, USDT(1600 + i * 10), ETHER(65536 + i * 655.36), { value: ETHER(60.1) });
+                console.log('报价' + i + ': ' + (1600 + i * 10));
+                console.log(receipt);
                 arr.push(i + 1);
 
                 avgUsdtPrice = avgUsdtPrice.mul(new BN(95)).add(USDT(1600 + i * 10).mul(new BN(5))).div(new BN(100));
@@ -604,7 +609,8 @@ contract("NestMining", async accounts => {
             pi = await nestMining.findPrice(usdt.address, await web3.eth.getBlockNumber());
             console.log({
                 blockNumber: pi.blockNumber.toString(),
-                price: pi.price.toString()
+                price: pi.price.toString(),
+                bn: await web3.eth.getBlockNumber()
             });
 
             console.log('latestPrice()');

@@ -92,7 +92,7 @@ The V3.6 has made some adjustments to the data structure. The main goal is to sa
         // The eth number which equivalent to token's value which miner will got
         uint32 tokenNumBal;
 
-        // The pledged number of nest in this sheet. (unit: 1000nest)
+        // The pledged number of nest in this sheet. (Unit: 1000nest)
         uint24 nestNum1k;
 
         // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
