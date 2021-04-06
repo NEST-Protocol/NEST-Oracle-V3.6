@@ -15,7 +15,6 @@ const TestERC20 = artifacts.require("TestERC20");
 const IBNEST = artifacts.require("IBNEST");
 const NNToken = artifacts.require("NNToken");
 const Nest_NToken = artifacts.require("Nest_NToken");
-const Nest_3_VoteFactory = artifacts.require("Nest_3_VoteFactory");
 const SetQueryPrice = artifacts.require("SetQueryPrice");
 
 const USDT = function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
@@ -44,13 +43,12 @@ contract("NestMining", async accounts => {
 
         // 部署老版本合约
         let nest = await IBNEST.new();
-        let nest_3_VoteFactory = await Nest_3_VoteFactory.new();
-        let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nest_3_VoteFactory.address, account1); //(string memory _name, string memory _symbol, address voteFactory, address bidder)
         let nn = await NNToken.new(1500, 'NN');
 
         // 部署3.6合约
         // const NestGovernance = artifacts.require("NestGovernance");
         let nestGovernance = await NestGovernance.new();
+        let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nestGovernance.address, account1); 
 
         // const NestLedger = artifacts.require("NestLedger");
         let nestLedger = await NestLedger.new(nest.address);
@@ -79,6 +77,7 @@ contract("NestMining", async accounts => {
             nn.address, //nestNodeAddress,
             nestLedger.address,
             nestMining.address,
+            nestMining.address,
             nestPriceFacade.address,
             nestVote.address,
             nestMining.address, //nestQueryAddress,
@@ -86,7 +85,7 @@ contract("NestMining", async accounts => {
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
-        await nestGovernance.registerAddress("nest.dao.redeeming", nestRedeeming.address);
+        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
 
         // 更新合约地址
         await nestLedger.update(nestGovernance.address);
@@ -101,7 +100,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRedardScale: 8000
+            //ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({
@@ -182,13 +181,13 @@ contract("NestMining", async accounts => {
             voteDuration: 5 * 86400,
     
             // 投票需要抵押的nest数量。100000 nest
-            proposalStaking: 100000
+            proposalStaking: '100000000000000000000000'
         });
 
         await nTokenController.setConfig({
 
             // 开通ntoken需要支付的nest数量。10000 ether
-            openFeeNestAmount: 10000,
+            openFeeNestAmount: '10000000000000000000000',
 
             // ntoken管理功能启用状态。0：未启用，1：已启用
             state: 1
@@ -202,8 +201,8 @@ contract("NestMining", async accounts => {
         await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // 修改nHBTC信息
-        await nest_3_VoteFactory.addContractAddress("nest.nToken.offerMain", nestMining.address);
-        await nhbtc.changeMapping(nest_3_VoteFactory.address);
+        await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
+        await nhbtc.changeMapping(nestGovernance.address);
         await nn.setContracts(nnIncome.address);
 
         // 初始化usdt余额
@@ -247,101 +246,113 @@ contract("NestMining", async accounts => {
             return balances;
         };
 
-        let balance0 = await showBalance(account0, 'account0');
-        let balance1 = await showBalance(account1, 'account1');
-        assert.equal(0, balance1.balance.usdt.cmp(USDT('10000000')));
+        if (true) {
+            let yfi = await TestERC20.new('YFI', 'YFI', 18);
+            console.log('yfi info:')
+            console.log({
+                name: await yfi.name(),
+                symbol: await yfi.symbol(),
+                decimals: (await yfi.decimals()).toString(),
+                totalSupply: (await yfi.totalSupply()).toString(),
+                balance0: (await yfi.balanceOf(account0)).toString(),
+                balance1: (await yfi.balanceOf(account1)).toString()
+            });
 
-        // account0余额
-        assert.equal(0, balance0.balance.usdt.cmp(USDT('10000000')));
-        assert.equal(0, balance0.balance.nest.cmp(ETHER('1000000000')));
-        assert.equal(0, balance0.pool.usdt.cmp(USDT(0)));
-        assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
+            let nyfi = await NToken.new('nYFI', 'nyfi');
+            await nyfi.update(nestGovernance.address);
+            let checkBlockInfo = await nyfi.checkBlockInfo();
+            let bidder = await nyfi.checkBidder();
+            console.log('nyfi info: ');
+            console.log({
+                name: await nyfi.name(),
+                symbol: await nyfi.symbol(),
+                decimals: (await nyfi.decimals()).toString(),
+                totalSupply: (await nyfi.totalSupply()).toString(),
+                balance0: (await nyfi.balanceOf(account0)).toString(),
+                balance1: (await nyfi.balanceOf(account1)).toString(),
+                createBlock: checkBlockInfo.createBlock.toString(),
+                recentlyUsedBlock: checkBlockInfo.recentlyUsedBlock.toString(),
+                bidder: bidder
+            });
 
-        // nestMining余额
-        assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
-        assert.equal(0, (await usdt.balanceOf(nestMining.address)).cmp(USDT(0)));
-        assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
+            await nestGovernance.setBuiltinAddress(
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                account0,
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000'
+            );
+            await nyfi.update(nestGovernance.address);
+            await nyfi.increaseTotal(12345);
+            checkBlockInfo = await nyfi.checkBlockInfo();
+            bidder = await nyfi.checkBidder();
+            console.log('nyfi info: ');
+            console.log({
+                name: await nyfi.name(),
+                symbol: await nyfi.symbol(),
+                decimals: (await nyfi.decimals()).toString(),
+                totalSupply: (await nyfi.totalSupply()).toString(),
+                balance0: (await nyfi.balanceOf(account0)).toString(),
+                balance1: (await nyfi.balanceOf(account1)).toString(),
+                createBlock: checkBlockInfo.createBlock.toString(),
+                recentlyUsedBlock: checkBlockInfo.recentlyUsedBlock.toString(),
+                bidder: bidder
+            });
 
-        await nest.approve(nestMining.address, ETHER('1000000000'));
-        await usdt.approve(nestMining.address, USDT('10000000'));
-        await nest.approve(nestMining.address, ETHER('1000000000'), { from: account1 });
-        await usdt.approve(nestMining.address, USDT('10000000'), { from: account1 });
-
-        let prevBlockNumber = 0;
-        let minedNest = ETHER(0);
-        
-        {
-            // 发起报价
-            console.log('发起报价');
-            let receipt = await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.1) });
-            console.log(receipt);
-            balance0 = await showBalance(account0, '发起一次报价后');
             
-            // account0余额
-            assert.equal(0, balance0.balance.usdt.cmp(USDT(10000000 - 1560 * 30)));
-            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
-            assert.equal(0, balance0.pool.usdt.cmp(USDT(0)));
-            assert.equal(0, balance0.pool.nest.cmp(minedNest));
+            await nestGovernance.setBuiltinAddress(
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                account1,
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000'
+            );
+            await nyfi.update(nestGovernance.address);
+            await nyfi.increaseTotal(9527, { from: account1 });
+            checkBlockInfo = await nyfi.checkBlockInfo();
+            bidder = await nyfi.checkBidder();
+            console.log('nyfi info: ');
+            console.log({
+                name: await nyfi.name(),
+                symbol: await nyfi.symbol(),
+                decimals: (await nyfi.decimals()).toString(),
+                totalSupply: (await nyfi.totalSupply()).toString(),
+                balance0: (await nyfi.balanceOf(account0)).toString(),
+                balance1: (await nyfi.balanceOf(account1)).toString(),
+                createBlock: checkBlockInfo.createBlock.toString(),
+                recentlyUsedBlock: checkBlockInfo.recentlyUsedBlock.toString(),
+                bidder: bidder,
+                allowance: (await nyfi.allowance(account0, account1)).toString()
+            });
 
-            // nestMining余额
-            assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(30.0)));
-            assert.equal(0, (await usdt.balanceOf(nestMining.address)).cmp(USDT(1560 * 30)));
-            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000 + 100000)));
-            
-            minedNest = ETHER(10 * 400 * 80 / 100);
-            prevBlockNumber = receipt.receipt.blockNumber;
 
-            await skipBlocks(20);
-            // 关闭报价单
-            receipt = await nestMining.close(usdt.address, 0);
-
-            console.log(receipt);
-            balance0 = await showBalance(account0, '关闭报价单后');
-
-            // account0余额
-            assert.equal(0, balance0.balance.usdt.cmp(USDT(10000000 - 1560 * 30)));
-            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
-            assert.equal(0, balance0.pool.usdt.cmp(USDT(1560 * 30)));
-            assert.equal(0, balance0.pool.nest.cmp(ETHER(100000).add(minedNest)));
-
-            // nestMining余额
-            assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
-            assert.equal(0, (await usdt.balanceOf(nestMining.address)).cmp(USDT(1560 * 30)));
-            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000 + 100000)));
-
-            // nestDao余额
-            assert.equal(0, (await ethBalance(nestLedger.address)).cmp(ETHER(0.1)));
-
-            // 取回
-            await nestMining.withdraw(usdt.address, await nestMining.balanceOf(usdt.address, account0));
-            await nestMining.withdraw(nest.address, await nestMining.balanceOf(nest.address, account0));
-            balance0 = await showBalance(account0, '取回后');
-
-            assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
-            assert.equal(0, (await usdt.balanceOf(nestMining.address)));
-            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000).sub(minedNest)));
-
-            LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            await skipBlocks(18);
-            LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-
-            // 查看价格
-            {
-                let latestPrice = await nestMining.latestPrice(usdt.address);
-                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
-                let triggeredPrice = await nestMining.triggeredPrice(usdt.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}', triggeredPrice);
-                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            }
-            await nestMining.stat(usdt.address);
-            // 查看价格
-            {
-                let latestPrice = await nestMining.latestPrice(usdt.address);
-                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
-                let triggeredPrice = await nestMining.triggeredPrice(usdt.address);
-                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}', triggeredPrice);
-                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
-            }
+            await nyfi.approve(account1, 88999);
+            checkBlockInfo = await nyfi.checkBlockInfo();
+            bidder = await nyfi.checkBidder();
+            console.log('nyfi info: ');
+            console.log({
+                name: await nyfi.name(),
+                symbol: await nyfi.symbol(),
+                decimals: (await nyfi.decimals()).toString(),
+                totalSupply: (await nyfi.totalSupply()).toString(),
+                balance0: (await nyfi.balanceOf(account0)).toString(),
+                balance1: (await nyfi.balanceOf(account1)).toString(),
+                createBlock: checkBlockInfo.createBlock.toString(),
+                recentlyUsedBlock: checkBlockInfo.recentlyUsedBlock.toString(),
+                bidder: bidder,
+                allowance: (await nyfi.allowance(account0, account1)).toString()
+            });
         }
+
     });
 });

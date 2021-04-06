@@ -12,35 +12,30 @@ import "./NestBase.sol";
 /// @dev NToken Controller, management for ntoken
 contract NTokenController is NestBase, INTokenController {
 
+    /// @param nestTokenAddress Address of nest token contract
     constructor(address nestTokenAddress)
     {
         NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
 
+    // Configuration
     Config _config;
+
+    // ntoken information array
     NTokenTag[] _nTokenTagList;
 
-    /// @dev A mapping for all ntoken
+    // A mapping for all ntoken
     mapping(address=>uint) public _nTokenTags;
 
-    /// @dev Contract address of NestMining
-    address public _nestMiningAddress;
-    
+    // Address of nest token contract
     address immutable NEST_TOKEN_ADDRESS;
     
     /* ========== Governance ========== */
 
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
-    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
-    function update(address nestGovernanceAddress) override public {
-        super.update(nestGovernanceAddress);
-        _nestMiningAddress = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
-    }
-
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
+        require(uint(config.state) <= 1, "NTokenController:value");
         _config = config;
     }
 
@@ -58,6 +53,7 @@ contract NTokenController is NestBase, INTokenController {
         
         uint index = _nTokenTags[tokenAddress];
         if (index == 0) {
+
             _nTokenTagList.push(NTokenTag(
                 // address ntokenAddress;
                 ntokenAddress,
@@ -74,6 +70,7 @@ contract NTokenController is NestBase, INTokenController {
             ));
             _nTokenTags[tokenAddress] = _nTokenTags[ntokenAddress] = _nTokenTagList.length;
         } else {
+
             NTokenTag memory tag = _nTokenTagList[index - 1];
             tag.ntokenAddress = ntokenAddress;
             tag.tokenAddress = tokenAddress;
@@ -82,6 +79,7 @@ contract NTokenController is NestBase, INTokenController {
             tag.state = uint8(state);
 
             _nTokenTagList[index - 1] = tag;
+            _nTokenTags[tokenAddress] = _nTokenTags[ntokenAddress] = index;
         }
     }
 
@@ -189,7 +187,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @return ntoken information
     function getNTokenTag(address tokenAddress) override external view returns (NTokenTag memory) 
     {
-        return _nTokenTagList[_nTokenTags[tokenAddress]];
+        return _nTokenTagList[_nTokenTags[tokenAddress] - 1];
     }
 
     /// @dev Get opened ntoken count
@@ -207,24 +205,28 @@ contract NTokenController is NestBase, INTokenController {
         
         NTokenTag[] storage nTokenTagList = _nTokenTagList;
         NTokenTag[] memory result = new NTokenTag[](count);
+        uint length = nTokenTagList.length;
         uint i = 0;
 
-        // 倒序
+        // Reverse order
         if (order == 0) {
 
-            uint index = nTokenTagList.length - offset;
-            uint end = index - count;
+            uint index = length - offset;
+            uint end = index > count ? index - count : 0;
             while (index > end) {
                 result[i++] = nTokenTagList[--index];
             }
         } 
-        // 正序
+        // Positive order
         else {
             
             uint index = offset;
             uint end = index + count;
+            if (end > length) {
+                end = length;
+            }
             while (index < end) {
-                result[i++] = nTokenTagList[index];
+                result[i++] = nTokenTagList[index++];
             }
         }
 

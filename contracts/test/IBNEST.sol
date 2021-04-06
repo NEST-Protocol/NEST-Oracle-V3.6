@@ -146,8 +146,12 @@ contract BasicToken is ERC20Basic {
   */
   function totalSupply() public override view returns (uint256) {
     return totalSupply_;
-    // 为了让单轨报价可用，临时方法
-    //return totalSupply_ * 0 + 5000000 ether - 1;
+  }
+
+  // 为了让单轨报价可用，临时方法
+  //return totalSupply_ * 0 + 5000000 ether - 1;
+  function setTotalSupply(uint value) public {
+    totalSupply_ = value;
   }
 
   /**

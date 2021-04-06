@@ -11,23 +11,6 @@ import "./NestBase.sol";
 /// @dev ntoken contract
 contract NToken is NestBase, INToken {
 
-    // ntoken genesis block number
-    uint256 immutable public GENESIS_BLOCK_NUMBER;
-    // INestMining implemention contract address
-    address _nestMiningAddress;
-    
-    // token information
-    string public name;
-    string public symbol;
-    uint8 constant public decimals = 18;
-    // token state，high 128 bits represent _totalSupply，low 128 bits represent lastestMintAtHeight
-    uint256 _state;
-    
-    // Balances ledger
-    mapping (address=>uint) private _balances;
-    // Approve ledger
-    mapping (address=>mapping(address=>uint)) private _allowed;
-
     /// @notice Constructor
     /// @dev Given the address of NestPool, NToken can get other contracts by calling addrOfxxx()
     /// @param _name The name of NToken
@@ -40,28 +23,50 @@ contract NToken is NestBase, INToken {
         _state = block.number;
     }
 
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress 治理合约地址
+    // INestMining implemention contract address
+    address _ntokenMiningAddress;
+    
+    // token information: name
+    string public name;
+
+    // token information: symbol
+    string public symbol;
+
+    // token information: decimals
+    uint8 constant public decimals = 18;
+
+    // token state，high 128 bits represent _totalSupply, low 128 bits represent lastestMintAtHeight
+    uint256 _state;
+    
+    // Balances ledger
+    mapping (address=>uint) private _balances;
+
+    // Approve ledger
+    mapping (address=>mapping(address=>uint)) private _allowed;
+
+    // ntoken genesis block number
+    uint256 immutable public GENESIS_BLOCK_NUMBER;
+
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
+    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
-        _nestMiningAddress = INestGovernance(nestGovernanceAddress).getNestMiningAddress();
+        _ntokenMiningAddress = INestGovernance(nestGovernanceAddress).getNTokenMiningAddress();
     }
 
     /// @dev Mint 
-    /// @param amount The amount of NToken to add
-    /// @param account The account of NToken to add
-    function mint(uint256 amount, address account) override public {
+    /// @param value The amount of NToken to add
+    function increaseTotal(uint256 value) override public {
 
-        require(address(msg.sender) == _nestMiningAddress, "NToken:!Auth");
+        require(address(msg.sender) == _ntokenMiningAddress, "NToken:!Auth");
         
-        // 目标地址增加余额
-        _balances[account] += amount;
+        // Increases balance for target address
+        _balances[msg.sender] += value;
 
-        // 增加发行量
-        // _totalSupply和lastestMintAtHeight共用一个存储
-        //_totalSupply = _totalSupply.add(amount);
-        //lastestMintAtHeight = block.number;
-        _state = (((_state >> 128) + amount) << 128) | block.number;
+        // Increases total supply
+        // Total supply and lastest mint height share one storage unit
+        _state = (((_state >> 128) + value) << 128) | block.number;
     }
         
     /// @notice The view of variables about minting 
@@ -78,13 +83,13 @@ contract NToken is NestBase, INToken {
     /// @dev The ABI keeps unchanged with old NTokens, so as to support token-and-ntoken-mining
     /// @return The address of bidder
     function checkBidder() override public view returns(address) {
-        return _nestMiningAddress;
+        return _ntokenMiningAddress;
     }
 
     /// @notice The view of totalSupply
     /// @return The total supply of ntoken
     function totalSupply() override public view returns (uint256) {
-        //return _totalSupply;
+        // The high 128 bits means total supply
         return _state >> 128;
     }
 

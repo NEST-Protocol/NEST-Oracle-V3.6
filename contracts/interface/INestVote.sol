@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev nest voting interface
+/// @dev This interface defines the methods for voting
 interface INestVote {
 
     /// @dev Event of submitting a voting proposal
@@ -111,7 +111,7 @@ interface INestVote {
 
     /// @dev Cancel the proposal
     /// @param index Index of the proposal
-    function calcel(uint index) external;
+    function cancel(uint index) external;
 
     /// @dev Get proposal information
     /// @param index Index of the proposal

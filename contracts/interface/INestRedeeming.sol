@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev The contract is for redeeming nest token and getting ETH in return
+/// @dev This interface defines the methods for redeeming
 interface INestRedeeming {
 
     /// @dev Redeem configuration structure
@@ -40,7 +40,8 @@ interface INestRedeeming {
     /// @notice Ethfee will be charged
     /// @param ntokenAddress The address of ntoken
     /// @param amount The amount of ntoken
-    function redeem(address ntokenAddress, uint amount) external payable;
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    function redeem(address ntokenAddress, uint amount, address paybackAddress) external payable;
 
     /// @dev Get the current amount available for repurchase
     /// @param ntokenAddress The address of ntoken

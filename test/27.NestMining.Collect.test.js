@@ -15,7 +15,6 @@ const TestERC20 = artifacts.require("TestERC20");
 const IBNEST = artifacts.require("IBNEST");
 const NNToken = artifacts.require("NNToken");
 const Nest_NToken = artifacts.require("Nest_NToken");
-const Nest_3_VoteFactory = artifacts.require("Nest_3_VoteFactory");
 const SetQueryPrice = artifacts.require("SetQueryPrice");
 
 const USDT = function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
@@ -44,13 +43,12 @@ contract("NestMining", async accounts => {
 
         // 部署老版本合约
         let nest = await IBNEST.new();
-        let nest_3_VoteFactory = await Nest_3_VoteFactory.new();
-        let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nest_3_VoteFactory.address, account1); //(string memory _name, string memory _symbol, address voteFactory, address bidder)
         let nn = await NNToken.new(1500, 'NN');
 
         // 部署3.6合约
         // const NestGovernance = artifacts.require("NestGovernance");
         let nestGovernance = await NestGovernance.new();
+        let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nestGovernance.address, account1); 
 
         // const NestLedger = artifacts.require("NestLedger");
         let nestLedger = await NestLedger.new(nest.address);
@@ -79,6 +77,7 @@ contract("NestMining", async accounts => {
             nn.address, //nestNodeAddress,
             nestLedger.address,
             nestMining.address,
+            nestMining.address,
             nestPriceFacade.address,
             nestVote.address,
             nestMining.address, //nestQueryAddress,
@@ -86,7 +85,7 @@ contract("NestMining", async accounts => {
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
-        await nestGovernance.registerAddress("nest.dao.redeeming", nestRedeeming.address);
+        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
 
         // 更新合约地址
         await nestLedger.update(nestGovernance.address);
@@ -101,7 +100,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRedardScale: 8000
+            //ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({
@@ -182,13 +181,13 @@ contract("NestMining", async accounts => {
             voteDuration: 5 * 86400,
     
             // 投票需要抵押的nest数量。100000 nest
-            proposalStaking: 100000
+            proposalStaking: '100000000000000000000000'
         });
 
         await nTokenController.setConfig({
 
             // 开通ntoken需要支付的nest数量。10000 ether
-            openFeeNestAmount: 10000,
+            openFeeNestAmount: '10000000000000000000000',
 
             // ntoken管理功能启用状态。0：未启用，1：已启用
             state: 1
@@ -202,20 +201,18 @@ contract("NestMining", async accounts => {
         await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // 修改nHBTC信息
-        await nest_3_VoteFactory.addContractAddress("nest.nToken.offerMain", nestMining.address);
-        await nhbtc.changeMapping(nest_3_VoteFactory.address);
+        await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
+        await nhbtc.changeMapping(nestGovernance.address);
         await nn.setContracts(nnIncome.address);
 
         // 初始化usdt余额
-        await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
-        await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
-        await usdt.transfer(account0, USDT('10000000'), { from: account1 });
-        await usdt.transfer(account1, USDT('10000000'), { from: account1 });
+        await usdt.transfer(account0, USDT('100000000'), { from: account1 });
+        await usdt.transfer(account1, USDT('100000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
-        await nest.transfer(nestMining.address, ETHER('6000000000'));
-        await nest.transfer(nnIncome.address, ETHER('2000000000'));
-        await nn.transfer(account1, 300);
+        await nest.transfer(nestMining.address, ETHER('800000000'));
 
+        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
+        
         const skipBlocks = async function(blockCount) {
             for (var i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
@@ -227,14 +224,12 @@ contract("NestMining", async accounts => {
             let balances = {
                 balance: {
                     eth: await ethBalance(account),
-                    hbtc: await hbtc.balanceOf(account),
-                    nhbtc: await nhbtc.balanceOf(account),
+                    usdt: await usdt.balanceOf(account),
                     nest: await nest.balanceOf(account)
                 },
                 pool: {
                     eth: ETHER(0),
-                    hbtc: await nestMining.balanceOf(hbtc.address, account),
-                    nhbtc: await nestMining.balanceOf(nhbtc.address, account),
+                    usdt: await nestMining.balanceOf(usdt.address, account),
                     nest: await nestMining.balanceOf(nest.address, account)
                 }
             };
@@ -245,26 +240,113 @@ contract("NestMining", async accounts => {
             console.log(msg);
             let balances = await getBalance(account);
 
-            LOG('balance: {eth}eth, {nest}nest, {hbtc}hbtc, {nhbtc}nhbtc', balances.balance);
-            LOG('pool: {eth}eth, {nest}nest, {hbtc}hbtc, {nhbtc}nhbtc', balances.pool);
+            LOG('balance: {eth}eth, {nest}nest, {usdt}usdt', balances.balance);
+            LOG('pool: {eth}eth, {nest}nest, {usdt}usdt', balances.pool);
 
             return balances;
         };
 
-        // 发起报价
-        await usdt.approve(nestMining.address, USDT('10000000'));
-        await nest.approve(nestMining.address, ETHER('1000000000'));
-        await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.1)});
-        //await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.099) });
-        await skipBlocks(20);
-        await nestMining.close(usdt.address, 0);
-        await nestMining.close(nest.address, 0);
+        if (false) {
+            console.log('collect');
+            
+            await nest.setTotalSupply(ETHER(5000000 - 1));
+            await nest.approve(nestMining.address, ETHER(2000000000));
+            await usdt.approve(nestMining.address, USDT(2000000000));
 
-        //console.log('miningNest: ' + await nnIncome.miningNest());
-        let earned = await nnIncome.earnedNest(account0);
-        console.log("account1 earned nest: " + earned);
+            let arr = [];
+            let total = ETHER(0);
+            for (var i = 1; i < 100; ++i) {
+                await nestMining.post(usdt.address, 30, USDT(1000 + i * 10), { value: ETHER(30).add(ETHER(0.1).mul(new BN(i))) });
+                console.log({
+                    index: i,
+                    nestMining: (await ethBalance(nestMining.address)).toString(),
+                    nestLedger: (await ethBalance(nestLedger.address)).toString(),
+                    nestReward: (await nestLedger.totalRewards(nest.address)).toString(),
+                    nhbtcReward: (await nestLedger.totalRewards(nhbtc.address)).toString()
+                });
+                total = total.add(ETHER(0.1).mul(new BN(i)));
+                assert.equal(0, (await ethBalance(nestLedger.address)).cmp(total));
+                assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(total));
+                arr.push(i - 1);
+            }
 
-        earned = await nnIncome.earnedNest(account1);
-        console.log("account1 earned nest: " + earned);
+            await skipBlocks(20);
+            await nestMining.closeList(usdt.address, arr);
+        }
+
+        if (true) {
+            console.log('collect');
+            
+            await nest.setTotalSupply(ETHER(5000000 - 1));
+            await nest.approve(nestMining.address, ETHER(9000000000));
+            await usdt.approve(nestMining.address, USDT(9000000000));
+
+            let total = ETHER(0);
+            let N = 700;
+            for (var i = 1; i < N; ++i) {
+                let d = ETHER(0);
+                if (i % 100 == 0) {
+                    d = ETHER(7);
+                }
+                await nestMining.post(usdt.address, 30, USDT(1000 + i * 10), { value: ETHER(30).add(d).add(ETHER(0.1).mul(new BN(1))) });
+                if (i % 7 == 0) {
+                    await nestMining.settle(usdt.address);
+                }
+                if (i % 47 == 0) {
+                    let n = 16;
+                    for (var j = 1; j < n; ++j) {
+                        let eth = 60;
+                        if (j > 4) {
+                            eth = 30;
+                        }
+                        let receipt = await nestMining.biteToken(usdt.address, i + j + (n - 1) * (i / 47 - 1) - 2, 30, USDT(1000), { value : ETHER(eth + 30) });
+                        console.log(receipt);
+                        console.log({
+                            index: 'biteToken-' + j,
+                            nestMining: (await ethBalance(nestMining.address)).toString(),
+                            nestLedger: (await ethBalance(nestLedger.address)).toString(),
+                            nestReward: (await nestLedger.totalRewards(nest.address)).toString(),
+                            nhbtcReward: (await nestLedger.totalRewards(nhbtc.address)).toString()
+                        });
+                    }
+                }
+                console.log({
+                    index: i,
+                    nestMining: (await ethBalance(nestMining.address)).toString(),
+                    nestLedger: (await ethBalance(nestLedger.address)).toString(),
+                    nestReward: (await nestLedger.totalRewards(nest.address)).toString(),
+                    nhbtcReward: (await nestLedger.totalRewards(nhbtc.address)).toString()
+                });
+                let getSettleInfo = await nestMining.getSettleInfo(usdt.address);
+                console.log({
+                    length: getSettleInfo.length.toString(),
+                    fl: getSettleInfo.fl.toString()
+                });
+                total = total.add(ETHER(0.1).mul(new BN(i)));
+                //assert.equal(0, (await ethBalance(nestLedger.address)).cmp(total));
+                //assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(total));
+            }
+            //arr.push(99);
+            //arr.push(100);
+            await nestMining.settle(usdt.address);
+            console.log({
+                index: '-',
+                nestMining: (await ethBalance(nestMining.address)).toString(),
+                nestLedger: (await ethBalance(nestLedger.address)).toString(),
+                nestReward: (await nestLedger.totalRewards(nest.address)).toString(),
+                nhbtcReward: (await nestLedger.totalRewards(nhbtc.address)).toString()
+            });
+
+            await skipBlocks(20);
+            
+            let arr = [];
+            for (var i = 0; i < N - 1; ++i) {
+                arr.push(i);
+                if (i % 100 == 99 || i == N - 2) {
+                    await nestMining.closeList(usdt.address, arr);
+                    arr = [];
+                }
+            }
+        }
     });
 });

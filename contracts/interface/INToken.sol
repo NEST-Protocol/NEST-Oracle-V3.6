@@ -9,10 +9,9 @@ interface INToken {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     /// @dev Mint 
-    /// @param amount The amount of NToken to add
-    /// @param account The account of NToken to add
-    function mint(uint256 amount, address account) external;
-        
+    /// @param value The amount of NToken to add
+    function increaseTotal(uint256 value) external;
+
     /// @notice The view of variables about minting 
     /// @dev The naming follows Nestv3.0
     /// @return createBlock The block number where the contract was created

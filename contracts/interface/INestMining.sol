@@ -69,7 +69,7 @@ interface INestMining {
         // The eth number which equivalent to token's value which miner will got
         uint32 tokenNumBal;
 
-        // The pledged number of nest in this sheet. (unit: 1000nest)
+        // The pledged number of nest in this sheet. (Unit: 1000nest)
         uint24 nestNum1k;
 
         // The level of this sheet. 0 expresses initial price sheet, a value greater than 0 expresses bite price sheet
@@ -156,7 +156,6 @@ interface INestMining {
 
     /// @dev The function updates the statistics of price sheets
     ///     It calculates from priceInfo to the newest that is effective.
-    ///     Different from `_statOneBlock()`, it may cross multiple blocks.
     function stat(address tokenAddress) external;
 
     /// @dev Settlement Commission
@@ -171,9 +170,9 @@ interface INestMining {
     /// @return List of price sheets
     function list(address tokenAddress, uint offset, uint count, uint order) external view returns (PriceSheetView[] memory);
 
-    /// @dev Estimated ore yield
+    /// @dev Estimated mining amount
     /// @param tokenAddress Destination token address
-    /// @return Estimated ore yield
+    /// @return Estimated mining amount
     function estimate(address tokenAddress) external view returns (uint);
 
     /// @dev Query the quantity of the target quotation

@@ -2,17 +2,17 @@
 
 pragma solidity ^0.8.0;
 
-/// @dev Defines methods for nest ledger contract
+/// @dev This interface defines the nest ledger methods
 interface INestLedger {
 
     /// @dev Configuration structure of nest ledger contract
     struct Config {
         
         // nest reward scale(10000 based). 2000
-        uint32 nestRewardScale;
+        uint16 nestRewardScale;
 
-        // ntoken reward scale(10000 based). 8000
-        uint32 ntokenRedardScale;
+        // // ntoken reward scale(10000 based). 8000
+        // uint16 ntokenRewardScale;
     }
     
     /// @dev Modify configuration
@@ -37,7 +37,7 @@ interface INestLedger {
     function addReward(address ntokenAddress) external payable;
 
     /// @dev The function returns eth rewards of specified ntoken
-    /// @param ntokenAddress The notoken address
+    /// @param ntokenAddress The ntoken address
     function totalRewards(address ntokenAddress) external view returns (uint);
 
     /// @dev Pay

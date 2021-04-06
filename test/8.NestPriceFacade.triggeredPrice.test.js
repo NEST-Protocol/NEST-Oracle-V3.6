@@ -1,4 +1,3 @@
-
 const BN = require("bn.js");
 const $hcj = require("./hcore.js");
 
@@ -15,7 +14,6 @@ const TestERC20 = artifacts.require("TestERC20");
 const IBNEST = artifacts.require("IBNEST");
 const NNToken = artifacts.require("NNToken");
 const Nest_NToken = artifacts.require("Nest_NToken");
-const Nest_3_VoteFactory = artifacts.require("Nest_3_VoteFactory");
 const SetQueryPrice = artifacts.require("SetQueryPrice");
 
 const USDT = function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
@@ -44,13 +42,12 @@ contract("NestMining", async accounts => {
 
         // 部署老版本合约
         let nest = await IBNEST.new();
-        let nest_3_VoteFactory = await Nest_3_VoteFactory.new();
-        let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nest_3_VoteFactory.address, account1); //(string memory _name, string memory _symbol, address voteFactory, address bidder)
         let nn = await NNToken.new(1500, 'NN');
 
         // 部署3.6合约
         // const NestGovernance = artifacts.require("NestGovernance");
         let nestGovernance = await NestGovernance.new();
+        let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nestGovernance.address, account1); 
 
         // const NestLedger = artifacts.require("NestLedger");
         let nestLedger = await NestLedger.new(nest.address);
@@ -79,6 +76,7 @@ contract("NestMining", async accounts => {
             nn.address, //nestNodeAddress,
             nestLedger.address,
             nestMining.address,
+            nestMining.address,
             nestPriceFacade.address,
             nestVote.address,
             nestMining.address, //nestQueryAddress,
@@ -86,7 +84,7 @@ contract("NestMining", async accounts => {
             nTokenController.address //nTokenControllerAddress
         );
         // 添加redeeming合约映射
-        await nestGovernance.registerAddress("nest.dao.redeeming", nestRedeeming.address);
+        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
 
         // 更新合约地址
         await nestLedger.update(nestGovernance.address);
@@ -101,7 +99,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRedardScale: 8000
+            //ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({
@@ -182,13 +180,13 @@ contract("NestMining", async accounts => {
             voteDuration: 5 * 86400,
     
             // 投票需要抵押的nest数量。100000 nest
-            proposalStaking: 100000
+            proposalStaking: '100000000000000000000000'
         });
 
         await nTokenController.setConfig({
 
             // 开通ntoken需要支付的nest数量。10000 ether
-            openFeeNestAmount: 10000,
+            openFeeNestAmount: '10000000000000000000000',
 
             // ntoken管理功能启用状态。0：未启用，1：已启用
             state: 1
@@ -202,19 +200,16 @@ contract("NestMining", async accounts => {
         await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // 修改nHBTC信息
-        await nest_3_VoteFactory.addContractAddress("nest.nToken.offerMain", nestMining.address);
-        await nhbtc.changeMapping(nest_3_VoteFactory.address);
+        await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
+        await nhbtc.changeMapping(nestGovernance.address);
         await nn.setContracts(nnIncome.address);
 
+        // 添加ntoken映射
         // 初始化usdt余额
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
-        await usdt.transfer(account0, USDT('10000000'), { from: account1 });
-        await usdt.transfer(account1, USDT('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
-        await nest.transfer(nestMining.address, ETHER('6000000000'));
-        await nest.transfer(nnIncome.address, ETHER('2000000000'));
-        await nn.transfer(account1, 300);
+        await nest.transfer(nestMining.address, ETHER('8000000000'));
 
         const skipBlocks = async function(blockCount) {
             for (var i = 0; i < blockCount; ++i) {
@@ -251,35 +246,135 @@ contract("NestMining", async accounts => {
             return balances;
         };
 
-        // 发起报价
-        await usdt.approve(nestMining.address, USDT('10000000'));
+        let balance0 = await showBalance(account0, 'account0');
+        let balance1 = await showBalance(account1, 'account1');
+        assert.equal(0, balance1.balance.hbtc.cmp(HBTC('10000000')));
+
+        // account0余额
+        assert.equal(0, balance0.balance.hbtc.cmp(HBTC('10000000')));
+        assert.equal(0, balance0.balance.nest.cmp(ETHER('1000000000')));
+        assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
+        assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
+
+        // nestMining余额
+        assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
+        assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(0)));
+        assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
+
         await nest.approve(nestMining.address, ETHER('1000000000'));
-        await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.1)});
-        //await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.099) });
-        await skipBlocks(20);
-        await nestMining.close(usdt.address, 0);
-        await nestMining.close(nest.address, 0);
+        await hbtc.approve(nestMining.address, HBTC('10000000'));
+        await nest.approve(nestMining.address, ETHER('1000000000'), { from: account1 });
+        await hbtc.approve(nestMining.address, HBTC('10000000'), { from: account1 });
 
-        let quota = await nestRedeeming.quotaOf(nest.address);
-        console.log('quota=' + quota);
+        let prevBlockNumber = 0;
+        let mined = nHBTC(0);
+        
+        {
+            // 发起报价
+            console.log('发起报价');
+            let receipt = await nestMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.1) });
+            console.log(receipt);
+            balance0 = await showBalance(account0, '发起一次报价后');
+            
+            // account0余额
+            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
+            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
+            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
+            assert.equal(0, balance0.pool.nest.cmp(mined));
 
-        //let priceInfo = await nestMining.latestPrice(usdt.address);
-        //LOG("price: {price}", priceInfo);
-        let latestPrice = await nestMining.latestPrice(usdt.address);
-        LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
+            // nestMining余额
+            //assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(30.099 - 0.099)));
+            assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(256 * 30)));
+            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000 + 100000)));
+            
+            mined = nHBTC(10 * 4 * 0.95);
+            prevBlockNumber = receipt.receipt.blockNumber;
 
-        await nest.approve(nestRedeeming.address, ETHER(1000000000));
-        await nestLedger.addReward (nest.address, { value: ETHER(20) });
-        let receipt = await nestRedeeming.redeem(nest.address, ETHER(30000), { value : ETHER(0.1)});
-        console.log(receipt);
+            await skipBlocks(20);
 
-        quota = await nestRedeeming.quotaOf(nest.address);
-        console.log('quota=' + quota);
+            // 关闭报价单
+            receipt = await nestMining.close(hbtc.address, 0);
 
-        let earned = await nnIncome.earnedNest(account0);
-        console.log("account1 earned nest: " + earned);
+            console.log(receipt);
+            balance0 = await showBalance(account0, '关闭报价单后');
 
-        earned = await nnIncome.earnedNest(account1);
-        console.log("account1 earned nest: " + earned);
+            // account0余额
+            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
+            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
+            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(256 * 30)));
+            assert.equal(0, balance0.pool.nest.cmp(ETHER(100000)));
+            assert.equal(0, balance0.pool.nhbtc.cmp(mined));
+
+            // nestMining余额
+            //assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0.099 - 0.099)));
+            assert.equal(0, (await hbtc.balanceOf(nestMining.address)).cmp(HBTC(256 * 30)));
+            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000 + 100000)));
+
+            // nestLedger余额
+            //assert.equal(0, (await ethBalance(nestLedger.address)).cmp(ETHER(0 + 0.099)));
+
+            // 取回
+            await nestMining.withdraw(hbtc.address, await nestMining.balanceOf(hbtc.address, account0));
+            await nestMining.withdraw(nest.address, await nestMining.balanceOf(nest.address, account0));
+            await nestMining.withdraw(nhbtc.address, await nestMining.balanceOf(nhbtc.address, account0));
+            
+            balance0 = await showBalance(account0, '取回后');
+
+            //assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0.099 - 0.099)));
+            assert.equal(0, (await hbtc.balanceOf(nestMining.address)));
+            assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
+            
+            // account0余额
+            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000)));
+            assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000)));
+            assert.equal(0, balance0.balance.nhbtc.cmp(mined));
+            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
+            assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
+            assert.equal(0, balance0.pool.nhbtc.cmp(nHBTC(0)));
+
+            LOG('blockNumber: ' + await web3.eth.getBlockNumber());
+            await skipBlocks(18);
+            LOG('blockNumber: ' + await web3.eth.getBlockNumber());
+
+            // 查看价格
+            {
+                let latestPrice = await nestMining.latestPrice(hbtc.address);
+                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
+                let triggeredPrice = await nestMining.triggeredPrice(hbtc.address);
+                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}', triggeredPrice);
+                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
+            }
+            await nestMining.stat(hbtc.address);
+            // 查看价格
+            {
+                let latestPrice = await nestMining.latestPrice(hbtc.address);
+                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
+                let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
+                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
+                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
+            }
+
+            receipt = await nestMining.post(hbtc.address, 30, HBTC(2570), { value: ETHER(30.1) });
+            console.log(receipt);
+
+            await skipBlocks(20);
+            await nestMining.stat(hbtc.address);
+            // 查看价格
+            {
+                let latestPrice = await nestMining.latestPrice(hbtc.address);
+                LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
+                let triggeredPriceInfo = await nestMining.triggeredPriceInfo(hbtc.address);
+                LOG('triggeredPrice: blockNumber={blockNumber}, price={price}, sigmaSQ={sigmaSQ}', triggeredPriceInfo);
+                LOG('blockNumber: ' + await web3.eth.getBlockNumber());
+            }
+
+            receipt = await nestMining.close(hbtc.address, 1);
+            console.log(receipt);
+
+            // 调用价格
+            console.log('调用价格：');
+            let callPrice = await nestPriceFacade.triggeredPriceInfo(hbtc.address, account0, { value: new BN('10000000000000000') });
+            console.log(callPrice)
+        }
     });
 });
