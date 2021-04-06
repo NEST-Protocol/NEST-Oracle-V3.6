@@ -8,11 +8,6 @@ interface INToken {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    // /// @dev Mint 
-    // /// @param amount The amount of NToken to add
-    // /// @param account The account of NToken to add
-    // function mint(uint256 amount, address account) external;
-
     /// @dev Mint 
     /// @param value The amount of NToken to add
     function increaseTotal(uint256 value) external;

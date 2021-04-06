@@ -9,14 +9,17 @@ import "./NestBase.sol";
 /// @dev Nest ledger contract
 contract NestLedger is NestBase, INestLedger {
 
+    /// @param nestTokenAddress Address of nest token contract
     constructor(address nestTokenAddress) {
         NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
 
+    /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
         uint value;
     }
 
+    // Configuration
     Config _config;
     // nest ledger
     uint _nestLedger;
@@ -24,12 +27,13 @@ contract NestLedger is NestBase, INestLedger {
     mapping(address=>UINT) _ntokenLedger;
     // DAO applications
     mapping(address=>uint) _applications;
-    /// @dev Address of nest token contract
+    // Address of nest token contract
     address immutable NEST_TOKEN_ADDRESS;
 
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
+        require(uint(config.nestRewardScale) <= 10000, "NestLedger:value");
         _config = config;
     }
 
@@ -50,13 +54,21 @@ contract NestLedger is NestBase, INestLedger {
     /// @param ntokenAddress Destination ntoken address
     function carveReward(address ntokenAddress) override external payable {
 
+        // nest not carve
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             _nestLedger += msg.value;
-        } else {
+        }
+        // ntoken need carve
+        else {
+
             Config memory config = _config;
             UINT storage balance = _ntokenLedger[ntokenAddress];
+
+            // Calculate nest reward
             uint nestReward = msg.value * uint(config.nestRewardScale) / 10000;
+            // The part of ntoken is msg.value - nestReward
             balance.value += msg.value - nestReward;
+            // nest reward
             _nestLedger += nestReward;
         }
     }
@@ -65,9 +77,12 @@ contract NestLedger is NestBase, INestLedger {
     /// @param ntokenAddress Destination ntoken address
     function addReward(address ntokenAddress) override external payable {
 
+        // Ledger for nest is independent
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             _nestLedger += msg.value;
-        } else {
+        }
+        // Ledger for ntoken is in a mapping
+        else {
             UINT storage balance = _ntokenLedger[ntokenAddress];
             balance.value += msg.value;
         }
@@ -92,15 +107,23 @@ contract NestLedger is NestBase, INestLedger {
 
         require(_applications[msg.sender] > 0, "NestLedger:!app");
 
+        // Pay eth from ledger
         if (tokenAddress == address(0)) {
+            // nest ledger
             if (ntokenAddress == NEST_TOKEN_ADDRESS) {
                 _nestLedger -= value;
-            } else {
+            }
+            // ntoken ledger
+            else {
                 UINT storage balance = _ntokenLedger[ntokenAddress];
                 balance.value -= value;
             }
+            // pay
             payable(to).transfer(value);
-        } else {
+        }
+        // Pay token
+        else {
+            // pay
             TransferHelper.safeTransfer(tokenAddress, to, value);
         }
     }
@@ -114,15 +137,25 @@ contract NestLedger is NestBase, INestLedger {
 
         require(_applications[msg.sender] > 0, "NestLedger:!app");
 
+        // Pay eth from ledger
         if (tokenAddress == address(0)) {
+            // nest ledger
             if (ntokenAddress == NEST_TOKEN_ADDRESS) {
+                // If msg.value is not 0, add to ledger
                 _nestLedger = _nestLedger + msg.value - value;
-            } else {
+            }
+            // ntoken ledger
+            else {
+                // If msg.value is not 0, add to ledger
                 UINT storage balance = _ntokenLedger[ntokenAddress];
                 balance.value = balance.value + msg.value - value;
             }
+            // pay
             payable(to).transfer(value);
-        } else {
+        }
+        // Pay token
+        else {
+            // If msg.value is not 0, add to ledger
             if (msg.value > 0) {
                 if (ntokenAddress == NEST_TOKEN_ADDRESS) {
                     _nestLedger += msg.value;
@@ -131,6 +164,7 @@ contract NestLedger is NestBase, INestLedger {
                     balance.value += msg.value;
                 }
             }
+            // pay
             TransferHelper.safeTransfer(tokenAddress, to, value);
         }
     } 

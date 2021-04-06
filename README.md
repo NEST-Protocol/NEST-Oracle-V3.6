@@ -3,6 +3,26 @@ The NEST Oracle Smart Contract 3.6 is a solidity smart contract implementation o
 
 # Contract Addresses
 
+2021-04-06
+| Name | Interfaces | rinkeby |
+| ---- | ---- | ---- |
+| hbtc | IERC20 | 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04 |
+| usdt | IERC20 | 0xBa2064BbD49454517A9dBba39005bf46d31971f8 |
+| nest | IERC20 | 0x3145AF0F18759D7587F22278d965Cdf7e19d6437 |
+| nhbtc | IERC20 | 0x7A4DAca8f91c94479A6F8DD00D4bBABCa1Ac174d |
+| nn | IERC20 | 0x8f89663562dDD4519566e590C18ec892134A0cdD |
+| nestGovernance | INestGovernance | 0x74487D1a0FB2a70bb67e7D6c154d2ac71954a313 |
+| nestLedger | INestLedger | 0x82502A8f52BF186907BD0E12c8cEe612b4C203d1 |
+| nestMining | INestMining, INestQuery | 0xf94Af5800A4104aDEab67b3f5AA7A3a6E5bC64c3 |
+| ntokenMining | INestMining, INestQuery | 0x0684746A347033436E77030a43891Ea4FDaBb78E |
+| nestPriceFacade | INestPriceFacade, INestQuery | 0x97F09D58a87B9a6f0cA1E69aCef77da3EFF8da0A |
+| nestRedeeming | INestRedeeming | 0xC545b531e1A093E33ec7058b70E74eD3aD113a2A |
+| nestVote | INestVote | 0xD2BD52C52c0C2A220Ce2750e41Bc09b84526f26E |
+| nnIncome | INNIncome | 0xD5A32f6de0997749cb6F2F5B6042e2f878688aE2 |
+| nTokenController | INTokenController | 0x57513Fc3133C7A4a930c345AB3aA9a4D21600Db9 |
+| NestStaking35 | --- | 0x5BC253b9fE40d92f8a01e62899A77ae124F68C5a |
+
+2021-04-04
 | Name | Interfaces | rinkeby |
 | ---- | ---- | ---- |
 | hbtc | IERC20 | 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04 |

@@ -5,8 +5,8 @@ const $hcj = require("./hcore.js");
 const NestGovernance = artifacts.require("NestGovernance");
 const NestLedger = artifacts.require("NestLedger");
 const NestMining = artifacts.require("NestMining");
-const INestPriceFacade = artifacts.require("INestPriceFacade");
 const INestQuery = artifacts.require("INestQuery");
+const INestPriceFacade = artifacts.require("INestPriceFacade");
 const NestPriceFacade = artifacts.require("NestPriceFacade");
 const NestRedeeming = artifacts.require("NestRedeeming");
 const NestVote = artifacts.require("NestVote");
@@ -372,6 +372,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, ETHER(0.0137 * 5 + 0.0247 * 3).cmp(await ethBalance(nestLedger.address)));
         }
 
+        nestPriceFacade = await INestQuery.at(nestPriceFacade.address);
         if (true) {
             // 报价后调用价格
             console.log('报价后调用价格');
@@ -381,14 +382,14 @@ contract("NestMining", async accounts => {
             console.log(receipt);
 
             console.log('triggeredPrice()');
-            let pi = await nestMining.triggeredPrice(usdt.address);
+            let pi = await nestPriceFacade.triggeredPrice(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString()
             });
 
             console.log('triggeredPriceInfo()');
-            pi = await nestMining.triggeredPriceInfo(usdt.address);
+            pi = await nestPriceFacade.triggeredPriceInfo(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -397,7 +398,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('findPrice()');
-            pi = await nestMining.findPrice(usdt.address, await web3.eth.getBlockNumber());
+            pi = await nestPriceFacade.findPrice(usdt.address, await web3.eth.getBlockNumber());
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -405,17 +406,17 @@ contract("NestMining", async accounts => {
             });
 
             console.log('latestPrice()');
-            pi = await nestMining.latestPrice(usdt.address);
+            pi = await nestPriceFacade.latestPrice(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString()
             });
 
             console.log('lastPriceList()');
-            await nestMining.lastPriceList(usdt.address, 10);
+            await nestPriceFacade.lastPriceList(usdt.address, 10);
 
             console.log('latestPriceAndTriggeredPriceInfo()');
-            pi = await nestMining.latestPriceAndTriggeredPriceInfo(usdt.address);
+            pi = await nestPriceFacade.latestPriceAndTriggeredPriceInfo(usdt.address);
             console.log({
                 latestPriceBlockNumber: pi.latestPriceBlockNumber.toString(),
                 latestPriceValue: pi.latestPriceValue.toString(),
@@ -426,7 +427,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('triggeredPrice2()');
-            pi = await nestMining.triggeredPrice2(usdt.address);
+            pi = await nestPriceFacade.triggeredPrice2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 pripice: pi.price.toString(),
@@ -435,7 +436,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('triggeredPriceInfo2()');
-            pi = await nestMining.triggeredPriceInfo2(usdt.address);
+            pi = await nestPriceFacade.triggeredPriceInfo2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -448,7 +449,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('latestPrice2()');
-            pi = await nestMining.latestPrice2(usdt.address);
+            pi = await nestPriceFacade.latestPrice2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -470,7 +471,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('triggeredPriceInfo()');
-            pi = await nestMining.triggeredPriceInfo(usdt.address);
+            pi = await nestPriceFacade.triggeredPriceInfo(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -479,7 +480,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('findPrice()');
-            pi = await nestMining.findPrice(usdt.address, await web3.eth.getBlockNumber());
+            pi = await nestPriceFacade.findPrice(usdt.address, await web3.eth.getBlockNumber());
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -487,17 +488,17 @@ contract("NestMining", async accounts => {
             });
 
             console.log('latestPrice()');
-            pi = await nestMining.latestPrice(usdt.address);
+            pi = await nestPriceFacade.latestPrice(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString()
             });
 
             console.log('lastPriceList()');
-            await nestMining.lastPriceList(usdt.address, 10);
+            await nestPriceFacade.lastPriceList(usdt.address, 10);
 
             console.log('latestPriceAndTriggeredPriceInfo()');
-            pi = await nestMining.latestPriceAndTriggeredPriceInfo(usdt.address);
+            pi = await nestPriceFacade.latestPriceAndTriggeredPriceInfo(usdt.address);
             console.log({
                 latestPriceBlockNumber: pi.latestPriceBlockNumber.toString(),
                 latestPriceValue: pi.latestPriceValue.toString(),
@@ -508,7 +509,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('triggeredPrice2()');
-            pi = await nestMining.triggeredPrice2(usdt.address);
+            pi = await nestPriceFacade.triggeredPrice2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 pripice: pi.price.toString(),
@@ -517,7 +518,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('triggeredPriceInfo2()');
-            pi = await nestMining.triggeredPriceInfo2(usdt.address);
+            pi = await nestPriceFacade.triggeredPriceInfo2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -530,7 +531,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('latestPrice2()');
-            pi = await nestMining.latestPrice2(usdt.address);
+            pi = await nestPriceFacade.latestPrice2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -582,14 +583,14 @@ contract("NestMining", async accounts => {
             await nestMining.closeList2(usdt.address, arr, arr);
 
             console.log('triggeredPrice()');
-            let pi = await nestMining.triggeredPrice(usdt.address);
+            let pi = await nestPriceFacade.triggeredPrice(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString()
             });
 
             console.log('triggeredPriceInfo()');
-            pi = await nestMining.triggeredPriceInfo(usdt.address);
+            pi = await nestPriceFacade.triggeredPriceInfo(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -603,13 +604,13 @@ contract("NestMining", async accounts => {
             });
             assert.equal(0, usdtSigmaSQ.cmp(pi.sigmaSQ));
             
-            let list = await nestMining.lastPriceList(usdt.address, 5);
+            let list = await nestPriceFacade.lastPriceList(usdt.address, 5);
             for (var i in list) {
                 console.log(list[i].toString());
             }
 
             console.log('findPrice()');
-            pi = await nestMining.findPrice(usdt.address, await web3.eth.getBlockNumber());
+            pi = await nestPriceFacade.findPrice(usdt.address, await web3.eth.getBlockNumber());
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -617,17 +618,17 @@ contract("NestMining", async accounts => {
             });
 
             console.log('latestPrice()');
-            pi = await nestMining.latestPrice(usdt.address);
+            pi = await nestPriceFacade.latestPrice(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString()
             });
 
             console.log('lastPriceList()');
-            await nestMining.lastPriceList(usdt.address, 10);
+            await nestPriceFacade.lastPriceList(usdt.address, 10);
 
             console.log('latestPriceAndTriggeredPriceInfo()');
-            pi = await nestMining.latestPriceAndTriggeredPriceInfo(usdt.address);
+            pi = await nestPriceFacade.latestPriceAndTriggeredPriceInfo(usdt.address);
             console.log({
                 latestPriceBlockNumber: pi.latestPriceBlockNumber.toString(),
                 latestPriceValue: pi.latestPriceValue.toString(),
@@ -640,7 +641,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, usdtSigmaSQ.cmp(pi.triggeredSigmaSQ));
 
             console.log('triggeredPrice2()');
-            pi = await nestMining.triggeredPrice2(usdt.address);
+            pi = await nestPriceFacade.triggeredPrice2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 pripice: pi.price.toString(),
@@ -649,7 +650,7 @@ contract("NestMining", async accounts => {
             });
 
             console.log('triggeredPriceInfo2()');
-            pi = await nestMining.triggeredPriceInfo2(usdt.address);
+            pi = await nestPriceFacade.triggeredPriceInfo2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -681,7 +682,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, avgNestPrice.div(new BN('10000000000')).cmp(pi.ntokenAvgPrice.div(new BN('10000000000'))));
 
             console.log('latestPrice2()');
-            pi = await nestMining.latestPrice2(usdt.address);
+            pi = await nestPriceFacade.latestPrice2(usdt.address);
             console.log({
                 blockNumber: pi.blockNumber.toString(),
                 price: pi.price.toString(),
@@ -690,6 +691,7 @@ contract("NestMining", async accounts => {
             });
         }
 
+        nestPriceFacade = await INestPriceFacade.at(nestPriceFacade.address);
         if (true) {
             
             // 直接调用价格

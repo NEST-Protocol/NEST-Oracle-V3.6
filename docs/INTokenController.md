@@ -103,12 +103,23 @@
     /// @dev A struct for an ntoken
     struct NTokenTag {
 
+        // ntoken address
         address ntokenAddress;
+
+        // How much nest has paid for open this ntoken
         uint96 nestFee;
+    
+        // token address
         address tokenAddress;
+
+        // Index for this ntoken
         uint40 index;
+
+        // Create time
         uint48 startTime;
-        uint8 state;                // =0: disabled | =1 normal
+
+        // State of this ntoken. 0: disabled; 1 normal
+        uint8 state;
     }
 ```
 

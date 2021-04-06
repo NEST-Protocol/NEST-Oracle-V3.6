@@ -12,11 +12,11 @@ import "./NestBase.sol";
 /// @dev nest voting contract, implemented the voting logic
 contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     
-    // NOTE: to support open-zeppelin/upgrades, leave it blank
     constructor()
     { 
     }
 
+    /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
         uint value;
     }
@@ -61,8 +61,13 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         // The execution time (if any, such as block number or time stamp) is placed in the contract and is limited by the contract itself
     }
     
+    // Configuration
     Config _config;
+
+    // Array for proposals
     Proposal[] public _proposalList;
+
+    // Staked ledger
     mapping(uint =>mapping(address =>UINT)) public _stakedLedger;
     
     address _nestLedgerAddress;
@@ -109,6 +114,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
+        require(uint(config.acceptance) <= 10000, "NestVote:value");
         _config = config;
     }
 

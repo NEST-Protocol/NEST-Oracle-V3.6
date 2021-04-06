@@ -99,7 +99,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRewardScale: 8000
+            //ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({

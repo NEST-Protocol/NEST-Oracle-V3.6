@@ -101,7 +101,7 @@ contract("NestMining", async accounts => {
             // NEST分成（万分制）。2000
             nestRewardScale: 2000,
             // NTOKEN分成（万分制）。8000
-            ntokenRewardScale: 8000
+            //ntokenRewardScale: 8000
         });
         
         await nestMining.setConfig({
@@ -261,7 +261,7 @@ contract("NestMining", async accounts => {
             nestRewardScale: 3000,
 
             // ntoken reward scale(10000 based). 8000
-            ntokenRewardScale: 7000
+            //ntokenRewardScale: 7000
         });
         console.log(receipt);
         console.log(await nestLedger.getConfig());
@@ -295,7 +295,7 @@ contract("NestMining", async accounts => {
             nestRewardScale: 2000,
 
             // ntoken reward scale(10000 based). 8000
-            ntokenRewardScale: 8000
+            //ntokenRewardScale: 8000
         });
 
         await nestLedger.carveReward(nhbtc.address, { value: ETHER(40) });
@@ -315,7 +315,7 @@ contract("NestMining", async accounts => {
             nestRewardScale: 3000,
 
             // ntoken reward scale(10000 based). 8000
-            ntokenRewardScale: 7000
+            //ntokenRewardScale: 7000
         });
         await nestLedger.addReward(nhbtc.address, { value: ETHER(20) });
         assert.equal(0, ETHER(20).cmp(await ethBalance(nestLedger.address)));
@@ -329,7 +329,7 @@ contract("NestMining", async accounts => {
             nestRewardScale: 2000,
 
             // ntoken reward scale(10000 based). 8000
-            ntokenRewardScale: 8000
+            //ntokenRewardScale: 8000
         });
 
         await nestLedger.addReward(nhbtc.address, { value: ETHER(40) });
@@ -349,7 +349,7 @@ contract("NestMining", async accounts => {
             nestRewardScale: 3000,
 
             // ntoken reward scale(10000 based). 8000
-            ntokenRewardScale: 7000
+            //ntokenRewardScale: 7000
         });
 
         // 2. setApplication
@@ -381,7 +381,7 @@ contract("NestMining", async accounts => {
             nestRewardScale: 2000,
 
             // ntoken reward scale(10000 based). 8000
-            ntokenRewardScale: 8000
+            //ntokenRewardScale: 8000
         });
 
         await nestLedger.carveReward(nhbtc.address, { value: ETHER(40) });

@@ -11,6 +11,7 @@ import "./NestBase.sol";
 /// @dev The contract is for redeeming nest token and getting ETH in return
 contract NestRedeeming is NestBase, INestRedeeming {
 
+    /// @param nestTokenAddress Address of nest token contract
     constructor(address nestTokenAddress) {
         NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
@@ -34,8 +35,12 @@ contract NestRedeeming is NestBase, INestRedeeming {
         uint32 threshold;
     }
 
+    // Configuration
     Config _config;
-    mapping(address=>RedeemInfo) redeemLedger;
+
+    // Redeeming ledger
+    mapping(address=>RedeemInfo) _redeemLedger;
+
     address _nestLedgerAddress;
     address _nestPriceFacadeAddress;
     address immutable NEST_TOKEN_ADDRESS;
@@ -93,7 +98,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
         Config memory config = _config;
 
         // 2. Check redeeming stat
-        RedeemInfo storage redeemInfo = redeemLedger[ntokenAddress];
+        RedeemInfo storage redeemInfo = _redeemLedger[ntokenAddress];
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
             // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here
@@ -143,7 +148,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
         Config memory config = _config;
 
         // 2. Check redeem state
-        RedeemInfo storage redeemInfo = redeemLedger[ntokenAddress];
+        RedeemInfo storage redeemInfo = _redeemLedger[ntokenAddress];
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
             // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here

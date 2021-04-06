@@ -37,6 +37,7 @@ contract("NestMining", async accounts => {
         //const account1 = accounts[1];
 
         /* 
+        2021-03-22
         hbtc: 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04
         usdt: 0xBa2064BbD49454517A9dBba39005bf46d31971f8
         nest: 0xBaa792bba02D82Ebf3569E01f142fc80F72D9b8f
@@ -56,16 +57,7 @@ contract("NestMining", async accounts => {
         */
 
         /*
-        hbtc: 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04
-        usdt: 0xBa2064BbD49454517A9dBba39005bf46d31971f8
-        nest: 0x3145AF0F18759D7587F22278d965Cdf7e19d6437
-        nn: 0xF6298cc65E84F6a6D67Fa2890fbD2AD8735e3c29
-        nestGovernance: 0x8a4fD519CEcFA7eCE7B4a204Dbb4b781B397C460
-        nhbtc: 0x4269Fee5d9aAC83F1A9a81Cd17Bf71A01240765a
-        nestLedger: 0x4397F20d20b5B89131b631c43AdE98Baf3A6dc9F
-        nestMining: 0x4218e20Cdc77172972E40B9B56400E6ffe680724
-        */
-        /*
+        2021-04-04
         hbtc: 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04
         usdt: 0xBa2064BbD49454517A9dBba39005bf46d31971f8
         nest: 0x3145AF0F18759D7587F22278d965Cdf7e19d6437
@@ -81,6 +73,25 @@ contract("NestMining", async accounts => {
         nnIncome: 0xAc88d1fBF58E2646E0F4FF60aa436a70753885D9
         nTokenController: 0xF0737e3C98f1Ee41251681e2C6ad53Ab92AB0AEa
         */
+
+        /*
+        2021-04-06
+        hbtc: 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04
+        usdt: 0xBa2064BbD49454517A9dBba39005bf46d31971f8
+        nest: 0x3145AF0F18759D7587F22278d965Cdf7e19d6437
+        nn: 0x8f89663562dDD4519566e590C18ec892134A0cdD
+        nestGovernance: 0x74487D1a0FB2a70bb67e7D6c154d2ac71954a313
+        nhbtc: 0x7A4DAca8f91c94479A6F8DD00D4bBABCa1Ac174d
+        nestLedger: 0x82502A8f52BF186907BD0E12c8cEe612b4C203d1
+        nestMining: 0xf94Af5800A4104aDEab67b3f5AA7A3a6E5bC64c3
+        ntokenMining: 0x0684746A347033436E77030a43891Ea4FDaBb78E
+        nestPriceFacade: 0x97F09D58a87B9a6f0cA1E69aCef77da3EFF8da0A
+        nestRedeeming: 0xC545b531e1A093E33ec7058b70E74eD3aD113a2A
+        nestVote: 0xD2BD52C52c0C2A220Ce2750e41Bc09b84526f26E
+        nnIncome: 0xD5A32f6de0997749cb6F2F5B6042e2f878688aE2
+        nTokenController: 0x57513Fc3133C7A4a930c345AB3aA9a4D21600Db9
+        */
+
         // 部署测试币
         //let hbtc = await TestERC20.new('HBTC', 'HBTC', 18);
         let hbtc = await TestERC20.at('0x52e669eb87fBF69027190a0ffb6e6fEd48451E04');
@@ -96,56 +107,48 @@ contract("NestMining", async accounts => {
         console.log('nest: ' + nest.address);
 
         //let nn = await NNToken.new(1500, 'NN');
-        let nn = await NNToken.at('0xF6298cc65E84F6a6D67Fa2890fbD2AD8735e3c29');
+        let nn = await NNToken.at('0x8f89663562dDD4519566e590C18ec892134A0cdD');
         console.log('nn: ' + nn.address);
 
         // 部署3.6合约
-        // const NestGovernance = artifacts.require("NestGovernance");
         //let nestGovernance = await NestGovernance.new();
-        let nestGovernance = await NestGovernance.at('0x8a4fD519CEcFA7eCE7B4a204Dbb4b781B397C460');
+        let nestGovernance = await NestGovernance.at('0x74487D1a0FB2a70bb67e7D6c154d2ac71954a313');
         console.log('nestGovernance: ' + nestGovernance.address);
-        //let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nestGovernance.address, account1); 
-        let nhbtc = await Nest_NToken.at('0x4269Fee5d9aAC83F1A9a81Cd17Bf71A01240765a');
+        //let nhbtc = await Nest_NToken.new('nHBTC', 'nHBTC', nestGovernance.address, account0); 
+        let nhbtc = await Nest_NToken.at('0x7A4DAca8f91c94479A6F8DD00D4bBABCa1Ac174d');
         console.log('nhbtc: ' + nhbtc.address);
         
-        // const NestLedger = artifacts.require("NestLedger");
         //let nestLedger = await NestLedger.new(nest.address);
-        let nestLedger = await NestLedger.at('0x4397F20d20b5B89131b631c43AdE98Baf3A6dc9F');
+        let nestLedger = await NestLedger.at('0x82502A8f52BF186907BD0E12c8cEe612b4C203d1');
         console.log('nestLedger: ' + nestLedger.address);
 
-        // const NestMining = artifacts.require("NestMining");
         // TODO: 设置NEST的创世区块号
         //let nestMining = await NestMining.new(nest.address, 0);
-        let nestMining = await NestMining.at('0x4218e20Cdc77172972E40B9B56400E6ffe680724');
+        let nestMining = await NestMining.at('0xf94Af5800A4104aDEab67b3f5AA7A3a6E5bC64c3');
         console.log('nestMining: ' + nestMining.address);
 
         //let ntokenMining = await NestMining.new(nest.address, 0);
-        let ntokenMining = await NestMining.at('0x13742076bc96950cAfF0d0EfE64ebE818018121B');
-        console.log('ntokenMining: ' + nestMining.address);
+        let ntokenMining = await NestMining.at('0x0684746A347033436E77030a43891Ea4FDaBb78E');
+        console.log('ntokenMining: ' + ntokenMining.address);
 
-        // const NestPriceFacade = artifacts.require("NestPriceFacade");
         //let nestPriceFacade = await NestPriceFacade.new();
-        let nestPriceFacade = await NestPriceFacade.at('0xCAc72395a6EaC6D0D06C8B303e26cC0Bfb5De33c');
+        let nestPriceFacade = await NestPriceFacade.at('0x97F09D58a87B9a6f0cA1E69aCef77da3EFF8da0A');
         console.log('nestPriceFacade: ' + nestPriceFacade.address);
 
-        // const NestRedeeming = artifacts.require("NestRedeeming");
         //let nestRedeeming = await NestRedeeming.new(nest.address);
-        let nestRedeeming = await NestRedeeming.at('0xf453E3c1733f4634210ce15cd2A4fAfb191c36A5');
+        let nestRedeeming = await NestRedeeming.at('0xC545b531e1A093E33ec7058b70E74eD3aD113a2A');
         console.log('nestRedeeming: ' + nestRedeeming.address);
 
-        // const NestVote = artifacts.require("NestVote");
         //let nestVote = await NestVote.new();
-        let nestVote = await NestVote.at('0x6B9C63a52533CB9b653B468f72fD751E0f2bc181');
+        let nestVote = await NestVote.at('0xD2BD52C52c0C2A220Ce2750e41Bc09b84526f26E');
         console.log('nestVote: ' + nestVote.address);
 
         //let nnIncome = await NNIncome.new(nn.address, nest.address, 0);
-        let nnIncome = await NNIncome.at('0xAc88d1fBF58E2646E0F4FF60aa436a70753885D9');
+        let nnIncome = await NNIncome.at('0xD5A32f6de0997749cb6F2F5B6042e2f878688aE2');
         console.log('nnIncome: ' + nnIncome.address);
 
-        // const NToken = artifacts.require("NToken");
-        // const NTokenController = artifacts.require("NTokenController");
         //let nTokenController = await NTokenController.new(nest.address);
-        let nTokenController = await NTokenController.at('0xF0737e3C98f1Ee41251681e2C6ad53Ab92AB0AEa');
+        let nTokenController = await NTokenController.at('0x57513Fc3133C7A4a930c345AB3aA9a4D21600Db9');
         console.log('nTokenController: ' + nTokenController.address);
 
         if (false) {
@@ -189,7 +192,7 @@ contract("NestMining", async accounts => {
                 // NEST分成（万分制）。2000
                 nestRewardScale: 2000,
                 // NTOKEN分成（万分制）。8000
-                ntokenRewardScale: 8000
+                //ntokenRewardScale: 8000
             });
             
             console.log('设置参数: nestMining');
@@ -354,6 +357,7 @@ contract("NestMining", async accounts => {
             await nest.transfer(nestLedger.address, ETHER(1000000000 * 0.05));
             console.log('nest.transfer(nnIncome.address)');
             await nest.transfer(nnIncome.address,   ETHER(1000000000 * 0.15));
+        } else {
         }
     });
 });

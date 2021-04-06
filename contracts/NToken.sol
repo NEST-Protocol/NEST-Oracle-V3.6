@@ -11,23 +11,6 @@ import "./NestBase.sol";
 /// @dev ntoken contract
 contract NToken is NestBase, INToken {
 
-    // ntoken genesis block number
-    uint256 immutable public GENESIS_BLOCK_NUMBER;
-    // INestMining implemention contract address
-    address _ntokenMiningAddress;
-    
-    // token information
-    string public name;
-    string public symbol;
-    uint8 constant public decimals = 18;
-    // token state，high 128 bits represent _totalSupply, low 128 bits represent lastestMintAtHeight
-    uint256 _state;
-    
-    // Balances ledger
-    mapping (address=>uint) private _balances;
-    // Approve ledger
-    mapping (address=>mapping(address=>uint)) private _allowed;
-
     /// @notice Constructor
     /// @dev Given the address of NestPool, NToken can get other contracts by calling addrOfxxx()
     /// @param _name The name of NToken
@@ -39,6 +22,30 @@ contract NToken is NestBase, INToken {
         symbol = _symbol;
         _state = block.number;
     }
+
+    // INestMining implemention contract address
+    address _ntokenMiningAddress;
+    
+    // token information: name
+    string public name;
+
+    // token information: symbol
+    string public symbol;
+
+    // token information: decimals
+    uint8 constant public decimals = 18;
+
+    // token state，high 128 bits represent _totalSupply, low 128 bits represent lastestMintAtHeight
+    uint256 _state;
+    
+    // Balances ledger
+    mapping (address=>uint) private _balances;
+
+    // Approve ledger
+    mapping (address=>mapping(address=>uint)) private _allowed;
+
+    // ntoken genesis block number
+    uint256 immutable public GENESIS_BLOCK_NUMBER;
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
@@ -54,13 +61,11 @@ contract NToken is NestBase, INToken {
 
         require(address(msg.sender) == _ntokenMiningAddress, "NToken:!Auth");
         
-        // 目标地址增加余额
+        // Increases balance for target address
         _balances[msg.sender] += value;
 
-        // 增加发行量
-        // _totalSupply和lastestMintAtHeight共用一个存储
-        //_totalSupply = _totalSupply.add(value);
-        //lastestMintAtHeight = block.number;
+        // Increases total supply
+        // Total supply and lastest mint height share one storage unit
         _state = (((_state >> 128) + value) << 128) | block.number;
     }
         
@@ -84,7 +89,7 @@ contract NToken is NestBase, INToken {
     /// @notice The view of totalSupply
     /// @return The total supply of ntoken
     function totalSupply() override public view returns (uint256) {
-        //return _totalSupply;
+        // The high 128 bits means total supply
         return _state >> 128;
     }
 

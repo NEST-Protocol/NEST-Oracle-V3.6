@@ -12,17 +12,22 @@ import "./NestBase.sol";
 /// @dev NToken Controller, management for ntoken
 contract NTokenController is NestBase, INTokenController {
 
+    /// @param nestTokenAddress Address of nest token contract
     constructor(address nestTokenAddress)
     {
         NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
 
+    // Configuration
     Config _config;
+
+    // ntoken information array
     NTokenTag[] _nTokenTagList;
 
-    /// @dev A mapping for all ntoken
+    // A mapping for all ntoken
     mapping(address=>uint) public _nTokenTags;
 
+    // Address of nest token contract
     address immutable NEST_TOKEN_ADDRESS;
     
     /* ========== Governance ========== */
@@ -30,6 +35,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
+        require(uint(config.state) <= 1, "NTokenController:value");
         _config = config;
     }
 
