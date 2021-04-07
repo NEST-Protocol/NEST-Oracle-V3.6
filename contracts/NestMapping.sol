@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import "./interface/INestMapping.sol";
@@ -92,7 +92,7 @@ abstract contract NestMapping is NestBase, INestMapping {
         }
     }
 
-    /// @dev Set the built-in contract address of the system
+    /// @dev Get the built-in contract address of the system
     /// @return nestTokenAddress Address of nest token contract
     /// @return nestNodeAddress Address of nest node contract
     /// @return nestLedgerAddress INestLedger implemention contract address

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import "./interface/INestMining.sol";
@@ -10,7 +10,7 @@ import "./interface/INestGovernance.sol";
 import "./NestBase.sol";
 
 /// @dev nest voting contract, implemented the voting logic
-contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
+contract NestVote is NestBase, INestVote {
     
     constructor()
     { 
@@ -52,8 +52,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
         uint96 gainValue;
 
-        // The state of this proposal
-        uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
+        // The state of this proposal. 0: proposed | 1: accepted | 2: cancelled
+        uint32 state;
 
         // The executor of this proposal
         address executor;
@@ -187,7 +187,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         // Check time region
         // Note: stop time is not include stopTime
         require (block.timestamp >= uint(p.startTime) && block.timestamp < uint(p.stopTime), "NestVote:!time");
-        require (p.state == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
+        require (p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
 
         // 3. Update voting ledger
         UINT storage balance = _stakedLedger[index][msg.sender];
@@ -212,7 +212,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         balance.value = 0;
 
         // 2. In the proposal state, the number of votes obtained needs to be updated
-        if (uint(_proposalList[index].state) == PROPOSAL_STATE_PROPOSED) {
+        if (_proposalList[index].state == PROPOSAL_STATE_PROPOSED) {
             _proposalList[index].gainValue = uint96(uint(_proposalList[index].gainValue) - balanceValue);
         }
 
@@ -230,7 +230,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         Proposal memory p = _proposalList[index];
 
         // 2. Check status
-        require (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
+        require (p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
         require (block.timestamp < uint(p.stopTime), "NestVote:!time");
         // The target address cannot already have governance permission to prevent the governance permission from being covered
         address governance = _governance;
@@ -268,7 +268,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         Proposal memory p = _proposalList[index];
 
         // 2. Check state
-        require (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
+        require (p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
         require (block.timestamp >= uint(p.stopTime), "NestVote:!time");
 
         // 3. Update status

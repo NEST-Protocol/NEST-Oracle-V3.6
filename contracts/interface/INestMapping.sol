@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 /// @dev The interface defines methods for nest builtin contract address mapping
 interface INestMapping {
@@ -29,7 +29,7 @@ interface INestMapping {
         address nTokenControllerAddress
     ) external;
 
-    /// @dev Set the built-in contract address of the system
+    /// @dev Get the built-in contract address of the system
     /// @return nestTokenAddress Address of nest token contract
     /// @return nestNodeAddress Address of nest node contract
     /// @return nestLedgerAddress INestLedger implemention contract address

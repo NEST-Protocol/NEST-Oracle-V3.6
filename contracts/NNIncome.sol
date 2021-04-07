@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import "./NestBase.sol";
@@ -147,7 +147,7 @@ contract NNIncome is NestBase, INNIncome {
     // The decay limit of nest ore drawing becomes stable after exceeding this interval. 24 million blocks, about 10 years
     uint constant NEST_REDUCTION_LIMIT = 24000000; // NEST_REDUCTION_SPAN * 10;
     // Attenuation gradient array, each attenuation step value occupies 16 bits. The attenuation value is an integer
-    uint constant NEST_REDUCTION_STEPS = 0x280035004300530068008300a300cc010001400190;
+    uint constant NEST_REDUCTION_STEPS = 0x280035004300530068008300A300CC010001400190;
         // 0
         // | (uint(400 / uint(1)) << (16 * 0))
         // | (uint(400 * 8 / uint(10)) << (16 * 1))
