@@ -105,7 +105,7 @@ contract NestLedger is NestBase, INestLedger {
     /// @param value Amount to receive
     function pay(address ntokenAddress, address tokenAddress, address to, uint value) override external {
 
-        require(_applications[msg.sender] > 0, "NestLedger:!app");
+        require(_applications[msg.sender] == 1, "NestLedger:!app");
 
         // Pay eth from ledger
         if (tokenAddress == address(0)) {
@@ -135,7 +135,7 @@ contract NestLedger is NestBase, INestLedger {
     /// @param value Amount to receive
     function settle(address ntokenAddress, address tokenAddress, address to, uint value) override external payable {
 
-        require(_applications[msg.sender] > 0, "NestLedger:!app");
+        require(_applications[msg.sender] == 1, "NestLedger:!app");
 
         // Pay eth from ledger
         if (tokenAddress == address(0)) {

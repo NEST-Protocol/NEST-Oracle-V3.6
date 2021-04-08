@@ -59,7 +59,7 @@ contract NNIncome is NestBase, INNIncome {
         
         // Check balance
         IERC20 nn = IERC20(NEST_NODE_ADDRESS);
-        uint balanceFrom = nn.balanceOf(address(from));
+        uint balanceFrom = nn.balanceOf(from);
         require(balanceFrom > 0, "NNIncome:!balance");
 
         // Calculation of ore drawing increment
@@ -70,24 +70,24 @@ contract NNIncome is NestBase, INNIncome {
 
         mapping(address=>uint) storage infoMapping = _infoMapping;
         // Calculation mining amount for (from)
-        uint thisAmountFrom = (generatedNest - infoMapping[address(from)]) * balanceFrom / NEST_NODE_TOTALSUPPLY;
-        infoMapping[address(from)] = generatedNest;
+        uint thisAmountFrom = (generatedNest - infoMapping[from]) * balanceFrom / NEST_NODE_TOTALSUPPLY;
+        infoMapping[from] = generatedNest;
 
         if (thisAmountFrom > 0) {
-            require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(from), thisAmountFrom), "NNIncome:!transfer from");
+            require(IERC20(NEST_TOKEN_ADDRESS).transfer(from, thisAmountFrom), "NNIncome:!transfer from");
         }
 
         // Calculation mining amount for (to)
-        uint balanceTo = nn.balanceOf(address(to));
+        uint balanceTo = nn.balanceOf(to);
         if (balanceTo > 0) {
-            uint thisAmountTo = (generatedNest - infoMapping[address(to)]) * balanceTo / NEST_NODE_TOTALSUPPLY;
-            infoMapping[address(to)] = generatedNest;
+            uint thisAmountTo = (generatedNest - infoMapping[to]) * balanceTo / NEST_NODE_TOTALSUPPLY;
+            infoMapping[to] = generatedNest;
 
             if (thisAmountTo > 0) {
-                require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(to), thisAmountTo), "NNIncome:!transfer to");
+                require(IERC20(NEST_TOKEN_ADDRESS).transfer(to, thisAmountTo), "NNIncome:!transfer to");
             }
         } else {
-            infoMapping[address(to)] = generatedNest;
+            infoMapping[to] = generatedNest;
         }
     }
 
@@ -96,7 +96,7 @@ contract NNIncome is NestBase, INNIncome {
         
         // Check balance
         IERC20 nn = IERC20(NEST_NODE_ADDRESS);
-        uint balance = nn.balanceOf(address(msg.sender));
+        uint balance = nn.balanceOf(msg.sender);
         require(balance > 0, "NNIncome:!balance");
 
         // Calculation of ore drawing increment
@@ -106,11 +106,11 @@ contract NNIncome is NestBase, INNIncome {
         _blockCursor = block.number;
 
         // Calculation for current mining
-        uint thisAmount = (generatedNest - _infoMapping[address(msg.sender)]) * balance / NEST_NODE_TOTALSUPPLY;
+        uint thisAmount = (generatedNest - _infoMapping[msg.sender]) * balance / NEST_NODE_TOTALSUPPLY;
 
-        _infoMapping[address(msg.sender)] = generatedNest;
+        _infoMapping[msg.sender] = generatedNest;
 
-        require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(msg.sender), thisAmount), "NNIncome:!transfer");
+        require(IERC20(NEST_TOKEN_ADDRESS).transfer(msg.sender, thisAmount), "NNIncome:!transfer");
     }
 
     //---------view----------------
@@ -126,7 +126,7 @@ contract NNIncome is NestBase, INNIncome {
     /// @param owner Destination address
     /// @return Number of nest currently available
     function earned(address owner) override external view returns (uint) {
-        uint balance = IERC20(NEST_NODE_ADDRESS).balanceOf(address(owner));
+        uint balance = IERC20(NEST_NODE_ADDRESS).balanceOf(owner);
         return (_generatedNest + increment() - _infoMapping[owner]) * balance / NEST_NODE_TOTALSUPPLY;
     }
 

@@ -170,7 +170,7 @@ contract NestVote is NestBase, INestVote {
         ));
 
         // Stake nest
-        IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking));
+        IERC20(_nestTokenAddress).transferFrom(msg.sender, address(this), uint(config.proposalStaking));
 
         emit NIPSubmitted(msg.sender, contractAddress, index);
     }
@@ -186,8 +186,8 @@ contract NestVote is NestBase, INestVote {
         // 2. Check
         // Check time region
         // Note: stop time is not include stopTime
-        require (block.timestamp >= uint(p.startTime) && block.timestamp < uint(p.stopTime), "NestVote:!time");
-        require (p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
+        require(block.timestamp >= uint(p.startTime) && block.timestamp < uint(p.stopTime), "NestVote:!time");
+        require(p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
 
         // 3. Update voting ledger
         UINT storage balance = _stakedLedger[index][msg.sender];
@@ -217,7 +217,7 @@ contract NestVote is NestBase, INestVote {
         }
 
         // 3. Return staked nest
-        IERC20(_nestTokenAddress).transfer(address(msg.sender), balanceValue);
+        IERC20(_nestTokenAddress).transfer(msg.sender, balanceValue);
     }
 
     /// @dev Execute the proposal
@@ -230,8 +230,8 @@ contract NestVote is NestBase, INestVote {
         Proposal memory p = _proposalList[index];
 
         // 2. Check status
-        require (p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
-        require (block.timestamp < uint(p.stopTime), "NestVote:!time");
+        require(p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
+        require(block.timestamp < uint(p.stopTime), "NestVote:!time");
         // The target address cannot already have governance permission to prevent the governance permission from being covered
         address governance = _governance;
         require(!INestGovernance(governance).checkGovernance(p.contractAddress, 0), "NestVote:!governance");
@@ -248,7 +248,7 @@ contract NestVote is NestBase, INestVote {
 
         // 4. Execute
         _proposalList[index].state = PROPOSAL_STATE_ACCEPTED;
-        _proposalList[index].executor = address(msg.sender);
+        _proposalList[index].executor = msg.sender;
         IVotePropose(p.contractAddress).run();
 
         // 5. Delete execution permission
@@ -268,8 +268,8 @@ contract NestVote is NestBase, INestVote {
         Proposal memory p = _proposalList[index];
 
         // 2. Check state
-        require (p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
-        require (block.timestamp >= uint(p.stopTime), "NestVote:!time");
+        require(p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
+        require(block.timestamp >= uint(p.stopTime), "NestVote:!time");
 
         // 3. Update status
         _proposalList[index].state = PROPOSAL_STATE_CANCELLED;

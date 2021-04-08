@@ -261,7 +261,7 @@ contract Nest_NToken is INest_NToken {
     */
     function increaseTotal(uint256 value) override public {
         address offerMain = address(_voteFactory.checkAddress("nest.nToken.offerMain"));
-        require(address(msg.sender) == offerMain, "No authority");
+        require(msg.sender == offerMain, "No authority");
         _balances[offerMain] = _balances[offerMain].add(value);
         _totalSupply = _totalSupply.add(value);
         _recentlyUsedBlock = block.number;
@@ -394,7 +394,7 @@ contract Nest_NToken is INest_NToken {
     * @param bidder 新创建者地址
     */
     function changeBidder(address bidder) override public {
-        require(address(msg.sender) == _bidder);
+        require(msg.sender == _bidder);
         _bidder = bidder; 
     }
     

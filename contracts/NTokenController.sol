@@ -153,12 +153,12 @@ contract NTokenController is NestBase, INTokenController {
 
         // is token valid ?
         IERC20 tokenERC20 = IERC20(tokenAddress);
-        TransferHelper.safeTransferFrom(tokenAddress, address(msg.sender), address(this), 1);
+        TransferHelper.safeTransferFrom(tokenAddress, msg.sender, address(this), 1);
         require(tokenERC20.balanceOf(address(this)) >= 1, "NTokenController:!transfer");
-        TransferHelper.safeTransfer(tokenAddress, address(msg.sender), 1);
+        TransferHelper.safeTransfer(tokenAddress, msg.sender, 1);
 
         // Pay nest
-        IERC20(NEST_TOKEN_ADDRESS).transferFrom(address(msg.sender), address(governance), uint(config.openFeeNestAmount));
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(msg.sender, governance, uint(config.openFeeNestAmount));
 
         // TODO: Consider how to migrate the existing token information
         _nTokenTags[tokenAddress] = _nTokenTags[address(ntoken)] = ntokenCounter + 1;
@@ -177,7 +177,7 @@ contract NTokenController is NestBase, INTokenController {
             1
         ));
 
-        emit NTokenOpened(tokenAddress, address(ntoken), address(msg.sender));
+        emit NTokenOpened(tokenAddress, address(ntoken), msg.sender);
     }
 
     /* ========== VIEWS ========== */

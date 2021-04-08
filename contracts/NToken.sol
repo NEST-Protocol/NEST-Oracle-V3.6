@@ -59,7 +59,7 @@ contract NToken is NestBase, INToken {
     /// @param value The amount of NToken to add
     function increaseTotal(uint256 value) override public {
 
-        require(address(msg.sender) == _ntokenMiningAddress, "NToken:!Auth");
+        require(msg.sender == _ntokenMiningAddress, "NToken:!Auth");
         
         // Increases balance for target address
         _balances[msg.sender] += value;

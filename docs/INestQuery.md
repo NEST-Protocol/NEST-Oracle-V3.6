@@ -24,20 +24,28 @@
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
     /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
-    function triggeredPriceInfo(address tokenAddress) external view returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ);
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
+    function triggeredPriceInfo(address tokenAddress) external view returns (
+        uint blockNumber,
+        uint price,
+        uint avgPrice,
+        uint sigmaSQ
+    );
 ```
 
 ### 2.3. Find the price at block number
    
 ```javascript
-   /// @dev Find the price at block number
-   /// @param tokenAddress Destination token address
-   /// @param height Destination block number
-   /// @return blockNumber The block number of price
-   /// @return price The token price. (1eth equivalent to (price) token)
-   function findPrice(address tokenAddress, uint height) external view returns (uint blockNumber, uint price);
+    /// @dev Find the price at block number
+    /// @param tokenAddress Destination token address
+    /// @param height Destination block number
+    /// @return blockNumber The block number of price
+    /// @return price The token price. (1eth equivalent to (price) token)
+    function findPrice(
+        address tokenAddress,
+        uint height
+    ) external view returns (uint blockNumber, uint price);
 ```
 
 ### 2.4. Get the latest effective price
@@ -70,12 +78,12 @@
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places)
-    function latestPriceAndTriggeredPriceInfo(address tokenAddress) 
-    external 
-    view 
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
+    function latestPriceAndTriggeredPriceInfo(address tokenAddress) external view 
     returns (
-        uint latestPriceBlockNumber, 
+        uint latestPriceBlockNumber,
         uint latestPriceValue,
         uint triggeredPriceBlockNumber,
         uint triggeredPriceValue,
@@ -93,7 +101,12 @@
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function triggeredPrice2(address tokenAddress) external view returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
+    function triggeredPrice2(address tokenAddress) external view returns (
+        uint blockNumber,
+        uint price,
+        uint ntokenBlockNumber,
+        uint ntokenPrice
+    );
 ```
 
 ### 2.8. Get the full information of latest trigger price. (token and ntoken)
@@ -104,14 +117,25 @@
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
-    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, it means that the volatility has exceeded the range that can be expressed
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447, 
+    ///         it means that the volatility has exceeded the range that can be expressed
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     /// @return ntokenAvgPrice Average price of ntoken
-    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
-    function triggeredPriceInfo2(address tokenAddress) external view returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ);
+    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
+    function triggeredPriceInfo2(address tokenAddress) external view returns (
+        uint blockNumber,
+        uint price,
+        uint avgPrice,
+        uint sigmaSQ,
+        uint ntokenBlockNumber,
+        uint ntokenPrice,
+        uint ntokenAvgPrice,
+        uint ntokenSigmaSQ
+    );
 ```
 
 ### 2.9. Get the latest effective price. (token and ntoken)
@@ -123,5 +147,10 @@
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function latestPrice2(address tokenAddress) external view returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
+    function latestPrice2(address tokenAddress) external view returns (
+        uint blockNumber,
+        uint price,
+        uint ntokenBlockNumber,
+        uint ntokenPrice
+    );
 ```

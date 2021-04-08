@@ -175,8 +175,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
     /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo(address tokenAddress, address paybackAddress) override external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ) {
         
         Config memory config = _config;
@@ -211,10 +211,11 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
         _pay(tokenAddress, config.singleFee, paybackAddress);
         return INestQuery(_getNestQuery(tokenAddress)).latestPrice(tokenAddress);
     }
+
     /// @dev Get the last (num) effective price
     /// @param tokenAddress Destination token address
-    /// @param count The number of prices that want to return
     /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param count The number of prices that want to return
     /// @return An array which length is num * 2, each two element expresses one price like blockNumber｜price
     function lastPriceList(address tokenAddress, uint count, address paybackAddress) override external payable returns (uint[] memory) {
 
@@ -232,7 +233,9 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places)
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function latestPriceAndTriggeredPriceInfo(address tokenAddress, address paybackAddress) 
     override
     external 
@@ -273,13 +276,15 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
-    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, it means that the volatility has exceeded the range that can be expressed
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447, 
+    ///         it means that the volatility has exceeded the range that can be expressed
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     /// @return ntokenAvgPrice Average price of ntoken
-    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
+    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo2(address tokenAddress, address paybackAddress) override external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ) {
         
         Config memory config = _config;
@@ -290,7 +295,6 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Get the latest effective price. (token and ntoken)
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
@@ -319,8 +323,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
     /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo(address tokenAddress) override external view noContract returns (
         uint blockNumber, 
         uint price, 
@@ -365,7 +369,9 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places)
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function latestPriceAndTriggeredPriceInfo(address tokenAddress)
     override
     external 
@@ -402,13 +408,15 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
-    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, it means that the volatility has exceeded the range that can be expressed
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447, 
+    ///         it means that the volatility has exceeded the range that can be expressed
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     /// @return ntokenAvgPrice Average price of ntoken
-    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
+    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo2(address tokenAddress) override external view noContract returns (
         uint blockNumber, 
         uint price, 

@@ -15,7 +15,7 @@ contract Nest_3_VoteFactory {
     * @dev 初始化方法
     */
     constructor () {
-        _modifyAuthority[address(msg.sender)] = true;
+        _modifyAuthority[msg.sender] = true;
     }
     
     //  查询地址
