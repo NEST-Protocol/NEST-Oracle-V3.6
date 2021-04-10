@@ -33,7 +33,7 @@ contract NestLedger is NestBase, INestLedger {
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
-        require(uint(config.nestRewardScale) <= 10000, "NestLedger:value");
+        require(uint(config.nestRewardScale) <= 10000, "NestLedger:!value");
         _config = config;
     }
 

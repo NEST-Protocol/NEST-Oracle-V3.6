@@ -35,7 +35,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
-        require(uint(config.state) <= 1, "NTokenController:value");
+        require(uint(config.state) <= 1, "NTokenController:!value");
         _config = config;
     }
 

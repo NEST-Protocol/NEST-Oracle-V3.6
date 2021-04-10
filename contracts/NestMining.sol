@@ -948,12 +948,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
                     uint tmp = decodeFloat(p0.priceFloat);
                     // New price
                     uint price = totalTokenValue / totalEthNum;
-                    // Clear cumulative values
-                    totalEthNum = 0;
-                    totalTokenValue = 0;
                     // Update price
                     p0.remainNum = uint32(totalEthNum);
                     p0.priceFloat = encodeFloat(price);
+                    // Clear cumulative values
+                    totalEthNum = 0;
+                    totalTokenValue = 0;
 
                     if (tmp > 0) {
                         // Calculate average price

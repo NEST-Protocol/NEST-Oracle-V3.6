@@ -114,7 +114,7 @@ contract NestVote is NestBase, INestVote {
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
-        require(uint(config.acceptance) <= 10000, "NestVote:value");
+        require(uint(config.acceptance) <= 10000, "NestVote:!value");
         _config = config;
     }
 
