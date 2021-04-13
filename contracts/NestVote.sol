@@ -7,14 +7,13 @@ import "./interface/INestMining.sol";
 import "./interface/INestVote.sol";
 import "./interface/IVotePropose.sol";
 import "./interface/INestGovernance.sol";
+import "./interface/IProxyAdmin.sol";
 import "./NestBase.sol";
 
 /// @dev nest voting contract, implemented the voting logic
 contract NestVote is NestBase, INestVote {
     
-    constructor()
-    { 
-    }
+    // constructor() { }
 
     /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
@@ -387,5 +386,21 @@ contract NestVote is NestBase, INestVote {
     /// @return Circulation of nest
     function getNestCirculation() override public view returns (uint) {
         return _getNestCirculation(IERC20(_nestTokenAddress));
+    }
+
+    /// @dev Upgrades a proxy to the newest implementation of a contract
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param proxy Proxy to be upgraded
+    /// @param implementation the address of the Implementation
+    function upgradeProxy(address proxyAdmin, address proxy, address implementation) override external onlyGovernance {
+        IProxyAdmin(proxyAdmin).upgrade(proxy, implementation);
+    }
+
+    /// @dev Transfers ownership of the contract to a new account (`newOwner`)
+    ///      Can only be called by the current owner
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param newOwner The address of new owner
+    function transferUpgradeAuthority(address proxyAdmin, address newOwner) override external onlyGovernance {
+        IProxyAdmin(proxyAdmin).transferOwnership(newOwner);
     }
 }

@@ -10,26 +10,35 @@ import "./NestBase.sol";
 /// @dev The contract is for nest builtin contract address mapping
 abstract contract NestMapping is NestBase, INestMapping {
 
-    constructor() { }
+    // constructor() { }
 
     /// @dev Address of nest token contract
     address _nestTokenAddress;
+
     /// @dev Address of nest node contract
     address _nestNodeAddress;
+
     /// @dev INestLedger implemention contract address
     address _nestLedgerAddress;
+
     /// @dev INestMining implemention contract address for nest
     address _nestMiningAddress;
+
     /// @dev INestMining implemention contract address for ntoken
     address _ntokenMiningAddress;
+
     /// @dev INestPriceFacade implemention contract address
     address _nestPriceFacadeAddress;
+
     /// @dev INestVote implemention contract address
     address _nestVoteAddress;
+
     /// @dev INestQuery implemention contract address
     address _nestQueryAddress;
+
     /// @dev NNIncome contract address
     address _nnIncomeAddress;
+
     /// @dev INTokenController implemention contract address
     address _nTokenControllerAddress;
     

@@ -9,10 +9,10 @@ import "./NestBase.sol";
 /// @dev Nest ledger contract
 contract NestLedger is NestBase, INestLedger {
 
-    /// @param nestTokenAddress Address of nest token contract
-    constructor(address nestTokenAddress) {
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-    }
+    // /// @param nestTokenAddress Address of nest token contract
+    // constructor(address nestTokenAddress) {
+    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
+    // }
 
     /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
@@ -21,14 +21,15 @@ contract NestLedger is NestBase, INestLedger {
 
     // Configuration
     Config _config;
+
     // nest ledger
     uint _nestLedger;
+
     // ntoken ledger
     mapping(address=>UINT) _ntokenLedger;
+
     // DAO applications
     mapping(address=>uint) _applications;
-    // Address of nest token contract
-    address immutable NEST_TOKEN_ADDRESS;
 
     /// @dev Modify configuration
     /// @param config Configuration object

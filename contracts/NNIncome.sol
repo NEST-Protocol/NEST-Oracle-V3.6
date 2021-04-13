@@ -8,29 +8,31 @@ import "./interface/INNIncome.sol";
 /// @dev NestNode mining contract
 contract NNIncome is NestBase, INNIncome {
 
-    /// @param nestNodeAddress Address of nest node contract
-    /// @param nestTokenAddress Address of nest token contract
-    /// @param nestGenesisBlock Genesis block number of nest
-    constructor(address nestNodeAddress, address nestTokenAddress, uint nestGenesisBlock) {
+    // /// @param nestNodeAddress Address of nest node contract
+    // /// @param nestTokenAddress Address of nest token contract
+    // /// @param nestGenesisBlock Genesis block number of nest
+    // constructor(address nestNodeAddress, address nestTokenAddress, uint nestGenesisBlock) {
         
-        NEST_NODE_ADDRESS = nestNodeAddress;
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-        NEST_GENESIS_BLOCK = nestGenesisBlock;
+    //     NEST_NODE_ADDRESS = nestNodeAddress;
+    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
+    //     NEST_GENESIS_BLOCK = nestGenesisBlock;
 
+    //     _blockCursor = block.number;
+    // }
+
+    /// @dev To support open-zeppelin/upgrades
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    function initialize(address nestGovernanceAddress) override public {
+        super.initialize(nestGovernanceAddress);
         _blockCursor = block.number;
     }
 
     // Total supply of nest node
     uint constant NEST_NODE_TOTALSUPPLY = 1500;
 
+    // TODO: Change to 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e
     // Address of nest node contract
-    address immutable NEST_NODE_ADDRESS;
-
-    // Address of nest token contract
-    address immutable NEST_TOKEN_ADDRESS;
-
-    // Genesis block number of nest
-    uint immutable NEST_GENESIS_BLOCK;// = 6236588;
+    address constant NEST_NODE_ADDRESS = 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e;
 
     // Generated nest
     uint _generatedNest;

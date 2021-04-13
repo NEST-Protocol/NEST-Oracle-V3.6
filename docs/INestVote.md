@@ -163,6 +163,26 @@
     function getNestCirculation() external view returns (uint);
 ```
 
+### 2.12. Upgrades a proxy to the newest implementation of a contract
+
+```javascript
+    /// @dev Upgrades a proxy to the newest implementation of a contract
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param proxy Proxy to be upgraded
+    /// @param implementation the address of the Implementation
+    function upgradeProxy(address proxyAdmin, address proxy, address implementation) external;
+```
+
+### 2.13. Transfers ownership of the contract to a new account (`newOwner`)
+
+```javascript
+    /// @dev Transfers ownership of the contract to a new account (`newOwner`)
+    ///      Can only be called by the current owner
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param newOwner The address of new owner
+    function transferUpgradeAuthority(address proxyAdmin, address newOwner) external;
+```
+
 ## 3. Event Description
 
 ### 3.1. Event of submitting a voting proposal

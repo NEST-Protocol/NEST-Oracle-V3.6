@@ -338,7 +338,7 @@ contract("NestMining", async accounts => {
 
             // 修改nHBTC信息
             console.log('registerAddress(nest.nToken.offerMain)');
-            await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
+            await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address); 
             console.log('nn.changeMapping()');
             await nhbtc.changeMapping(nestGovernance.address);
             console.log('nn.setContracts()');

@@ -16,6 +16,7 @@ const NNToken = artifacts.require("NNToken");
 const Nest_NToken = artifacts.require("Nest_NToken");
 const SetQueryPrice = artifacts.require("SetQueryPrice");
 const ITransferable = artifacts.require("ITransferable");
+const UpdateAdmin = artifacts.require("UpdateAdmin");
 
 const USDT = function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
 const GWEI = function(value) { return new BN('1000000000').mul(new BN(value * 1000000)).div(new BN('1000000')); }
@@ -93,6 +94,7 @@ contract("NestMining", async accounts => {
         nTokenController: 0x57513Fc3133C7A4a930c345AB3aA9a4D21600Db9
         ht: 0xff2EDDDCF81033De38e70E6CdA75187a2cA567D9
         nht: 0x28aC53bD7e65306dF8ffccBbf77e7CcCaAf8415F
+        updateAdmin: 0xd8C3cc981394d671939E1c51a99f70e13896162e
         */
 
         // 部署测试币

@@ -12,8 +12,7 @@ import "./NestBase.sol";
 /// @dev Price call entry
 contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
-    constructor() {
-    }
+    // constructor() { }
 
     Config _config;
     address _nestLedgerAddress;

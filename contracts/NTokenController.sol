@@ -12,11 +12,11 @@ import "./NestBase.sol";
 /// @dev NToken Controller, management for ntoken
 contract NTokenController is NestBase, INTokenController {
 
-    /// @param nestTokenAddress Address of nest token contract
-    constructor(address nestTokenAddress)
-    {
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-    }
+    // /// @param nestTokenAddress Address of nest token contract
+    // constructor(address nestTokenAddress)
+    // {
+    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
+    // }
 
     // Configuration
     Config _config;
@@ -27,9 +27,6 @@ contract NTokenController is NestBase, INTokenController {
     // A mapping for all ntoken
     mapping(address=>uint) public _nTokenTags;
 
-    // Address of nest token contract
-    address immutable NEST_TOKEN_ADDRESS;
-    
     /* ========== Governance ========== */
 
     /// @dev Modify configuration
@@ -252,7 +249,7 @@ contract NTokenController is NestBase, INTokenController {
         return string(ret);
     } 
     
-    /// @dev Convert a 4-digital number into a string, from NestV3.0
+    /// @dev Convert number into a string, if less than 4 digits, make up 0 in front, from NestV3.0
     function getAddressStr(uint256 iv) public pure returns (string memory) 
     {
         bytes memory buf = new bytes(64);
