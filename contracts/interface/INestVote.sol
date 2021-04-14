@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 /// @dev This interface defines the methods for voting
 interface INestVote {
@@ -132,4 +132,16 @@ interface INestVote {
     /// @dev Get Circulation of nest
     /// @return Circulation of nest
     function getNestCirculation() external view returns (uint);
+
+    /// @dev Upgrades a proxy to the newest implementation of a contract
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param proxy Proxy to be upgraded
+    /// @param implementation the address of the Implementation
+    function upgradeProxy(address proxyAdmin, address proxy, address implementation) external;
+
+    /// @dev Transfers ownership of the contract to a new account (`newOwner`)
+    ///      Can only be called by the current owner
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param newOwner The address of new owner
+    function transferUpgradeAuthority(address proxyAdmin, address newOwner) external;
 }

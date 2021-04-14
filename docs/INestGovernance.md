@@ -40,7 +40,7 @@
 ### 2.4. Set the built-in contract address of the system
 
 ```javascript
-    /// @dev Set the built-in contract address of the system
+    /// @dev Get the built-in contract address of the system
     /// @param nestTokenAddress Address of nest token contract
     /// @param nestNodeAddress Address of nest node contract
     /// @param nestLedgerAddress INestLedger implemention contract address

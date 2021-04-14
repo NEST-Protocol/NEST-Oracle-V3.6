@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "../NNIncome.sol";
 
@@ -274,7 +274,7 @@ contract NNToken {
 
     function _transfer(address from, address to, uint value) private {
 
-        require (to != address(0), "Cannot transfer to address(0)");
+        require(to != address(0), "Cannot transfer to address(0)");
         _C_NNRewardPool.nodeCount(from, to);
 
         balanceOf[from] = balanceOf[from].sub(value);

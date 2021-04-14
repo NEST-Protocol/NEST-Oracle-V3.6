@@ -49,6 +49,7 @@ module.exports = {
      host: "127.0.0.1",     // Localhost (default: none)
      port: 7545,            // Standard Ethereum port (default: none)
      network_id: "*",       // Any network (default: none)
+     timeoutBlocks: 2000000000,  // # of blocks before a deployment times out  (minimum/default: 50)
     },
 
     // Another network with more advanced options...
@@ -90,7 +91,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.8.0",    // Fetch exact version from solc-bin (default: truffle's version)
+      version: "0.8.3",    // Fetch exact version from solc-bin (default: truffle's version)
       docker: false,        // Use "0.5.1" you've installed locally with docker (default: false)
       settings: {          // See the solidity docs for advice about optimization and evmVersion
        optimizer: {

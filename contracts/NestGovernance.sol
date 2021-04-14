@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./interface/INestGovernance.sol";
 import "./NestMapping.sol";
@@ -8,8 +8,23 @@ import "./NestMapping.sol";
 /// @dev Nest governance contract
 contract NestGovernance is NestMapping, INestGovernance {
 
-    constructor() {
-        _governance = address(this);
+    // constructor() {
+    //     _governance = address(this);
+    //     _governanceMapping[msg.sender] = GovernanceInfo(msg.sender, uint96(0xFFFFFFFFFFFFFFFFFFFFFFFF));
+    // }
+
+    /// @dev To support open-zeppelin/upgrades
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    function initialize(address nestGovernanceAddress) override public {
+
+        // While initialize NestGovernance, nestGovernanceAddress is address(this),
+        // So must let nestGovernanceAddress to 0
+        require(nestGovernanceAddress == address(0), "NestGovernance:!address");
+
+        // nestGovernanceAddress is address(this)
+        super.initialize(address(this));
+
+        // Add msg.sender to governance
         _governanceMapping[msg.sender] = GovernanceInfo(msg.sender, uint96(0xFFFFFFFFFFFFFFFFFFFFFFFF));
     }
 

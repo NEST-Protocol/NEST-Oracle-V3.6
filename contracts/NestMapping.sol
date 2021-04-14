@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import "./interface/INestMapping.sol";
@@ -10,26 +10,35 @@ import "./NestBase.sol";
 /// @dev The contract is for nest builtin contract address mapping
 abstract contract NestMapping is NestBase, INestMapping {
 
-    constructor() { }
+    // constructor() { }
 
     /// @dev Address of nest token contract
     address _nestTokenAddress;
+
     /// @dev Address of nest node contract
     address _nestNodeAddress;
+
     /// @dev INestLedger implemention contract address
     address _nestLedgerAddress;
+
     /// @dev INestMining implemention contract address for nest
     address _nestMiningAddress;
+
     /// @dev INestMining implemention contract address for ntoken
     address _ntokenMiningAddress;
+
     /// @dev INestPriceFacade implemention contract address
     address _nestPriceFacadeAddress;
+
     /// @dev INestVote implemention contract address
     address _nestVoteAddress;
+
     /// @dev INestQuery implemention contract address
     address _nestQueryAddress;
+
     /// @dev NNIncome contract address
     address _nnIncomeAddress;
+
     /// @dev INTokenController implemention contract address
     address _nTokenControllerAddress;
     
@@ -92,7 +101,7 @@ abstract contract NestMapping is NestBase, INestMapping {
         }
     }
 
-    /// @dev Set the built-in contract address of the system
+    /// @dev Get the built-in contract address of the system
     /// @return nestTokenAddress Address of nest token contract
     /// @return nestNodeAddress Address of nest node contract
     /// @return nestLedgerAddress INestLedger implemention contract address

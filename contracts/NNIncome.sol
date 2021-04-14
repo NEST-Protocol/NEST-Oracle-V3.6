@@ -1,36 +1,49 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import "./NestBase.sol";
 import "./interface/INNIncome.sol";
+import "./interface/INestGovernance.sol";
 
 /// @dev NestNode mining contract
 contract NNIncome is NestBase, INNIncome {
 
-    /// @param nestNodeAddress Address of nest node contract
-    /// @param nestTokenAddress Address of nest token contract
-    /// @param nestGenesisBlock Genesis block number of nest
-    constructor(address nestNodeAddress, address nestTokenAddress, uint nestGenesisBlock) {
+    // /// @param nestNodeAddress Address of nest node contract
+    // /// @param nestTokenAddress Address of nest token contract
+    // /// @param nestGenesisBlock Genesis block number of nest
+    // constructor(address nestNodeAddress, address nestTokenAddress, uint nestGenesisBlock) {
         
-        NEST_NODE_ADDRESS = nestNodeAddress;
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-        NEST_GENESIS_BLOCK = nestGenesisBlock;
+    //     NEST_NODE_ADDRESS = nestNodeAddress;
+    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
+    //     NEST_GENESIS_BLOCK = nestGenesisBlock;
 
+    //     _blockCursor = block.number;
+    // }
+
+    /// @dev To support open-zeppelin/upgrades
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    function initialize(address nestGovernanceAddress) override public {
+        super.initialize(nestGovernanceAddress);
         _blockCursor = block.number;
+    }
+
+    // TODO: This method is for testing, it should be deleted for mainnet
+    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call
+    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
+    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    function update(address nestGovernanceAddress) override public {
+        super.update(nestGovernanceAddress);
+        NEST_NODE_ADDRESS = INestGovernance(nestGovernanceAddress).getNestNodeAddress();
     }
 
     // Total supply of nest node
     uint constant NEST_NODE_TOTALSUPPLY = 1500;
 
+    // TODO: Define NEST_NODE_ADDRESS as variable is for testing, it should be constant for mainnet 
     // Address of nest node contract
-    address immutable NEST_NODE_ADDRESS;
-
-    // Address of nest token contract
-    address immutable NEST_TOKEN_ADDRESS;
-
-    // Genesis block number of nest
-    uint immutable NEST_GENESIS_BLOCK;// = 6236588;
+    // address constant NEST_NODE_ADDRESS = 0xB4ca64C3820E3B837bA3f1475fc871FD1C3f232a;
+    address NEST_NODE_ADDRESS;
 
     // Generated nest
     uint _generatedNest;
@@ -59,7 +72,7 @@ contract NNIncome is NestBase, INNIncome {
         
         // Check balance
         IERC20 nn = IERC20(NEST_NODE_ADDRESS);
-        uint balanceFrom = nn.balanceOf(address(from));
+        uint balanceFrom = nn.balanceOf(from);
         require(balanceFrom > 0, "NNIncome:!balance");
 
         // Calculation of ore drawing increment
@@ -70,24 +83,24 @@ contract NNIncome is NestBase, INNIncome {
 
         mapping(address=>uint) storage infoMapping = _infoMapping;
         // Calculation mining amount for (from)
-        uint thisAmountFrom = (generatedNest - infoMapping[address(from)]) * balanceFrom / NEST_NODE_TOTALSUPPLY;
-        infoMapping[address(from)] = generatedNest;
+        uint thisAmountFrom = (generatedNest - infoMapping[from]) * balanceFrom / NEST_NODE_TOTALSUPPLY;
+        infoMapping[from] = generatedNest;
 
         if (thisAmountFrom > 0) {
-            require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(from), thisAmountFrom), "NNIncome:!transfer from");
+            require(IERC20(NEST_TOKEN_ADDRESS).transfer(from, thisAmountFrom), "NNIncome:!transfer from");
         }
 
         // Calculation mining amount for (to)
-        uint balanceTo = nn.balanceOf(address(to));
+        uint balanceTo = nn.balanceOf(to);
         if (balanceTo > 0) {
-            uint thisAmountTo = (generatedNest - infoMapping[address(to)]) * balanceTo / NEST_NODE_TOTALSUPPLY;
-            infoMapping[address(to)] = generatedNest;
+            uint thisAmountTo = (generatedNest - infoMapping[to]) * balanceTo / NEST_NODE_TOTALSUPPLY;
+            infoMapping[to] = generatedNest;
 
             if (thisAmountTo > 0) {
-                require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(to), thisAmountTo), "NNIncome:!transfer to");
+                require(IERC20(NEST_TOKEN_ADDRESS).transfer(to, thisAmountTo), "NNIncome:!transfer to");
             }
         } else {
-            infoMapping[address(to)] = generatedNest;
+            infoMapping[to] = generatedNest;
         }
     }
 
@@ -96,7 +109,7 @@ contract NNIncome is NestBase, INNIncome {
         
         // Check balance
         IERC20 nn = IERC20(NEST_NODE_ADDRESS);
-        uint balance = nn.balanceOf(address(msg.sender));
+        uint balance = nn.balanceOf(msg.sender);
         require(balance > 0, "NNIncome:!balance");
 
         // Calculation of ore drawing increment
@@ -106,11 +119,11 @@ contract NNIncome is NestBase, INNIncome {
         _blockCursor = block.number;
 
         // Calculation for current mining
-        uint thisAmount = (generatedNest - _infoMapping[address(msg.sender)]) * balance / NEST_NODE_TOTALSUPPLY;
+        uint thisAmount = (generatedNest - _infoMapping[msg.sender]) * balance / NEST_NODE_TOTALSUPPLY;
 
-        _infoMapping[address(msg.sender)] = generatedNest;
+        _infoMapping[msg.sender] = generatedNest;
 
-        require(IERC20(NEST_TOKEN_ADDRESS).transfer(address(msg.sender), thisAmount), "NNIncome:!transfer");
+        require(IERC20(NEST_TOKEN_ADDRESS).transfer(msg.sender, thisAmount), "NNIncome:!transfer");
     }
 
     //---------view----------------
@@ -126,7 +139,7 @@ contract NNIncome is NestBase, INNIncome {
     /// @param owner Destination address
     /// @return Number of nest currently available
     function earned(address owner) override external view returns (uint) {
-        uint balance = IERC20(NEST_NODE_ADDRESS).balanceOf(address(owner));
+        uint balance = IERC20(NEST_NODE_ADDRESS).balanceOf(owner);
         return (_generatedNest + increment() - _infoMapping[owner]) * balance / NEST_NODE_TOTALSUPPLY;
     }
 
@@ -147,7 +160,7 @@ contract NNIncome is NestBase, INNIncome {
     // The decay limit of nest ore drawing becomes stable after exceeding this interval. 24 million blocks, about 10 years
     uint constant NEST_REDUCTION_LIMIT = 24000000; // NEST_REDUCTION_SPAN * 10;
     // Attenuation gradient array, each attenuation step value occupies 16 bits. The attenuation value is an integer
-    uint constant NEST_REDUCTION_STEPS = 0x280035004300530068008300a300cc010001400190;
+    uint constant NEST_REDUCTION_STEPS = 0x280035004300530068008300A300CC010001400190;
         // 0
         // | (uint(400 / uint(1)) << (16 * 0))
         // | (uint(400 * 8 / uint(10)) << (16 * 1))

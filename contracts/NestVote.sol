@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import "./interface/INestMining.sol";
 import "./interface/INestVote.sol";
 import "./interface/IVotePropose.sol";
 import "./interface/INestGovernance.sol";
+import "./interface/IProxyAdmin.sol";
 import "./NestBase.sol";
 
 /// @dev nest voting contract, implemented the voting logic
-contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
+contract NestVote is NestBase, INestVote {
     
-    constructor()
-    { 
-    }
+    // constructor() { }
 
     /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
@@ -52,8 +51,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
         uint96 gainValue;
 
-        // The state of this proposal
-        uint32 state;  // 0: proposed | 1: accepted | 2: cancelled
+        // The state of this proposal. 0: proposed | 1: accepted | 2: cancelled
+        uint32 state;
 
         // The executor of this proposal
         address executor;
@@ -71,7 +70,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     mapping(uint =>mapping(address =>UINT)) public _stakedLedger;
     
     address _nestLedgerAddress;
-    address _nestTokenAddress;
+    //address _nestTokenAddress;
     address _nestMiningAddress;
     address _nnIncomeAddress;
 
@@ -89,7 +88,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
         (
             //address nestTokenAddress
-            _nestTokenAddress, 
+            ,//_nestTokenAddress, 
             //address nestNodeAddress
             ,
             //address nestLedgerAddress
@@ -114,7 +113,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
-        require(uint(config.acceptance) <= 10000, "NestVote:value");
+        require(uint(config.acceptance) <= 10000, "NestVote:!value");
         _config = config;
     }
 
@@ -170,7 +169,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         ));
 
         // Stake nest
-        IERC20(_nestTokenAddress).transferFrom(address(msg.sender), address(this), uint(config.proposalStaking));
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(msg.sender, address(this), uint(config.proposalStaking));
 
         emit NIPSubmitted(msg.sender, contractAddress, index);
     }
@@ -186,8 +185,8 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         // 2. Check
         // Check time region
         // Note: stop time is not include stopTime
-        require (block.timestamp >= uint(p.startTime) && block.timestamp < uint(p.stopTime), "NestVote:!time");
-        require (p.state == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
+        require(block.timestamp >= uint(p.startTime) && block.timestamp < uint(p.stopTime), "NestVote:!time");
+        require(p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
 
         // 3. Update voting ledger
         UINT storage balance = _stakedLedger[index][msg.sender];
@@ -197,7 +196,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         _proposalList[index].gainValue = uint96(uint(p.gainValue) + value);
 
         // 5. Stake nest
-        IERC20(_nestTokenAddress).transferFrom(msg.sender, address(this), value);
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(msg.sender, address(this), value);
 
         emit NIPVote(msg.sender, index, value);
     }
@@ -212,12 +211,12 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         balance.value = 0;
 
         // 2. In the proposal state, the number of votes obtained needs to be updated
-        if (uint(_proposalList[index].state) == PROPOSAL_STATE_PROPOSED) {
+        if (_proposalList[index].state == PROPOSAL_STATE_PROPOSED) {
             _proposalList[index].gainValue = uint96(uint(_proposalList[index].gainValue) - balanceValue);
         }
 
         // 3. Return staked nest
-        IERC20(_nestTokenAddress).transfer(address(msg.sender), balanceValue);
+        IERC20(NEST_TOKEN_ADDRESS).transfer(msg.sender, balanceValue);
     }
 
     /// @dev Execute the proposal
@@ -230,14 +229,14 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         Proposal memory p = _proposalList[index];
 
         // 2. Check status
-        require (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
-        require (block.timestamp < uint(p.stopTime), "NestVote:!time");
+        require(p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
+        require(block.timestamp < uint(p.stopTime), "NestVote:!time");
         // The target address cannot already have governance permission to prevent the governance permission from being covered
         address governance = _governance;
         require(!INestGovernance(governance).checkGovernance(p.contractAddress, 0), "NestVote:!governance");
 
         // 3. Check the gaine rate
-        IERC20 nest = IERC20(_nestTokenAddress);
+        IERC20 nest = IERC20(NEST_TOKEN_ADDRESS);
 
         // Calculate the circulation of nest
         uint nestCirculation = _getNestCirculation(nest);
@@ -248,7 +247,7 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
 
         // 4. Execute
         _proposalList[index].state = PROPOSAL_STATE_ACCEPTED;
-        _proposalList[index].executor = address(msg.sender);
+        _proposalList[index].executor = msg.sender;
         IVotePropose(p.contractAddress).run();
 
         // 5. Delete execution permission
@@ -268,14 +267,14 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
         Proposal memory p = _proposalList[index];
 
         // 2. Check state
-        require (uint(p.state) == uint(PROPOSAL_STATE_PROPOSED), "NestVote:!state");
-        require (block.timestamp >= uint(p.stopTime), "NestVote:!time");
+        require(p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
+        require(block.timestamp >= uint(p.stopTime), "NestVote:!time");
 
         // 3. Update status
         _proposalList[index].state = PROPOSAL_STATE_CANCELLED;
 
         // 4. Return staked nest
-        IERC20(_nestTokenAddress).transfer(p.proposer, uint(p.staked));
+        IERC20(NEST_TOKEN_ADDRESS).transfer(p.proposer, uint(p.staked));
     }
 
     // Convert PriceSheet to PriceSheetView
@@ -386,6 +385,22 @@ contract NestVote is NestBase, INestVote {// is ReentrancyGuard {
     /// @dev Get Circulation of nest
     /// @return Circulation of nest
     function getNestCirculation() override public view returns (uint) {
-        return _getNestCirculation(IERC20(_nestTokenAddress));
+        return _getNestCirculation(IERC20(NEST_TOKEN_ADDRESS));
+    }
+
+    /// @dev Upgrades a proxy to the newest implementation of a contract
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param proxy Proxy to be upgraded
+    /// @param implementation the address of the Implementation
+    function upgradeProxy(address proxyAdmin, address proxy, address implementation) override external onlyGovernance {
+        IProxyAdmin(proxyAdmin).upgrade(proxy, implementation);
+    }
+
+    /// @dev Transfers ownership of the contract to a new account (`newOwner`)
+    ///      Can only be called by the current owner
+    /// @param proxyAdmin The address of ProxyAdmin
+    /// @param newOwner The address of new owner
+    function transferUpgradeAuthority(address proxyAdmin, address newOwner) override external onlyGovernance {
+        IProxyAdmin(proxyAdmin).transferOwnership(newOwner);
     }
 }

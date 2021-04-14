@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/TransferHelper.sol";
 import "./interface/INestLedger.sol";
@@ -9,10 +9,10 @@ import "./NestBase.sol";
 /// @dev Nest ledger contract
 contract NestLedger is NestBase, INestLedger {
 
-    /// @param nestTokenAddress Address of nest token contract
-    constructor(address nestTokenAddress) {
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-    }
+    // /// @param nestTokenAddress Address of nest token contract
+    // constructor(address nestTokenAddress) {
+    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
+    // }
 
     /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
@@ -21,19 +21,20 @@ contract NestLedger is NestBase, INestLedger {
 
     // Configuration
     Config _config;
+
     // nest ledger
     uint _nestLedger;
+
     // ntoken ledger
     mapping(address=>UINT) _ntokenLedger;
+
     // DAO applications
     mapping(address=>uint) _applications;
-    // Address of nest token contract
-    address immutable NEST_TOKEN_ADDRESS;
 
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
-        require(uint(config.nestRewardScale) <= 10000, "NestLedger:value");
+        require(uint(config.nestRewardScale) <= 10000, "NestLedger:!value");
         _config = config;
     }
 
@@ -105,7 +106,7 @@ contract NestLedger is NestBase, INestLedger {
     /// @param value Amount to receive
     function pay(address ntokenAddress, address tokenAddress, address to, uint value) override external {
 
-        require(_applications[msg.sender] > 0, "NestLedger:!app");
+        require(_applications[msg.sender] == 1, "NestLedger:!app");
 
         // Pay eth from ledger
         if (tokenAddress == address(0)) {
@@ -135,7 +136,7 @@ contract NestLedger is NestBase, INestLedger {
     /// @param value Amount to receive
     function settle(address ntokenAddress, address tokenAddress, address to, uint value) override external payable {
 
-        require(_applications[msg.sender] > 0, "NestLedger:!app");
+        require(_applications[msg.sender] == 1, "NestLedger:!app");
 
         // Pay eth from ledger
         if (tokenAddress == address(0)) {

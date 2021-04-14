@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 /**
  * @title 投票工厂+ 映射
@@ -15,7 +15,7 @@ contract Nest_3_VoteFactory {
     * @dev 初始化方法
     */
     constructor () {
-        _modifyAuthority[address(msg.sender)] = true;
+        _modifyAuthority[msg.sender] = true;
     }
     
     //  查询地址

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import './lib/TransferHelper.sol';
@@ -12,11 +12,11 @@ import "./NestBase.sol";
 /// @dev NToken Controller, management for ntoken
 contract NTokenController is NestBase, INTokenController {
 
-    /// @param nestTokenAddress Address of nest token contract
-    constructor(address nestTokenAddress)
-    {
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-    }
+    // /// @param nestTokenAddress Address of nest token contract
+    // constructor(address nestTokenAddress)
+    // {
+    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
+    // }
 
     // Configuration
     Config _config;
@@ -27,15 +27,12 @@ contract NTokenController is NestBase, INTokenController {
     // A mapping for all ntoken
     mapping(address=>uint) public _nTokenTags;
 
-    // Address of nest token contract
-    address immutable NEST_TOKEN_ADDRESS;
-    
     /* ========== Governance ========== */
 
     /// @dev Modify configuration
     /// @param config Configuration object
     function setConfig(Config memory config) override external onlyGovernance {
-        require(uint(config.state) <= 1, "NTokenController:value");
+        require(uint(config.state) <= 1, "NTokenController:!value");
         _config = config;
     }
 
@@ -143,22 +140,20 @@ contract NTokenController is NestBase, INTokenController {
         uint ntokenCounter = _nTokenTagList.length;
 
         // Create ntoken contract
-        NToken ntoken = new NToken(strConcat("NToken",
-            getAddressStr(ntokenCounter)),
-            strConcat("N", getAddressStr(ntokenCounter))
-        );
+        string memory sn = getAddressStr(ntokenCounter);
+        NToken ntoken = new NToken(strConcat("NToken", sn), strConcat("N", sn));
 
         address governance = _governance;
+        ntoken.initialize(address(this));
         ntoken.update(governance);
 
-        // is token valid ?
-        IERC20 tokenERC20 = IERC20(tokenAddress);
-        TransferHelper.safeTransferFrom(tokenAddress, address(msg.sender), address(this), 1);
-        require(tokenERC20.balanceOf(address(this)) >= 1, "NTokenController:!transfer");
-        TransferHelper.safeTransfer(tokenAddress, address(msg.sender), 1);
+        // Is token valid ?
+        TransferHelper.safeTransferFrom(tokenAddress, msg.sender, address(this), 1);
+        require(IERC20(tokenAddress).balanceOf(address(this)) >= 1, "NTokenController:!transfer");
+        TransferHelper.safeTransfer(tokenAddress, msg.sender, 1);
 
         // Pay nest
-        IERC20(NEST_TOKEN_ADDRESS).transferFrom(address(msg.sender), address(governance), uint(config.openFeeNestAmount));
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(msg.sender, governance, uint(config.openFeeNestAmount));
 
         // TODO: Consider how to migrate the existing token information
         _nTokenTags[tokenAddress] = _nTokenTags[address(ntoken)] = ntokenCounter + 1;
@@ -177,7 +172,7 @@ contract NTokenController is NestBase, INTokenController {
             1
         ));
 
-        emit NTokenOpened(tokenAddress, address(ntoken), address(msg.sender));
+        emit NTokenOpened(tokenAddress, address(ntoken), msg.sender);
     }
 
     /* ========== VIEWS ========== */
@@ -252,7 +247,7 @@ contract NTokenController is NestBase, INTokenController {
         return string(ret);
     } 
     
-    /// @dev Convert a 4-digital number into a string, from NestV3.0
+    /// @dev Convert number into a string, if less than 4 digits, make up 0 in front, from NestV3.0
     function getAddressStr(uint256 iv) public pure returns (string memory) 
     {
         bytes memory buf = new bytes(64);

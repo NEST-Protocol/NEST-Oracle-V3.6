@@ -90,6 +90,8 @@ contract("NestMining", async accounts => {
         nestVote: 0xD2BD52C52c0C2A220Ce2750e41Bc09b84526f26E
         nnIncome: 0xD5A32f6de0997749cb6F2F5B6042e2f878688aE2
         nTokenController: 0x57513Fc3133C7A4a930c345AB3aA9a4D21600Db9
+        ht: 0xff2EDDDCF81033De38e70E6CdA75187a2cA567D9
+        nht: 0x28aC53bD7e65306dF8ffccBbf77e7CcCaAf8415F
         */
 
         // 部署测试币
@@ -336,7 +338,7 @@ contract("NestMining", async accounts => {
 
             // 修改nHBTC信息
             console.log('registerAddress(nest.nToken.offerMain)');
-            await nestGovernance.registerAddress('nest.nToken.offerMain', nestMining.address);
+            await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address); 
             console.log('nn.changeMapping()');
             await nhbtc.changeMapping(nestGovernance.address);
             console.log('nn.setContracts()');

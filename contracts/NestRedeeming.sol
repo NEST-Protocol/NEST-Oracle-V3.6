@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 import "./lib/IERC20.sol";
 import "./interface/INestLedger.sol";
@@ -11,10 +11,10 @@ import "./NestBase.sol";
 /// @dev The contract is for redeeming nest token and getting ETH in return
 contract NestRedeeming is NestBase, INestRedeeming {
 
-    /// @param nestTokenAddress Address of nest token contract
-    constructor(address nestTokenAddress) {
-        NEST_TOKEN_ADDRESS = nestTokenAddress;
-    }
+    // /// @param nestTokenAddress Address of nest token contract
+    // constructor(address nestTokenAddress) {
+    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
+    // }
 
     /// @dev Governance information
     struct GovernanceInfo {
@@ -43,7 +43,6 @@ contract NestRedeeming is NestBase, INestRedeeming {
 
     address _nestLedgerAddress;
     address _nestPriceFacadeAddress;
-    address immutable NEST_TOKEN_ADDRESS;
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
@@ -132,7 +131,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
         
         // 7. Ntoken transferred to redeem
         address nestLedgerAddress = _nestLedgerAddress;
-        TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, address(nestLedgerAddress), amount);
+        TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, nestLedgerAddress, amount);
         
         // 8. Settlement
         // If a token is not a real token, it should also have no funds in the account book and cannot complete the settlement. 

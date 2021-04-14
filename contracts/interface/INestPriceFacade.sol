@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.3;
 
 /// @dev This interface defines the methods for price call entry
 interface INestPriceFacade {
@@ -60,8 +60,8 @@ interface INestPriceFacade {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
     /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo(address tokenAddress, address paybackAddress) external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ);
 
     /// @dev Find the price at block number
@@ -94,7 +94,9 @@ interface INestPriceFacade {
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places)
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function latestPriceAndTriggeredPriceInfo(address tokenAddress, address paybackAddress) 
     external 
     payable 
@@ -122,13 +124,15 @@ interface INestPriceFacade {
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
-    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, it means that the volatility has exceeded the range that can be expressed
+    /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447, 
+    ///         it means that the volatility has exceeded the range that can be expressed
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     /// @return ntokenAvgPrice Average price of ntoken
-    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    //          the volatility cannot exceed 1. Correspondingly, when the return value is equal to 9999999999996447, 
-    //          it means that the volatility has exceeded the range that can be expressed
+    /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
     function triggeredPriceInfo2(address tokenAddress, address paybackAddress) external payable returns (uint blockNumber, uint price, uint avgPrice, uint sigmaSQ, uint ntokenBlockNumber, uint ntokenPrice, uint ntokenAvgPrice, uint ntokenSigmaSQ);
 
     /// @dev Get the latest effective price. (token and ntoken)
