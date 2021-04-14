@@ -140,18 +140,16 @@ contract NTokenController is NestBase, INTokenController {
         uint ntokenCounter = _nTokenTagList.length;
 
         // Create ntoken contract
-        NToken ntoken = new NToken(strConcat("NToken",
-            getAddressStr(ntokenCounter)),
-            strConcat("N", getAddressStr(ntokenCounter))
-        );
+        string memory sn = getAddressStr(ntokenCounter);
+        NToken ntoken = new NToken(strConcat("NToken", sn), strConcat("N", sn));
 
         address governance = _governance;
+        ntoken.initialize(address(this));
         ntoken.update(governance);
 
-        // is token valid ?
-        IERC20 tokenERC20 = IERC20(tokenAddress);
+        // Is token valid ?
         TransferHelper.safeTransferFrom(tokenAddress, msg.sender, address(this), 1);
-        require(tokenERC20.balanceOf(address(this)) >= 1, "NTokenController:!transfer");
+        require(IERC20(tokenAddress).balanceOf(address(this)) >= 1, "NTokenController:!transfer");
         TransferHelper.safeTransfer(tokenAddress, msg.sender, 1);
 
         // Pay nest

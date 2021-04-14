@@ -1053,7 +1053,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         _stat(_config, channel, channel.sheets);
     }
 
-    // Deposit the accumulated dividends into nest ledger
+    // Collect and deposit the commission into NestLedger
     function _collect(
         Config memory config,
         PriceChannel storage channel,

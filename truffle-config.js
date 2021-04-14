@@ -49,6 +49,7 @@ module.exports = {
      host: "127.0.0.1",     // Localhost (default: none)
      port: 7545,            // Standard Ethereum port (default: none)
      network_id: "*",       // Any network (default: none)
+     timeoutBlocks: 2000000000,  // # of blocks before a deployment times out  (minimum/default: 50)
     },
 
     // Another network with more advanced options...

@@ -70,7 +70,7 @@ contract NestVote is NestBase, INestVote {
     mapping(uint =>mapping(address =>UINT)) public _stakedLedger;
     
     address _nestLedgerAddress;
-    address _nestTokenAddress;
+    //address _nestTokenAddress;
     address _nestMiningAddress;
     address _nnIncomeAddress;
 
@@ -88,7 +88,7 @@ contract NestVote is NestBase, INestVote {
 
         (
             //address nestTokenAddress
-            _nestTokenAddress, 
+            ,//_nestTokenAddress, 
             //address nestNodeAddress
             ,
             //address nestLedgerAddress
@@ -169,7 +169,7 @@ contract NestVote is NestBase, INestVote {
         ));
 
         // Stake nest
-        IERC20(_nestTokenAddress).transferFrom(msg.sender, address(this), uint(config.proposalStaking));
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(msg.sender, address(this), uint(config.proposalStaking));
 
         emit NIPSubmitted(msg.sender, contractAddress, index);
     }
@@ -196,7 +196,7 @@ contract NestVote is NestBase, INestVote {
         _proposalList[index].gainValue = uint96(uint(p.gainValue) + value);
 
         // 5. Stake nest
-        IERC20(_nestTokenAddress).transferFrom(msg.sender, address(this), value);
+        IERC20(NEST_TOKEN_ADDRESS).transferFrom(msg.sender, address(this), value);
 
         emit NIPVote(msg.sender, index, value);
     }
@@ -216,7 +216,7 @@ contract NestVote is NestBase, INestVote {
         }
 
         // 3. Return staked nest
-        IERC20(_nestTokenAddress).transfer(msg.sender, balanceValue);
+        IERC20(NEST_TOKEN_ADDRESS).transfer(msg.sender, balanceValue);
     }
 
     /// @dev Execute the proposal
@@ -236,7 +236,7 @@ contract NestVote is NestBase, INestVote {
         require(!INestGovernance(governance).checkGovernance(p.contractAddress, 0), "NestVote:!governance");
 
         // 3. Check the gaine rate
-        IERC20 nest = IERC20(_nestTokenAddress);
+        IERC20 nest = IERC20(NEST_TOKEN_ADDRESS);
 
         // Calculate the circulation of nest
         uint nestCirculation = _getNestCirculation(nest);
@@ -274,7 +274,7 @@ contract NestVote is NestBase, INestVote {
         _proposalList[index].state = PROPOSAL_STATE_CANCELLED;
 
         // 4. Return staked nest
-        IERC20(_nestTokenAddress).transfer(p.proposer, uint(p.staked));
+        IERC20(NEST_TOKEN_ADDRESS).transfer(p.proposer, uint(p.staked));
     }
 
     // Convert PriceSheet to PriceSheetView
@@ -385,7 +385,7 @@ contract NestVote is NestBase, INestVote {
     /// @dev Get Circulation of nest
     /// @return Circulation of nest
     function getNestCirculation() override public view returns (uint) {
-        return _getNestCirculation(IERC20(_nestTokenAddress));
+        return _getNestCirculation(IERC20(NEST_TOKEN_ADDRESS));
     }
 
     /// @dev Upgrades a proxy to the newest implementation of a contract

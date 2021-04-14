@@ -262,6 +262,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
 
         Config memory config = _config;
 
+        tokenAmountPerEth = tokenAmountPerEth * 3;
         // 1. Check arguments
         require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NM:!ethNum");
         require(tokenAmountPerEth > 0, "NM:!price");
