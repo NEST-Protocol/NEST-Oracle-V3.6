@@ -10,7 +10,7 @@ contract("NestMining", async accounts => {
     it('test', async () => {
 
         const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
-        
+        return;
         const account0 = accounts[0];
         const account1 = accounts[1];
 

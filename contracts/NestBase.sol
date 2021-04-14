@@ -20,11 +20,8 @@ contract NestBase {
     uint constant NEST_GENESIS_BLOCK = 0;
 
     bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
-
     // TODO: This method is for testing, it should be deleted for mainnet
-    /**
-    * @return adm The admin slot.
-    */
+    /// @return adm The admin slot.
     function getAdmin() external view returns (address adm) {
         bytes32 slot = ADMIN_SLOT;
         assembly {
@@ -48,8 +45,10 @@ contract NestBase {
     function update(address nestGovernanceAddress) virtual public {
 
         address governance = _governance;
-        require(msg.sender == governance || INestGovernance(governance).checkGovernance(msg.sender, 0), "NEST:!gov");
+        require(governance == msg.sender || INestGovernance(governance).checkGovernance(msg.sender, 0), "NEST:!gov");
         _governance = nestGovernanceAddress;
+    
+        // TODO: This is for testing, it should be deleted for mainnet
         NEST_TOKEN_ADDRESS = INestGovernance(nestGovernanceAddress).getNestTokenAddress();
     }
 
