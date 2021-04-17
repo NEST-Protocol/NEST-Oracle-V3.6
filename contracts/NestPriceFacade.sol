@@ -33,7 +33,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function update(address nestGovernanceAddress) override public {
 
         super.update(nestGovernanceAddress);
@@ -88,21 +88,21 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
         return _addressFlags[addr];
     }
 
-    /// @dev Set INestQuery implemention contract address for token
+    /// @dev Set INestQuery implementation contract address for token
     /// @param tokenAddress Destination token address
-    /// @param nestQueryAddress INestQuery implemention contract address, 0 means delete
+    /// @param nestQueryAddress INestQuery implementation contract address, 0 means delete
     function setNestQuery(address tokenAddress, address nestQueryAddress) override external onlyGovernance {
         _nestQueryMapping[tokenAddress] = nestQueryAddress;
     }
 
-    /// @dev Get INestQuery implemention contract address for token
+    /// @dev Get INestQuery implementation contract address for token
     /// @param tokenAddress Destination token address
-    /// @return INestQuery implemention contract address, 0 means use default
+    /// @return INestQuery implementation contract address, 0 means use default
     function getNestQuery(address tokenAddress) override external view returns (address) {
         return _nestQueryMapping[tokenAddress];
     }
 
-    // Get INestQuery implemention contract address for token
+    // Get INestQuery implementation contract address for token
     function _getNestQuery(address tokenAddress) private view returns (address) {
         address addr = _nestQueryMapping[tokenAddress];
         if (addr == address(0)) {
@@ -147,7 +147,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
         } else {
             require(msg.value == fee, "NestPriceFacade:!fee");
         }
-        INestLedger(_nestLedgerAddress).addReward { 
+        INestLedger(_nestLedgerAddress).addETHReward { 
             value: fee 
         } (_getNTokenAddress(tokenAddress));
     }

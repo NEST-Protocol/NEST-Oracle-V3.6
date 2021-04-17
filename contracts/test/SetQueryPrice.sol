@@ -21,14 +21,14 @@ contract SetQueryPrice is IVotePropose {
         // /// @dev Set the built-in contract address of the system
         // /// @return nestTokenAddress Address of nest token contract
         // /// @return nestNodeAddress Address of nest node contract
-        // /// @return nestLedgerAddress INestLedger implemention contract address
-        // /// @return nestMiningAddress INestMining implemention contract address for nest
-        // /// @return ntokenMiningAddress INestMining implemention contract address for ntoken
-        // /// @return nestPriceFacadeAddress INestPriceFacade implemention contract address
-        // /// @return nestVoteAddress INestVote implemention contract address
-        // /// @return nestQueryAddress INestQuery implemention contract address
+        // /// @return nestLedgerAddress INestLedger implementation contract address
+        // /// @return nestMiningAddress INestMining implementation contract address for nest
+        // /// @return ntokenMiningAddress INestMining implementation contract address for ntoken
+        // /// @return nestPriceFacadeAddress INestPriceFacade implementation contract address
+        // /// @return nestVoteAddress INestVote implementation contract address
+        // /// @return nestQueryAddress INestQuery implementation contract address
         // /// @return nnIncomeAddress NNIncome contract address
-        // /// @return nTokenControllerAddress INTokenController implemention contract address
+        // /// @return nTokenControllerAddress INTokenController implementation contract address
         // (
         //     , //address nestTokenAddress,
         //     , //address nestNodeAddress,

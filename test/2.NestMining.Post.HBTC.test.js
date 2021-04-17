@@ -104,10 +104,10 @@ contract("NestMining", async accounts => {
             assert.equal(0, (await nest.balanceOf(nestLedger.address)).cmp(ETHER(0)));
 
             // 检查ntoken账本
-            console.log('nest reward: ' + (await nestLedger.totalRewards(nest.address)).toString());
-            console.log('nhbtc reward: ' + (await nestLedger.totalRewards(nhbtc.address)).toString());
-            assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(ETHER(0.1 * 0.2)));
-            assert.equal(0, (await nestLedger.totalRewards(nhbtc.address)).cmp(ETHER(0.1 * 0.8)));
+            console.log('nest reward: ' + (await nestLedger.totalETHRewards(nest.address)).toString());
+            console.log('nhbtc reward: ' + (await nestLedger.totalETHRewards(nhbtc.address)).toString());
+            assert.equal(0, (await nestLedger.totalETHRewards(nest.address)).cmp(ETHER(0.1 * 0.2)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nhbtc.address)).cmp(ETHER(0.1 * 0.8)));
             
             mined = nHBTC(10 * 4 * 0.95);
             prevBlockNumber = receipt.receipt.blockNumber;
@@ -143,8 +143,8 @@ contract("NestMining", async accounts => {
             assert.equal(0, (await nest.balanceOf(nestLedger.address)).cmp(ETHER(0)));
 
             // 检查ntoken账本
-            assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(ETHER(0.1 * 0.2)));
-            assert.equal(0, (await nestLedger.totalRewards(nhbtc.address)).cmp(ETHER(0.1 * 0.8)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nest.address)).cmp(ETHER(0.1 * 0.2)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nhbtc.address)).cmp(ETHER(0.1 * 0.8)));
 
             // 3. 取回
             await ntokenMining.withdraw(hbtc.address, await ntokenMining.balanceOf(hbtc.address, account0));
@@ -175,8 +175,8 @@ contract("NestMining", async accounts => {
             assert.equal(0, (await nest.balanceOf(nestLedger.address)).cmp(ETHER(0)));
 
             // 检查ntoken账本
-            assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(ETHER(0.1 * 0.2)));
-            assert.equal(0, (await nestLedger.totalRewards(nhbtc.address)).cmp(ETHER(0.1 * 0.8)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nest.address)).cmp(ETHER(0.1 * 0.2)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nhbtc.address)).cmp(ETHER(0.1 * 0.8)));
 
             LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             await skipBlocks(18);

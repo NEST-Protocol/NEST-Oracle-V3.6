@@ -93,8 +93,8 @@ contract("NestMining", async accounts => {
             await ntokenMining.post(hbtc.address, 30, ETHER(256), { value: ETHER(30.1) });
             await ntokenMining.settle(hbtc.address);
             //await ntokenMining.post(nhbtc.address, 30, ETHER(256), { value: ETHER(30.1) });
-            console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             console.log('nestLedger eth: ' + await web3.eth.getBalance(nestLedger.address));
             console.log('');
         }
@@ -160,8 +160,8 @@ contract("NestMining", async accounts => {
             // 1. post
             await ntokenMining.post2(hbtc.address, 30, ETHER(256), ETHER(51200 + 512 * 4), { value: ETHER(60 + 10) });
 
-            console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             console.log('nestLedger eth: ' + await web3.eth.getBalance(nestLedger.address));
 
             await ntokenMining.post2(hbtc.address, 30, ETHER(256), ETHER(51200 + 512 * 3), { value: ETHER(60 + 10) });
@@ -171,13 +171,13 @@ contract("NestMining", async accounts => {
             // 2. 显示回购额度
             await skipBlocks(20);
             console.log('nhbtc quota: ' + await nestRedeeming.quotaOf(nhbtc.address));
-            console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             console.log('nestLedger eth: ' + await web3.eth.getBalance(nestLedger.address));
             await ntokenMining.settle(hbtc.address);
             console.log();
-            console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             console.log('nestLedger eth: ' + await web3.eth.getBalance(nestLedger.address));
 
             let arr = [0, 1, 2, 3, 4];
@@ -191,11 +191,11 @@ contract("NestMining", async accounts => {
             // 4. 显示回购额度
             console.log('');
             console.log('nhbtc quota: ' + await nestRedeeming.quotaOf(nhbtc.address));
-            console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             await ntokenMining.settle(hbtc.address);
-            console.log('nhbtc rewards: ' + await nestLedger.totalRewards(nhbtc.address));
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
         }
     });
 });

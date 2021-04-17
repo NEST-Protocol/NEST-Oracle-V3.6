@@ -103,7 +103,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, (await nest.balanceOf(nestLedger.address)).cmp(ETHER(0)));
 
             // 检查ntoken账本
-            assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(ETHER(0.1)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nest.address)).cmp(ETHER(0.1)));
             
             minedNest = ETHER(10 * 400 * 80 / 100);
             prevBlockNumber = receipt.receipt.blockNumber;
@@ -133,7 +133,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, (await nest.balanceOf(nestLedger.address)).cmp(ETHER(0)));
 
             // 检查ntoken账本
-            assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(ETHER(0.1)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nest.address)).cmp(ETHER(0.1)));
 
             // 3. 取回
             await nestMining.withdraw(usdt.address, await nestMining.balanceOf(usdt.address, account0));
@@ -157,7 +157,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, (await nest.balanceOf(nestLedger.address)).cmp(ETHER(0)));
 
             // 检查ntoken账本
-            assert.equal(0, (await nestLedger.totalRewards(nest.address)).cmp(ETHER(0.1)));
+            assert.equal(0, (await nestLedger.totalETHRewards(nest.address)).cmp(ETHER(0.1)));
 
             LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             await skipBlocks(18);

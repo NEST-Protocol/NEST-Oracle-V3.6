@@ -25,7 +25,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     // }
 
     /// @dev To support open-zeppelin/upgrades
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function initialize(address nestGovernanceAddress) override public {
         super.initialize(nestGovernanceAddress);
         // Placeholder in _accounts, the index of a real account must greater than 0
@@ -139,13 +139,13 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     // Cache for genesis block number of ntoken. ntokenAddress=>genesisBlockNumber
     mapping(address=>uint) _genesisBlockNumberCache;
 
-    // INestPriceFacade implemention contract address
+    // INestPriceFacade implementation contract address
     address _nestPriceFacadeAddress;
 
-    // INTokenController implemention contract address
+    // INTokenController implementation contract address
     address _nTokenControllerAddress;
 
-    // INestLegder implemention contract address
+    // INestLegder implementation contract address
     address _nestLedgerAddress;
 
     // Unit of post fee. 0.0001 ether
@@ -162,7 +162,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function update(address nestGovernanceAddress) override public {
         
         super.update(nestGovernanceAddress);
@@ -1049,7 +1049,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // currentFee != oldFee means the fee is changed, need to settle
         if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || (currentFee != oldFee && currentFee > 0)) {
             // Save reward
-            INestLedger(_nestLedgerAddress).carveReward { 
+            INestLedger(_nestLedgerAddress).carveETHReward { 
                 value: currentFee + oldFee * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
             } (ntokenAddress);
             // Update fee information
@@ -1078,7 +1078,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
             uint feeInfo = channel.feeInfo;
 
             // Save reward
-            INestLedger(_nestLedgerAddress).carveReward {
+            INestLedger(_nestLedgerAddress).carveETHReward {
                 value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (length - (feeInfo >> 128))
             } (ntokenAddress);
 

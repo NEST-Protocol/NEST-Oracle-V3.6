@@ -25,7 +25,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     // }
 
     /// @dev To support open-zeppelin/upgrades
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function initialize(address nestGovernanceAddress) override public {
         super.initialize(nestGovernanceAddress);
         // Placeholder in _accounts, the index of a real account must greater than 0
@@ -162,13 +162,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
     // Cache for genesis block number of ntoken. ntokenAddress=>genesisBlockNumber
     mapping(address=>uint) _genesisBlockNumberCache;
 
-    // INestPriceFacade implemention contract address
+    // INestPriceFacade implementation contract address
     address _nestPriceFacadeAddress;
 
-    // INTokenController implemention contract address
+    // INTokenController implementation contract address
     address _nTokenControllerAddress;
 
-    // INestLegder implemention contract address
+    // INestLegder implementation contract address
     address _nestLedgerAddress;
 
     // Unit of post fee. 0.0001 ether
@@ -186,7 +186,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function update(address nestGovernanceAddress) override public {
         
         super.update(nestGovernanceAddress);
@@ -306,9 +306,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 4. Freeze assets
         uint accountIndex = _addressIndex(msg.sender);
         // Freeze token and nest
-        // Because of the use of floating-point representation(uint48 fraction, uint8 exponent), it may bring some precision loss
-        // After assets are frozen according to tokenAmountPerEth * ethNum, the part with poor accuracy may be lost when the assets are returned
-        // It should be frozen according to decodeFloat(fraction, exponent) * ethNum
+        // Because of the use of floating-point representation(fraction * 16 ^ exponent), it may bring some precision loss
+        // After assets are frozen according to tokenAmountPerEth * ethNum, the part with poor accuracy may be lost when
+        // the assets are returned, It should be frozen according to decodeFloat(fraction, exponent) * ethNum
         // However, considering that the loss is less than 1 / 10 ^ 14, the loss here is ignored, and the part of
         // precision loss can be transferred out as system income in the future
         _freeze2(
@@ -988,7 +988,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
                         // When the accuracy of the token is very high or the value of the token relative to
                         // eth is very low, the price may be very large, and there may be overflow problem,
-                        // so it is not considered for the moment
+                        // it is not considered for the moment
                         tmp = (price << 48) / tmp;
                         if (tmp > 0x1000000000000) {
                             tmp = tmp - 0x1000000000000;
@@ -1095,7 +1095,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // currentFee != oldFee means the fee is changed, need to settle
         if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || (currentFee != oldFee && currentFee > 0)) {
             // Save reward
-            INestLedger(_nestLedgerAddress).carveReward { 
+            INestLedger(_nestLedgerAddress).carveETHReward { 
                 value: currentFee + oldFee * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
             } (ntokenAddress);
             // Update fee information
@@ -1124,7 +1124,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
             uint feeInfo = channel.feeInfo;
 
             // Save reward
-            INestLedger(_nestLedgerAddress).carveReward {
+            INestLedger(_nestLedgerAddress).carveETHReward {
                 value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (length - (feeInfo >> 128))
             } (ntokenAddress);
 

@@ -30,15 +30,15 @@ interface INestLedger {
 
     /// @dev Carve reward
     /// @param ntokenAddress Destination ntoken address
-    function carveReward(address ntokenAddress) external payable;
+    function carveETHReward(address ntokenAddress) external payable;
 
     /// @dev Add reward
     /// @param ntokenAddress Destination ntoken address
-    function addReward(address ntokenAddress) external payable;
+    function addETHReward(address ntokenAddress) external payable;
 
     /// @dev The function returns eth rewards of specified ntoken
     /// @param ntokenAddress The ntoken address
-    function totalRewards(address ntokenAddress) external view returns (uint);
+    function totalETHRewards(address ntokenAddress) external view returns (uint);
 
     /// @dev Pay
     /// @param ntokenAddress Destination ntoken address. Indicates which ntoken to pay with

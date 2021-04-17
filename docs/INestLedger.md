@@ -46,7 +46,7 @@
 ```javascript
     /// @dev Carve reward
     /// @param ntokenAddress Destination ntoken address
-    function carveReward(address ntokenAddress) external payable;
+    function carveETHReward(address ntokenAddress) external payable;
 ```
 
 ### 2.5. Add reward
@@ -54,7 +54,7 @@
 ```javascript
     /// @dev Add reward
     /// @param ntokenAddress Destination ntoken address
-    function addReward(address ntokenAddress) external payable;
+    function addETHReward(address ntokenAddress) external payable;
 ```
 
 ### 2.6. The function returns eth rewards of specified ntoken
@@ -62,7 +62,7 @@
 ```javascript
     /// @dev The function returns eth rewards of specified ntoken
     /// @param ntokenAddress The ntoken address
-    function totalRewards(address ntokenAddress) external view returns (uint);
+    function totalETHRewards(address ntokenAddress) external view returns (uint);
 ```
 
 ### 2.7. Pay

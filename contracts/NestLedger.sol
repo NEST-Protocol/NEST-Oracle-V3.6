@@ -53,7 +53,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev Carve reward
     /// @param ntokenAddress Destination ntoken address
-    function carveReward(address ntokenAddress) override external payable {
+    function carveETHReward(address ntokenAddress) override external payable {
 
         // nest not carve
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -76,7 +76,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev Add reward
     /// @param ntokenAddress Destination ntoken address
-    function addReward(address ntokenAddress) override external payable {
+    function addETHReward(address ntokenAddress) override external payable {
 
         // Ledger for nest is independent
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -91,7 +91,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev The function returns eth rewards of specified ntoken
     /// @param ntokenAddress The ntoken address
-    function totalRewards(address ntokenAddress) override external view returns (uint) {
+    function totalETHRewards(address ntokenAddress) override external view returns (uint) {
 
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             return _nestLedger;

@@ -103,7 +103,9 @@ contract("NestMining", async accounts => {
             receipt = await nestMining.biteToken(usdt.address, 0, 30, USDT(1000), {
                 from: account1,
                 value: ETHER(90)
-            })
+            });
+            console.log('account1吃单');
+            console.log(receipt);
 
             balance0 = await showBalance(account0, 'account1吃单后');
             balance1 = await showBalance(account1, 'account1吃单后');

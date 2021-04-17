@@ -22,7 +22,7 @@ contract NNIncome is NestBase, INNIncome {
     // }
 
     /// @dev To support open-zeppelin/upgrades
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function initialize(address nestGovernanceAddress) override public {
         super.initialize(nestGovernanceAddress);
         _blockCursor = block.number;
@@ -31,7 +31,7 @@ contract NNIncome is NestBase, INNIncome {
     // TODO: This method is for testing, it should be deleted for mainnet
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
         NEST_NODE_ADDRESS = INestGovernance(nestGovernanceAddress).getNestNodeAddress();

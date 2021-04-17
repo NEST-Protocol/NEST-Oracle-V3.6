@@ -23,7 +23,7 @@ contract NToken is NestBase, INToken {
         _state = block.number;
     }
 
-    // INestMining implemention contract address
+    // INestMining implementation contract address
     address _ntokenMiningAddress;
     
     // token information: name
@@ -49,7 +49,7 @@ contract NToken is NestBase, INToken {
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function update(address nestGovernanceAddress) override public {
         super.update(nestGovernanceAddress);
         _ntokenMiningAddress = INestGovernance(nestGovernanceAddress).getNTokenMiningAddress();
@@ -65,8 +65,10 @@ contract NToken is NestBase, INToken {
         _balances[msg.sender] += value;
 
         // Increases total supply
+        uint totalSupply_ = (_state >> 128) + value;
+        require(totalSupply_ < 0x100000000000000000000000000000000, "NToken:!totalSupply");
         // Total supply and lastest mint height share one storage unit
-        _state = (((_state >> 128) + value) << 128) | block.number;
+        _state = (totalSupply_ << 128) | block.number;
     }
         
     /// @notice The view of variables about minting 

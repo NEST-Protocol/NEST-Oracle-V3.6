@@ -43,14 +43,14 @@
     /// @dev Get the built-in contract address of the system
     /// @param nestTokenAddress Address of nest token contract
     /// @param nestNodeAddress Address of nest node contract
-    /// @param nestLedgerAddress INestLedger implemention contract address
-    /// @param nestMiningAddress INestMining implemention contract address for nest
-    /// @param ntokenMiningAddress INestMining implemention contract address for ntoken
-    /// @param nestPriceFacadeAddress INestPriceFacade implemention contract address
-    /// @param nestVoteAddress INestVote implemention contract address
-    /// @param nestQueryAddress INestQuery implemention contract address
+    /// @param nestLedgerAddress INestLedger implementation contract address
+    /// @param nestMiningAddress INestMining implementation contract address for nest
+    /// @param ntokenMiningAddress INestMining implementation contract address for ntoken
+    /// @param nestPriceFacadeAddress INestPriceFacade implementation contract address
+    /// @param nestVoteAddress INestVote implementation contract address
+    /// @param nestQueryAddress INestQuery implementation contract address
     /// @param nnIncomeAddress NNIncome contract address
-    /// @param nTokenControllerAddress INTokenController implemention contract address
+    /// @param nTokenControllerAddress INTokenController implementation contract address
     function setBuiltinAddress(
         address nestTokenAddress,
         address nestNodeAddress,
@@ -71,14 +71,14 @@
     /// @dev Get the built-in contract address of the system
     /// @return nestTokenAddress Address of nest token contract
     /// @return nestNodeAddress Address of nest node contract
-    /// @return nestLedgerAddress INestLedger implemention contract address
-    /// @return nestMiningAddress INestMining implemention contract address
-    /// @return ntokenMiningAddress INestMining implemention contract address for ntoken
-    /// @return nestPriceFacadeAddress INestPriceFacade implemention contract address
-    /// @return nestVoteAddress INestVote implemention contract address
-    /// @return nestQueryAddress INestQuery implemention contract address
+    /// @return nestLedgerAddress INestLedger implementation contract address
+    /// @return nestMiningAddress INestMining implementation contract address
+    /// @return ntokenMiningAddress INestMining implementation contract address for ntoken
+    /// @return nestPriceFacadeAddress INestPriceFacade implementation contract address
+    /// @return nestVoteAddress INestVote implementation contract address
+    /// @return nestQueryAddress INestQuery implementation contract address
     /// @return nnIncomeAddress NNIncome contract address
-    /// @return nTokenControllerAddress INTokenController implemention contract address
+    /// @return nTokenControllerAddress INTokenController implementation contract address
     function getBuiltinAddress() external view returns (
         address nestTokenAddress,
         address nestNodeAddress,
@@ -109,51 +109,51 @@
     function getNestNodeAddress() external view returns (address);
 ```
 
-### 2.8. Get INestLedger implemention contract address
+### 2.8. Get INestLedger implementation contract address
 
 ```javascript
-    /// @dev Get INestLedger implemention contract address
-    /// @return INestLedger implemention contract address
+    /// @dev Get INestLedger implementation contract address
+    /// @return INestLedger implementation contract address
     function getNestLedgerAddress() external view returns (address);
 ```
 
-### 2.9. Get INestMining implemention contract address
+### 2.9. Get INestMining implementation contract address
 
 ```javascript
-     /// @dev Get INestMining implemention contract address for nest
-     /// @return INestMining implemention contract address for nest
+     /// @dev Get INestMining implementation contract address for nest
+     /// @return INestMining implementation contract address for nest
      function getNestMiningAddress() external view returns (address);
 ```
 
-### 2.10. Get INestMining implemention contract address
+### 2.10. Get INestMining implementation contract address
 
 ```javascript
-    /// @dev Get INestMining implemention contract address for ntoken
-    /// @return INestMining implemention contract address for ntoken
+    /// @dev Get INestMining implementation contract address for ntoken
+    /// @return INestMining implementation contract address for ntoken
     function getNTokenMiningAddress() external view returns (address);
 ```
 
-### 2.11. Get INestPriceFacade implemention contract address
+### 2.11. Get INestPriceFacade implementation contract address
 
 ```javascript
-    /// @dev Get INestPriceFacade implemention contract address
-    /// @return INestPriceFacade implemention contract address
+    /// @dev Get INestPriceFacade implementation contract address
+    /// @return INestPriceFacade implementation contract address
     function getNestPriceFacadeAddress() external view returns (address);
 ```
 
-### 2.12. Get INestVote implemention contract address
+### 2.12. Get INestVote implementation contract address
 
 ```javascript
-    /// @dev Get INestVote implemention contract address
-    /// @return INestVote implemention contract address
+    /// @dev Get INestVote implementation contract address
+    /// @return INestVote implementation contract address
     function getNestVoteAddress() external view returns (address);
 ```
 
-### 2.13. Get INestQuery implemention contract address
+### 2.13. Get INestQuery implementation contract address
 
 ```javascript
-    /// @dev Get INestQuery implemention contract address
-    /// @return INestQuery implemention contract address
+    /// @dev Get INestQuery implementation contract address
+    /// @return INestQuery implementation contract address
     function getNestQueryAddress() external view returns (address);
 ```
 
@@ -165,11 +165,11 @@
     function getNnIncomeAddress() external view returns (address);
 ```
 
-### 2.15. Get INTokenController implemention contract address
+### 2.15. Get INTokenController implementation contract address
 
 ```javascript
-    /// @dev Get INTokenController implemention contract address
-    /// @return INTokenController implemention contract address
+    /// @dev Get INTokenController implementation contract address
+    /// @return INTokenController implementation contract address
     function getNTokenControllerAddress() external view returns (address);
 ```
 
