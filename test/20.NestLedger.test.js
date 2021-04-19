@@ -13,13 +13,13 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
         await nest.transfer(nestMining.address, ETHER('8000000000'));
 
-        // 开通nhbtc
+        // Open nhbtc
         await hbtc.approve(nTokenController.address, 1, { from: account1 });
         await nest.approve(nTokenController.address, ETHER(10000), { from: account1 });
         await nTokenController.setNTokenMapping(hbtc.address, '0x0000000000000000000000000000000000000000', 0);
@@ -33,7 +33,7 @@ contract("NestMining", async accounts => {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
             }
         };
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -62,7 +62,7 @@ contract("NestMining", async accounts => {
             return balances;
         };
 
-        // 1. 获取和设置配置
+        // 1. getConfig() and setConfig()
         console.log(await nestLedger.getConfig());
         let receipt = await nestLedger.setConfig({
             // nest reward scale(10000 based). 2000

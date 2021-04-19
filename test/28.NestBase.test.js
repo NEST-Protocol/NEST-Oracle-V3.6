@@ -11,7 +11,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await usdt.transfer(account0, USDT('100000000'), { from: account1 });
         await usdt.transfer(account1, USDT('100000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
@@ -25,7 +25,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -69,7 +69,7 @@ contract("NestMining", async accounts => {
             await nestMining.migrate(usdt.address, USDT(1000 * 30));
 
             await nestLedger.setApplication(account0, 1);
-            console.log('迁移前');
+            console.log('Before migrate');
             console.log({
                 eth: (await ethBalance(account0)).toString(),
                 usdt: (await usdt.balanceOf(account0)).toString()
@@ -80,7 +80,7 @@ contract("NestMining", async accounts => {
             });
             await nestLedger.pay('0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', account1, ETHER(30));
             await nestLedger.pay('0x0000000000000000000000000000000000000000', usdt.address, account1, USDT(1000 * 30));
-            console.log('迁移后');
+            console.log('After migrate');
             console.log({
                 eth: (await ethBalance(account0)).toString(),
                 usdt: (await usdt.balanceOf(account0)).toString()

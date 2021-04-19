@@ -1629,6 +1629,7 @@ function $hcj() {
 		var index = format.indexOf('.');
 		if (index == -1) {
 			fi.dpc = 0;
+			fi.lpc = format.length;
 		} else {
 			//fi.dpc = parseInt(format.substring(index + 1));
 			fi.dpc = format.length - index - 1;
@@ -1648,6 +1649,18 @@ function $hcj() {
 		//	}
 		//}
 		var x = this.toFixed(fi.dpc);
+		
+		if (fi.lpc > 0) {
+			index = x.indexOf('.');
+			if (index == -1) {
+				index = x.length;
+			} else {
+				x = x.substring(0, index);
+			}
+			if (fi.lpc > index); {
+				x = $hcj.fillStr(x, fi.lpc);
+			}
+		}
 
 		return x;
 	};

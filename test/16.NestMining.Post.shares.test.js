@@ -12,7 +12,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await usdt.transfer(account0, USDT('10000000'), { from: account1 });
         await usdt.transfer(account1, USDT('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
@@ -24,7 +24,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -55,13 +55,13 @@ contract("NestMining", async accounts => {
         let balance1 = await showBalance(account1, 'account1');
         assert.equal(0, balance1.balance.usdt.cmp(USDT('10000000')));
 
-        // account0余额
+        // Balance of account0
         assert.equal(0, balance0.balance.usdt.cmp(USDT('10000000')));
         assert.equal(0, balance0.balance.nest.cmp(ETHER('1000000000')));
         assert.equal(0, balance0.pool.usdt.cmp(USDT(0)));
         assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
 
-        // nestMining余额
+        // Balance of nestMining
         assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
         assert.equal(0, (await usdt.balanceOf(nestMining.address)).cmp(USDT(0)));
         assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
@@ -91,17 +91,17 @@ contract("NestMining", async accounts => {
 
         await skipBlocks(20);
         {
-            // 查看postInOneBlock的nest数量
-            let balances0 = await showBalance(postInOneBlock.address, '关闭前');
+            // Check nest balance of postInOneBlock
+            let balances0 = await showBalance(postInOneBlock.address, 'Before closed');
 
             await nestMining.close(usdt.address, 0);
-            let balances1 = await showBalance(postInOneBlock.address, '关闭0');
+            let balances1 = await showBalance(postInOneBlock.address, 'Close 0');
 
             await nestMining.close(usdt.address, 1);
-            let balances2 = await showBalance(postInOneBlock.address, '关闭1');
+            let balances2 = await showBalance(postInOneBlock.address, 'Close 1');
             
             await nestMining.close(usdt.address, 2);
-            let balances3 = await showBalance(postInOneBlock.address, '关闭2');
+            let balances3 = await showBalance(postInOneBlock.address, 'Close 2');
             await postInOneBlock.transfer('0x0000000000000000000000000000000000000000', account0, new BN(await web3.eth.getBalance(postInOneBlock.address)));
 
             let mined1 = balances1.pool.nest.sub(balances0.pool.nest).sub(ETHER(100000));
@@ -114,23 +114,23 @@ contract("NestMining", async accounts => {
             assert.equal(0, TOTAL.mul(new BN(3)).div(new BN(6)).cmp(mined3));
         }
 
-        // 第二次报价
+        // Second post
 
         receipt = await postInOneBlock.batchPost(usdt.address, 30, USDT(1800), 3, { value: ETHER(30 * 3 + 10) });
         console.log(receipt);
         await skipBlocks(20);
         {
-            // 查看postInOneBlock的nest数量
-            let balances0 = await showBalance(postInOneBlock.address, '关闭前');
+            // Check nest balance of postInOneBlock
+            let balances0 = await showBalance(postInOneBlock.address, 'Before closed');
 
             await nestMining.close(usdt.address, 3);
-            let balances1 = await showBalance(postInOneBlock.address, '关闭3');
+            let balances1 = await showBalance(postInOneBlock.address, 'Close 3');
 
             await nestMining.close(usdt.address, 4);
-            let balances2 = await showBalance(postInOneBlock.address, '关闭4');
+            let balances2 = await showBalance(postInOneBlock.address, 'Close 4');
             
             await nestMining.close(usdt.address, 5);
-            let balances3 = await showBalance(postInOneBlock.address, '关闭5');
+            let balances3 = await showBalance(postInOneBlock.address, 'Close 5');
             await postInOneBlock.transfer('0x0000000000000000000000000000000000000000', account0, new BN(await web3.eth.getBalance(postInOneBlock.address)));
 
             let mined1 = balances1.pool.nest.sub(balances0.pool.nest).sub(ETHER(100000));
@@ -143,7 +143,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, TOTAL.mul(new BN(3)).div(new BN(6)).cmp(mined3));
         }
 
-        // 列出报价单
+        // List price sheets
         let list = await nestMining.list(usdt.address, 1, 2, 0);
         for (var i in list) {
             console.log(list[i]);

@@ -20,7 +20,7 @@ const NNIncome = artifacts.require('NNIncome');
 async function setConfig(contracts) {
     if (false) {
     } else {
-        // 设置参数
+        // Set configuration
         console.log('20. nestLedger.setConfig()');
         await contracts.nestLedger.setConfig({
         
@@ -240,8 +240,10 @@ module.exports = async function (deployer, network) {
         await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
         console.log('12. nestGovernance.registerAddress(nest.nToken.offerMain)');
         await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address);
+        console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
+        await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
 
-        // 添加ntoken映射
+        // Add ntoken mapping
         console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
         await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
         console.log('14. nTokenController.setNTokenMapping(usdt.address, nest.address, 1)');
@@ -252,7 +254,7 @@ module.exports = async function (deployer, network) {
         console.log('16. nestPriceFacade.setNestQuery(nest.address, nestMining.address)');
         await nestPriceFacade.setNestQuery(nest.address, nestMining.address);
 
-        // 给投票合约授权
+        // Authorization of voting contracts
         console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
         await nestGovernance.setGovernance(nestVote.address, 1);
         console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');

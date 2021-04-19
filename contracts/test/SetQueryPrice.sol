@@ -6,7 +6,7 @@ import "../interface/IVotePropose.sol";
 import "../interface/INestMapping.sol";
 import "../interface/INestPriceFacade.sol";
 
-/// @dev 测试通过投票修改价格调用参数配置
+/// @dev The test modifies the price call parameter configuration by voting
 contract SetQueryPrice is IVotePropose {
 
     address _nestMappingAddress;
@@ -15,7 +15,7 @@ contract SetQueryPrice is IVotePropose {
         _nestMappingAddress = nestMappingAddress;
     }
 
-    /// @dev 投票通过后需要执行的代码
+    /// @dev Methods to be called after approved
     function run() override external {
 
         // /// @dev Set the built-in contract address of the system
@@ -45,11 +45,11 @@ contract SetQueryPrice is IVotePropose {
         address nestPriceFacadeAddress = INestMapping(_nestMappingAddress).getNestPriceFacadeAddress();
 
         INestPriceFacade(nestPriceFacadeAddress).setConfig(INestPriceFacade.Config(
-            // 单轨询价费用。0.01ether
+            // Single query fee（0.0001 ether, DIMI_ETHER). 100
             uint16(200),
-            // 双轨询价费用。0.01ether
+            // Double query fee（0.0001 ether, DIMI_ETHER). 100
             uint16(400),
-            // 调用地址的正常状态标记。0
+            // The normal state flag of the call address. 0
             uint8(0)
         ));
     }

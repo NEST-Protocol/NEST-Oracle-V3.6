@@ -48,7 +48,7 @@ interface INestMining {
         uint16 pledgeNest;
     }
 
-    /// @dev 报价单视图
+    /// @dev PriceSheetView structure
     struct PriceSheetView {
         
         // Index of the price sheeet
@@ -123,7 +123,7 @@ interface INestMining {
     /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
+    /// @param biteNum The amount of biting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
     function biteToken(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
 
@@ -131,7 +131,7 @@ interface INestMining {
     /// @dev bite ETH by TOKEN(NTOKEN),  (-ethNumBal, +tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum
+    /// @param biteNum The amount of biting (in the unit of ETH), realAmount = biteNum
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
     function biteEth(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
     

@@ -148,8 +148,7 @@ contract BasicToken is ERC20Basic {
     return totalSupply_;
   }
 
-  // 为了让单轨报价可用，临时方法
-  //return totalSupply_ * 0 + 5000000 ether - 1;
+  // In order to make monorail quotation available, a temporary method is proposed
   function setTotalSupply(uint value) public {
     totalSupply_ = value;
   }

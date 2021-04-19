@@ -9,7 +9,7 @@ import "../interface/INestMapping.sol";
 import "../interface/INestMining.sol";
 import "../interface/INestPriceFacade.sol";
 
-/// @dev 测试通过投票修改价格调用参数配置
+/// @dev Test the situation of multiple quotations in the same block through this contract
 contract PostInOneBlock {
 
     address _nestMappingAddress;

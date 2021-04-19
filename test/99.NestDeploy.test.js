@@ -28,7 +28,7 @@ contract("NestMining", async accounts => {
             console.log('balance: ' + await nest.balanceOf('0xd9f3aA57576a6da995fb4B7e7272b4F16f04e681'));
         }
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         //await usdt.transfer(account0, USDT('10000000'), { from: account0 });
         //await nest.transfer(nestMining.address, ETHER('1000000000'));
 
@@ -40,7 +40,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -83,7 +83,7 @@ contract("NestMining", async accounts => {
                 return;
             }
             //await nestMining.closeList2(usdt.address, [4], [4]);
-            console.log('发起报价');
+            console.log('Post as price sheet');
             let receipt = await nestMining.post2(usdt.address, 30, USDT(1500), ETHER(51200 - 512), { value: ETHER(60.1) });
             console.log(receipt);
 
