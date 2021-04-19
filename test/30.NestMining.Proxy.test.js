@@ -1,5 +1,6 @@
 const UpdateProxyPropose = artifacts.require('UpdateProxyPropose');
 const NestMining2 = artifacts.require('NestMining2');
+const ProxyAdminTest = artifacts.require('ProxyAdminTest');
 const BN = require("bn.js");
 const { expect } = require('chai');
 const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
@@ -9,8 +10,7 @@ contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
-        return;
+        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
         const account0 = accounts[0];
         const account1 = accounts[1];
 
@@ -210,7 +210,9 @@ contract("NestMining", async accounts => {
             console.log('修改NestMining实现合约');
 
             let updateProxyPropose = await UpdateProxyPropose.new();
-            let proxyAdmin = await nestMining.getAdmin();
+            let proxyAdminTest = await deployProxy(ProxyAdminTest, [nestGovernance.address], { initializer: 'initialize' });
+            let proxyAdmin = await proxyAdminTest.getAdmin();
+            console.log('proxyAdmin: ' + proxyAdmin);
             let proxy = nestMining;
             let newImpl = await NestMining2.new();
             await updateProxyPropose.setAddress(

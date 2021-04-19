@@ -1,6 +1,7 @@
 const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 
 // Load compiled artifacts
+const IterableMapping = artifacts.require("IterableMapping");
 const IBNEST = artifacts.require('IBNEST');
 const NNToken = artifacts.require('NNToken');
 const TestERC20 = artifacts.require('TestERC20');
@@ -94,6 +95,8 @@ module.exports = async function() {
     */
    
     console.log('***** .deploy.proxy.js *****');
+    let ib = await IterableMapping.new();
+    await IBNEST.link(ib);
     let nest = await IBNEST.new();
     //let nest = await IBNEST.at('0x6158Ebb8022Ab0Cea5Ee507eDa9648A5f96538fE');
     console.log('nest: ' + nest.address);

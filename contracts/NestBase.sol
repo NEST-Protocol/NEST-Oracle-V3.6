@@ -16,18 +16,14 @@ contract NestBase {
 
     // TODO: Define NEST_GENESIS_BLOCK 0 is for testing, it should be 6236588 for mainnet 
     // Genesis block number of nest
+    // NEST token contract is created at block height 6913517. However, because the mining algorithm of nest1.0
+    // is different from that at present, a new mining algorithm is adopted from nest2.0. The new algorithm
+    // includes the attenuation logic according to the block. Therefore, it is necessary to trace the block
+    // where the nest begins to decay. According to the circulation when nest2.0 is online, the new mining
+    // algorithm is used to deduce and convert the nest, and the new algorithm is used to mine the nest2.0
+    // on-line flow, the actual block is 6236588
     //uint constant NEST_GENESIS_BLOCK = 6236588;
     uint constant NEST_GENESIS_BLOCK = 0;
-
-    bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
-    // TODO: This method is for testing, it should be deleted for mainnet
-    /// @return adm The admin slot.
-    function getAdmin() external view returns (address adm) {
-        bytes32 slot = ADMIN_SLOT;
-        assembly {
-            adm := sload(slot)
-        }
-    }
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address

@@ -1,14 +1,8 @@
 const Migrations = artifacts.require("Migrations");
-const IterableMapping = artifacts.require("IterableMapping");
-const IBNEST = artifacts.require("IBNEST");
 
-module.exports = function(deployer, network) {
-    //deployer.deploy(Migrations);
+module.exports = function (deployer, network) {
 
-    console.log('network:' + network);
-    if (network == 'development') 
-    {
-        deployer.deploy(IterableMapping);
-        deployer.link(IterableMapping, IBNEST);
-    }
+    return;
+
+    deployer.deploy(Migrations);
 };

@@ -1,4 +1,5 @@
 // Load compiled artifacts
+const IterableMapping = artifacts.require("IterableMapping");
 const IBNEST = artifacts.require('IBNEST');
 const NNToken = artifacts.require('NNToken');
 const TestERC20 = artifacts.require('TestERC20');
@@ -16,6 +17,8 @@ const NNIncome = artifacts.require('NNIncome');
 module.exports = async function() {
     
     console.log('***** .deploy.normal.js *****');
+    let ib = await IterableMapping.new();
+    await IBNEST.link(ib);
     let nest = await IBNEST.new();
     //let nest = await IBNEST.at('0x0000000000000000000000000000000000000000');
     console.log('nest: ' + nest.address);

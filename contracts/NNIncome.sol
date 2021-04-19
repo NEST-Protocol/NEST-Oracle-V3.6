@@ -21,11 +21,16 @@ contract NNIncome is NestBase, INNIncome {
     //     _blockCursor = block.number;
     // }
 
-    /// @dev To support open-zeppelin/upgrades
-    /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function initialize(address nestGovernanceAddress) override public {
-        super.initialize(nestGovernanceAddress);
-        _blockCursor = block.number;
+    // /// @dev To support open-zeppelin/upgrades
+    // /// @param nestGovernanceAddress INestGovernance implementation contract address
+    // function initialize(address nestGovernanceAddress) override public {
+    //     super.initialize(nestGovernanceAddress);
+    // }
+
+    /// @dev Reset the blockCursor
+    /// @param blockCursor blockCursor value
+    function setBlockCursor(uint blockCursor) override external onlyGovernance {
+        _blockCursor = blockCursor;
     }
 
     // TODO: This method is for testing, it should be deleted for mainnet
@@ -42,7 +47,7 @@ contract NNIncome is NestBase, INNIncome {
 
     // TODO: Define NEST_NODE_ADDRESS as variable is for testing, it should be constant for mainnet 
     // Address of nest node contract
-    // address constant NEST_NODE_ADDRESS = 0xB4ca64C3820E3B837bA3f1475fc871FD1C3f232a;
+    // address constant NEST_NODE_ADDRESS = 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e;
     address NEST_NODE_ADDRESS;
 
     // Generated nest

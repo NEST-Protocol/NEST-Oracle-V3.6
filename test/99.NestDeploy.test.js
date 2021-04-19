@@ -1,3 +1,4 @@
+const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
 const IBNEST = artifacts.require('IBNEST');
 const UpdateProxyPropose = artifacts.require('UpdateProxyPropose');
 const IProxyAdmin = artifacts.require('IProxyAdmin');
@@ -5,27 +6,27 @@ const NestMining2 = artifacts.require('NestMining2');
 const NestMining = artifacts.require('NestMining');
 const BN = require("bn.js");
 const { expect } = require('chai');
-const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
 const { deployProxy, upgradeProxy, admin } = require('@openzeppelin/truffle-upgrades');
 
 contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        return;
+        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
+        const account0 = accounts[0];
+
         {
-            let nest = await IBNEST.at('0x6158Ebb8022Ab0Cea5Ee507eDa9648A5f96538fE');
+            //let nest = await IBNEST.at('0x6158Ebb8022Ab0Cea5Ee507eDa9648A5f96538fE');
             // 0xd9f3aA57576a6da995fb4B7e7272b4F16f04e681
             console.log('balance: ' + await nest.balanceOf(accounts[0]));
             console.log('balance: ' + await nest.balanceOf('0xd9f3aA57576a6da995fb4B7e7272b4F16f04e681'));
+            return;
 
             await nest.transfer('0xd9f3aA57576a6da995fb4B7e7272b4F16f04e681', new BN('7000000000000000000000000000'));
 
             console.log('balance: ' + await nest.balanceOf(accounts[0]));
             console.log('balance: ' + await nest.balanceOf('0xd9f3aA57576a6da995fb4B7e7272b4F16f04e681'));
         }
-        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
-        const account0 = accounts[0];
 
         // 初始化usdt余额
         //await usdt.transfer(account0, USDT('10000000'), { from: account0 });

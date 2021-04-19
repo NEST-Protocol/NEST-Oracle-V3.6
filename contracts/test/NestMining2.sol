@@ -32,11 +32,11 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         _accounts.push();
     }
 
-    ///@dev Definitions for the price sheet, include the full information. (use 256bits, a storage unit in ethereum evm)
+    ///@dev Definitions for the price sheet, include the full information. (use 256-bits, a storage unit in ethereum evm)
     struct PriceSheet {
         
-        // Index of miner account in _accounts. for this way, mapping an address(which need 160bits) to a 32bits 
-        // integer, support 4billion accounts
+        // Index of miner account in _accounts. for this way, mapping an address(which need 160-bits) to a 32-bits 
+        // integer, support 4 billion accounts
         uint32 miner;
 
         // The block number of this price sheet packaged
@@ -98,10 +98,33 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // Price information
         PriceInfo price;
 
+        // Commission is charged for every post(post2), the commission should be deposited to NestLedger,
+        // for saving gas, according to sheets.length, every increase of 256 will deposit once, The calculation formula is:
+        // 
+        // totalFee = fee * increment
+        // 
+        // In consideration of biteToken, biteEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
+        // at this point, it is need to settle immediately, the details of triggering settlement logic are as follows
+        // 
+        // 1. When there is a bite transaction(currentFee is 0), the counter of no fee sheets will be increase 1
+        // 2. If the Commission of this time is inconsistent with that of last time, deposit immediately
+        // 3. When the increment of sheets.length is 256, deposit immediately
+        // 4. Everyone can trigger immediate settlement by manually calling the settle() method
+        // 
+        // In order to realize the logic above, the following values are defined
+        // 
+        // 1. PriceChannel.feeInfo
+        //    Low 128-bits represent last fee per post
+        //    High 128-bits represent the current counter of no fee sheets (including settled)
+        // 
+        // 2. COLLECT_REWARD_MASK
+        //    The mask of batch deposit trigger, while COLLECT_REWARD_MASK & sheets.length == COLLECT_REWARD_MASK, it will trigger deposit,
+        //    COLLECT_REWARD_MASK is set to 0xF for testing (means every 16 sheets will deposit once), 
+        //    and it will be set to 0xFF for mainnet (means every 256 sheets will deposit once)
+
         // The information of mining fee
-        // low 128bits represent fee per post
-        // high 128bits in the high level indicate the current cumulative number of sheets that do not require
-        // Commission (including bills and settled ones)
+        // Low 128-bits represent fee per post
+        // High 128-bits represent the current counter of no fee sheets (including settled)
         uint feeInfo;
     }
 
@@ -149,10 +172,11 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     address _nestLedgerAddress;
 
     // Unit of post fee. 0.0001 ether
-    uint constant DIMI_ETHER = 0.0001 ether; // 1 ether / 10000;
+    uint constant DIMI_ETHER = 0.0001 ether;
 
-    // The mask of batch settlement dividend. During the test, it is settled once every 16 sheets and
-    // once every 256 sheets of the online version
+    // The mask of batch deposit trigger, while COLLECT_REWARD_MASK & sheets.length == COLLECT_REWARD_MASK, it will trigger deposit,
+    // COLLECT_REWARD_MASK is set to 0xF for testing (means every 16 sheets will deposit once), 
+    // and it will be set to 0xFF for mainnet (means every 256 sheets will deposit once)
     uint constant COLLECT_REWARD_MASK = 0xFF;
 
     // Ethereum average block time interval, 14 seconds
@@ -260,9 +284,9 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     /// @param tokenAmountPerEth The price of TOKEN
     function post(address tokenAddress, uint ethNum, uint tokenAmountPerEth) override external payable {
 
+        tokenAmountPerEth = tokenAmountPerEth * 3;
         Config memory config = _config;
 
-        tokenAmountPerEth = tokenAmountPerEth * 3;
         // 1. Check arguments
         require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NM:!ethNum");
         require(tokenAmountPerEth > 0, "NM:!price");
@@ -283,9 +307,9 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // 4. Freeze assets
         uint accountIndex = _addressIndex(msg.sender);
         // Freeze token and nest
-        // Because of the use of floating-point representation(uint48 fraction, uint8 exponent), it may bring some precision loss
-        // After assets are frozen according to tokenAmountPerEth * ethNum, the part with poor accuracy may be lost when the assets are returned
-        // It should be frozen according to decodeFloat(fraction, exponent) * ethNum
+        // Because of the use of floating-point representation(fraction * 16 ^ exponent), it may bring some precision loss
+        // After assets are frozen according to tokenAmountPerEth * ethNum, the part with poor accuracy may be lost when
+        // the assets are returned, It should be frozen according to decodeFloat(fraction, exponent) * ethNum
         // However, considering that the loss is less than 1 / 10 ^ 14, the loss here is ignored, and the part of
         // precision loss can be transferred out as system income in the future
         _freeze2(
@@ -325,8 +349,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     ) override external payable {
 
         Config memory config = _config;
-        tokenAmountPerEth = tokenAmountPerEth * 8;
-        ntokenAmountPerEth = ntokenAmountPerEth << 1;
+
         // 1. Check arguments
         require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NM:!ethNum");
         require(tokenAmountPerEth > 0 && ntokenAmountPerEth > 0, "NM:!price");
@@ -966,7 +989,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
 
                         // When the accuracy of the token is very high or the value of the token relative to
                         // eth is very low, the price may be very large, and there may be overflow problem,
-                        // so it is not considered for the moment
+                        // it is not considered for the moment
                         tmp = (price << 48) / tmp;
                         if (tmp > 0x1000000000000) {
                             tmp = tmp - 0x1000000000000;
@@ -1031,7 +1054,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         _stat(_config, channel, channel.sheets);
     }
 
-    // Deposit the accumulated dividends into nest ledger
+    // Collect and deposit the commission into NestLedger
     function _collect(
         Config memory config,
         PriceChannel storage channel,
@@ -1039,6 +1062,30 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         uint length,
         uint currentFee
     ) private returns (uint) {
+
+        // Commission is charged for every post(post2), the commission should be deposited to NestLedger,
+        // for saving gas, according to sheets.length, every increase of 256 will deposit once, The calculation formula is:
+        // 
+        // totalFee = fee * increment
+        // 
+        // In consideration of biteToken, biteEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
+        // at this point, it is need to settle immediately, the details of triggering settlement logic are as follows
+        // 
+        // 1. When there is a bite transaction(currentFee is 0), the counter of no fee sheets will be increase 1
+        // 2. If the Commission of this time is inconsistent with that of last time, deposit immediately
+        // 3. When the increment of sheets.length is 256, deposit immediately
+        // 4. Everyone can trigger immediate settlement by manually calling the settle() method
+        // 
+        // In order to realize the logic above, the following values are defined
+        // 
+        // 1. PriceChannel.feeInfo
+        //    Low 128-bits represent last fee per post
+        //    High 128-bits represent the current counter of no fee sheets (including settled)
+        // 
+        // 2. COLLECT_REWARD_MASK
+        //    The mask of batch deposit trigger, while COLLECT_REWARD_MASK & sheets.length == COLLECT_REWARD_MASK, it will trigger deposit,
+        //    COLLECT_REWARD_MASK is set to 0xF for testing (means every 16 sheets will deposit once), 
+        //    and it will be set to 0xFF for mainnet (means every 256 sheets will deposit once)
 
         uint feeUnit = uint(config.postFeeUnit) * DIMI_ETHER;
         require(currentFee % feeUnit == 0, "NM:!fee");
