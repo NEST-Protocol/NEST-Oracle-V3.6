@@ -188,6 +188,6 @@ contract("NestMining", async accounts => {
         }
 
         let es = await nestMining.estimate(usdt.address);
-        console.log(es);
+        console.log(es.toString());
     });
 });

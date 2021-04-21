@@ -49,6 +49,14 @@ contract NestLedger is NestBase, INestLedger {
     /// @param flag Authorization flag, 1 means authorization, 0 means cancel authorization
     function setApplication(address addr, uint flag) override external onlyGovernance {
         _applications[addr] = flag;
+        emit ApplicationChanged(addr, flag);
+    }
+
+    /// @dev Check DAO application flag
+    /// @param addr DAO application contract address
+    /// @return Authorization flag, 1 means authorization, 0 means cancel authorization
+    function checkApplication(address addr) override external view returns (uint) {
+        return _applications[addr];
     }
 
     /// @dev Carve reward

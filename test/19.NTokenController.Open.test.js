@@ -90,9 +90,9 @@ contract("NestMining", async accounts => {
         
         {
             // 1. post
-            await ntokenMining.post(hbtc.address, 30, ETHER(256), { value: ETHER(30.1) });
+            await ntokenMining.post(hbtc.address, 10, ETHER(256), { value: ETHER(10.1) });
             await ntokenMining.settle(hbtc.address);
-            //await ntokenMining.post(nhbtc.address, 30, ETHER(256), { value: ETHER(30.1) });
+            //await ntokenMining.post(nhbtc.address, 10, ETHER(256), { value: ETHER(10.1) });
             console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
             console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             console.log('nestLedger eth: ' + await web3.eth.getBalance(nestLedger.address));
@@ -158,16 +158,16 @@ contract("NestMining", async accounts => {
 
         {
             // 1. post
-            await ntokenMining.post2(hbtc.address, 30, ETHER(256), ETHER(51200 + 512 * 4), { value: ETHER(60 + 10) });
+            await ntokenMining.post2(hbtc.address, 10, ETHER(256), ETHER(51200 + 512 * 4), { value: ETHER(20 + 10) });
 
             console.log('nhbtc rewards: ' + await nestLedger.totalETHRewards(nhbtc.address));
             console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             console.log('nestLedger eth: ' + await web3.eth.getBalance(nestLedger.address));
 
-            await ntokenMining.post2(hbtc.address, 30, ETHER(256), ETHER(51200 + 512 * 3), { value: ETHER(60 + 10) });
-            await ntokenMining.post2(hbtc.address, 30, ETHER(256), ETHER(51200 + 512 * 2), { value: ETHER(60 + 10) });
-            await ntokenMining.post2(hbtc.address, 30, ETHER(256), ETHER(51200 + 512 * 1), { value: ETHER(60 + 10) });
-            await ntokenMining.post2(hbtc.address, 30, ETHER(256), ETHER(51200 + 512 * 0), { value: ETHER(60 + 10) });
+            await ntokenMining.post2(hbtc.address, 10, ETHER(256), ETHER(51200 + 512 * 3), { value: ETHER(20 + 10) });
+            await ntokenMining.post2(hbtc.address, 10, ETHER(256), ETHER(51200 + 512 * 2), { value: ETHER(20 + 10) });
+            await ntokenMining.post2(hbtc.address, 10, ETHER(256), ETHER(51200 + 512 * 1), { value: ETHER(20 + 10) });
+            await ntokenMining.post2(hbtc.address, 10, ETHER(256), ETHER(51200 + 512 * 0), { value: ETHER(20 + 10) });
             // 2. Show quota of redeeming
             await skipBlocks(20);
             console.log('nhbtc quota: ' + await nestRedeeming.quotaOf(nhbtc.address));

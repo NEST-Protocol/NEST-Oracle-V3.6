@@ -3,6 +3,7 @@ const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 // Load compiled artifacts
 const IBNEST = artifacts.require('IBNEST');
 const NNToken = artifacts.require('NNToken');
+const SuperMan = artifacts.require('SuperMan');
 const TestERC20 = artifacts.require('TestERC20');
 const Nest_NToken = artifacts.require('Nest_NToken');
 const NToken = artifacts.require('NToken');
@@ -97,9 +98,6 @@ module.exports = async function() {
     //let nest = await IBNEST.new();
     let nest = await IBNEST.at('0x6158Ebb8022Ab0Cea5Ee507eDa9648A5f96538fE');
     console.log('nest: ' + nest.address);
-    //let nn = await NNToken.new(1500, 'NN');
-    let nn = await NNToken.at('0x7cFb525161d0062923CAA6AbfaBcDb7c580acd48');
-    console.log('nn: ' + nn.address);
     //let usdt = await TestERC20.new('USDT', 'USDT', 6);
     let usdt = await TestERC20.at('0xE3972FF989F8aC7d6950B4bccE2D7e39B3F8A83f');
     console.log('usdt: ' + usdt.address);
@@ -136,6 +134,9 @@ module.exports = async function() {
     //let nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
     let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
     console.log('nhbtc: ' + nhbtc.address);
+    let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
+    //let nn = await SuperMan.at('0x7cFb525161d0062923CAA6AbfaBcDb7c580acd48');
+    console.log('nn: ' + nn.address);
 
     if (false) {
         console.log('1. nestGovernance.setBuiltinAddress()');
@@ -194,8 +195,8 @@ module.exports = async function() {
         await nestGovernance.setGovernance(nestVote.address, 1);
         console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
         await nestLedger.setApplication(nestRedeeming.address, 1);
-        console.log('19. nn.setContracts(nnIncome.address)');
-        await nn.setContracts(nnIncome.address);
+        //console.log('19. nn.setContracts(nnIncome.address)');
+        //await nn.setContracts(nnIncome.address);
     } else {
 
         let contracts = {

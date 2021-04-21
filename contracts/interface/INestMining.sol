@@ -39,7 +39,7 @@ interface INestMining {
 
         // -- Public configuration
         // The number of times the sheet assets have doubled. 4
-        uint16 maxBiteNestedLevel;
+        uint8 maxBiteNestedLevel;
         
         // Price effective block interval. 20
         uint16 priceEffectSpan;

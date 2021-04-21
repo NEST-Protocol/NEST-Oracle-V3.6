@@ -619,7 +619,7 @@ contract("NestMining", async accounts => {
             await nest.approve(ntokenMining.address, ETHER(100000000));
             await usdt.approve(ntokenMining.address, ETHER(100000000));
             //await ntokenMining.setNTokenAddress(usdt.address, usdt.address);
-            await ntokenMining.post2(usdt.address, 30, USDT(512), ETHER(32768), { value: ETHER(60.1) });
+            await ntokenMining.post2(usdt.address, 10, USDT(512), ETHER(32768), { value: ETHER(20.1) });
             await skipBlocks(20);
 
             console.log('findPrice()');

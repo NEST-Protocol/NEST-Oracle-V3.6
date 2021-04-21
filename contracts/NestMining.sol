@@ -797,10 +797,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint height = uint(sheet.height);
 
         // Check the status of the price sheet to see if it has reached the effective block interval or has been finished
-        if ((accountIndex = uint(sheet.miner)) > 0 && (
-            height + uint(config.priceEffectSpan) < block.number 
-                || uint(sheet.remainNum) == 0
-        )) {
+        if ((accountIndex = uint(sheet.miner)) > 0 && (height + uint(config.priceEffectSpan) < block.number)) {
 
             // TMP: tmp is a polysemous name, here means sheet.shares
             uint tmp = uint(sheet.shares);

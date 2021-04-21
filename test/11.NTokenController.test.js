@@ -89,19 +89,19 @@ contract("NestMining", async accounts => {
         {
             // Post a price sheet
             console.log('Post as price sheet');
-            let receipt = await ntokenMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.1) });
+            let receipt = await ntokenMining.post(hbtc.address, 10, HBTC(256), { value: ETHER(10.1) });
             console.log(receipt);
             balance0 = await showBalance(account0, 'After price posted');
             
             // Balance of account0
-            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
+            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 10)));
             assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
             assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
             assert.equal(0, balance0.pool.nest.cmp(mined));
 
             // Balance of nestMining
             //assert.equal(0, (await ethBalance(ntokenMining.address)).cmp(ETHER(30.099 - 0.099)));
-            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 30)));
+            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 10)));
             assert.equal(0, (await nest.balanceOf(ntokenMining.address)).cmp(ETHER(8000000000 + 100000)));
             
             mined = nHBTC(10 * 4 * 1);
@@ -116,15 +116,15 @@ contract("NestMining", async accounts => {
             balance0 = await showBalance(account0, 'After price sheet closed');
 
             // Balance of account0
-            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
+            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 10)));
             assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
-            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(256 * 30)));
+            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(256 * 10)));
             assert.equal(0, balance0.pool.nest.cmp(ETHER(100000)));
             assert.equal(0, balance0.pool.nhbtc.cmp(mined));
 
             // Balance of nestMining
             //assert.equal(0, (await ethBalance(ntokenMining.address)).cmp(ETHER(0.099 - 0.099)));
-            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 30)));
+            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 10)));
             assert.equal(0, (await nest.balanceOf(ntokenMining.address)).cmp(ETHER(8000000000 + 100000)));
 
             // Balance of nestLedger
@@ -171,7 +171,7 @@ contract("NestMining", async accounts => {
                 LOG('blockNumber: ' + await web3.eth.getBlockNumber());
             }
 
-            receipt = await ntokenMining.post(hbtc.address, 30, HBTC(2570), { value: ETHER(30.1) });
+            receipt = await ntokenMining.post(hbtc.address, 10, HBTC(2570), { value: ETHER(10.1) });
             console.log(receipt);
 
             await skipBlocks(20);

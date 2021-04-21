@@ -4,6 +4,7 @@ const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 const IterableMapping = artifacts.require("IterableMapping");
 const IBNEST = artifacts.require('IBNEST');
 const NNToken = artifacts.require('NNToken');
+const SuperMan = artifacts.require('SuperMan');
 const TestERC20 = artifacts.require('TestERC20');
 const Nest_NToken = artifacts.require('Nest_NToken');
 const NToken = artifacts.require('NToken');
@@ -162,14 +163,18 @@ async function setConfig(contracts) {
 
 module.exports = async function (deployer, network) {
 
-    return;
+    //return;
     
-    await deployer.deploy(IterableMapping);
-    await deployer.link(IterableMapping, IBNEST);
-    let nest = await deployer.deploy(IBNEST);
-    let nn = await deployer.deploy(NNToken, 1500, 'NN');
-    let usdt = await deployer.deploy(TestERC20, 'USDT', 'USDT', 6);
-    let hbtc = await deployer.deploy(TestERC20, 'HBTC', 'HBTC', 18);
+    //await deployer.deploy(IterableMapping);
+    //await deployer.link(IterableMapping, IBNEST);
+    //let nest = await deployer.deploy(IBNEST);
+    let nest = await IBNEST.at('0xdE6A3E1153E9465d8E8011C5F846C567E1E05c41');
+    console.log('nest: ' + nest.address);
+    //let nn = await deployer.deploy(NNToken, 1500, 'NN');
+    //let usdt = await deployer.deploy(TestERC20, 'USDT', 'USDT', 6);
+    let usdt = await TestERC20.at('0x9B70F432b8eE4e2B2BdDFb200AA9486c04081d12');
+    console.log('usdt: ' + usdt.address);
+    //let hbtc = await deployer.deploy(TestERC20, 'HBTC', 'HBTC', 18);
     let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
     //let nestGovernance = await NestGovernance.at('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
     console.log('nestGovernance: ' + nestGovernance.address);
@@ -197,9 +202,48 @@ module.exports = async function (deployer, network) {
     let nnIncome = await deployProxy(NNIncome, [nestGovernance.address], { initializer: 'initialize' });
     //let nnIncome = await NNIncome.at('0x73832B6dF01E253E3CaDefD68f7c1a0e71241301');
     console.log('nnIncome: ' + nnIncome.address);
-    let nhbtc = await deployer.deploy(Nest_NToken, 'NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
-    //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
-    console.log('nhbtc: ' + nhbtc.address);
+    // let nhbtc = await deployer.deploy(Nest_NToken, 'NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
+    // //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
+    // console.log('nhbtc: ' + nhbtc.address);
+    // let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
+    let nn = await SuperMan.at('0x52Ab1592d71E20167EB657646e86ae5FC04e9E01');
+    console.log('nn: ' + nn.address);
+
+    let contracts = {
+        nest: nest,
+        nn: nn,
+        usdt: usdt,
+        //hbtc: hbtc,
+        //nhbtc: nhbtc,
+        nestLedger: nestLedger,
+        nestMining: nestMining,
+        ntokenMining: ntokenMining,
+        nestPriceFacade: nestPriceFacade,
+        nestVote: nestVote,
+        nnIncome: nnIncome,
+        nTokenController: nTokenController,
+        nestRedeeming: nestRedeeming,
+        nestGovernance: nestGovernance
+    };
+
+    let contractAddresses = {
+        nest: nest.address,
+        nn: nn.address,
+        //usdt: usdt.address,
+        //hbtc: hbtc.address,
+        //nhbtc: nhbtc.address,
+        nestLedger: nestLedger.address,
+        nestMining: nestMining.address,
+        ntokenMining: ntokenMining.address,
+        nestPriceFacade: nestPriceFacade.address,
+        nestVote: nestVote.address,
+        nnIncome: nnIncome.address,
+        nTokenController: nTokenController.address,
+        nestRedeeming: nestRedeeming.address,
+        nestGovernance: nestGovernance.address
+    };
+
+    console.log(contractAddresses);
 
     if (false) {
     } else {
@@ -243,41 +287,25 @@ module.exports = async function (deployer, network) {
         console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
         await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
 
-        // Add ntoken mapping
-        console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
-        await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
-        console.log('14. nTokenController.setNTokenMapping(usdt.address, nest.address, 1)');
-        await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
+        // // Add ntoken mapping
+        // console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
+        // await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
+        // console.log('14. nTokenController.setNTokenMapping(usdt.address, nest.address, 1)');
+        // await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
 
         console.log('15. nestPriceFacade.setNestQuery(usdt.address, nestMining.address)');
         await nestPriceFacade.setNestQuery(usdt.address, nestMining.address);
         console.log('16. nestPriceFacade.setNestQuery(nest.address, nestMining.address)');
         await nestPriceFacade.setNestQuery(nest.address, nestMining.address);
 
-        // Authorization of voting contracts
-        console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
-        await nestGovernance.setGovernance(nestVote.address, 1);
+        // In order to prevent others from preempting to initiate the deletion of administrator's vote,
+        // resulting in a passive situation, the voting contract is not authorized during deployment
+        // // Authorization of voting contracts
+        // console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
+        // await nestGovernance.setGovernance(nestVote.address, 1);
         console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
         await nestLedger.setApplication(nestRedeeming.address, 1);
-        console.log('19. nn.setContracts(nnIncome.address)');
-        await nn.setContracts(nnIncome.address);
 
-        let contracts = {
-            nest: nest,
-            nn: nn,
-            usdt: usdt,
-            hbtc: hbtc,
-            nhbtc: nhbtc,
-            nestLedger: nestLedger,
-            nestMining: nestMining,
-            ntokenMining: ntokenMining,
-            nestPriceFacade: nestPriceFacade,
-            nestVote: nestVote,
-            nnIncome: nnIncome,
-            nTokenController: nTokenController,
-            nestRedeeming: nestRedeeming,
-            nestGovernance: nestGovernance
-        };
         await setConfig(contracts);
     }
 };

@@ -2,6 +2,7 @@
 const IterableMapping = artifacts.require("IterableMapping");
 const IBNEST = artifacts.require('IBNEST');
 const NNToken = artifacts.require('NNToken');
+const SuperMan = artifacts.require('SuperMan');
 const TestERC20 = artifacts.require('TestERC20');
 const Nest_NToken = artifacts.require('Nest_NToken');
 const NToken = artifacts.require('NToken');
@@ -22,9 +23,6 @@ module.exports = async function() {
     let nest = await IBNEST.new();
     //let nest = await IBNEST.at('0x0000000000000000000000000000000000000000');
     console.log('nest: ' + nest.address);
-    let nn = await NNToken.new(1500, 'NN');
-    //let nn = await NNToken.at('0x0000000000000000000000000000000000000000');
-    console.log('nn: ' + nn.address);
     let usdt = await TestERC20.new('USDT', 'USDT', 6);
     //let usdt = await TestERC20.at('0x0000000000000000000000000000000000000000');
     console.log('usdt: ' + usdt.address);
@@ -61,6 +59,9 @@ module.exports = async function() {
     let nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[1]);
     //let nhbtc = await Nest_NToken.at('0x0000000000000000000000000000000000000000');
     console.log('nhbtc: ' + nhbtc.address);
+    let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
+    //let nn = await SuperMan.at('0x7cFb525161d0062923CAA6AbfaBcDb7c580acd48');
+    console.log('nn: ' + nn.address);
 
     if (false) {
     } else {
@@ -139,8 +140,8 @@ module.exports = async function() {
         await nestGovernance.setGovernance(nestVote.address, 1);
         console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
         await nestLedger.setApplication(nestRedeeming.address, 1);
-        console.log('19. nn.setContracts(nnIncome.address)');
-        await nn.setContracts(nnIncome.address);
+        //console.log('19. nn.setContracts(nnIncome.address)');
+        //await nn.setContracts(nnIncome.address);
 
         let contracts = {
             nest: nest,

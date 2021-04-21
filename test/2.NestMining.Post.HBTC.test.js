@@ -78,13 +78,13 @@ contract("NestMining", async accounts => {
         {
             // 1. Post a price sheet
             console.log('1. Post a price sheet');
-            let receipt = await ntokenMining.post(hbtc.address, 30, HBTC(256), { value: ETHER(30.1) });
+            let receipt = await ntokenMining.post(hbtc.address, 10, HBTC(256), { value: ETHER(10.1) });
 
             console.log(receipt);
             balance0 = await showBalance(account0, 'After price posted');
             
             // Balance of account0
-            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
+            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 10)));
             assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
             assert.equal(0, balance0.balance.nhbtc.cmp(ETHER(0)));
             assert.equal(0, balance0.pool.hbtc.cmp(HBTC(0)));
@@ -92,8 +92,8 @@ contract("NestMining", async accounts => {
             assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
 
             // Balance of nestMining
-            assert.equal(0, (await ethBalance(ntokenMining.address)).cmp(ETHER(30.0)));
-            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 30)));
+            assert.equal(0, (await ethBalance(ntokenMining.address)).cmp(ETHER(10.0)));
+            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 10)));
             assert.equal(0, (await nhbtc.balanceOf(ntokenMining.address)).cmp(ETHER(0)));
             assert.equal(0, (await nest.balanceOf(ntokenMining.address)).cmp(ETHER(8000000000 + 100000)));
 
@@ -109,7 +109,7 @@ contract("NestMining", async accounts => {
             assert.equal(0, (await nestLedger.totalETHRewards(nest.address)).cmp(ETHER(0.1 * 0.2)));
             assert.equal(0, (await nestLedger.totalETHRewards(nhbtc.address)).cmp(ETHER(0.1 * 0.8)));
             
-            mined = nHBTC(10 * 4 * 0.95);
+            mined = nHBTC(10 * 4 * (0.95 + 0.05));
             prevBlockNumber = receipt.receipt.blockNumber;
 
             await skipBlocks(20);
@@ -122,16 +122,16 @@ contract("NestMining", async accounts => {
             balance0 = await showBalance(account0, 'After price sheet closed');
 
             // Balance of account0
-            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 30)));
+            assert.equal(0, balance0.balance.hbtc.cmp(HBTC(10000000 - 256 * 10)));
             assert.equal(0, balance0.balance.nest.cmp(ETHER(1000000000 - 100000)));
             assert.equal(0, balance0.balance.nhbtc.cmp(ETHER(0)));
-            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(256 * 30)));
+            assert.equal(0, balance0.pool.hbtc.cmp(HBTC(256 * 10)));
             assert.equal(0, balance0.pool.nhbtc.cmp(mined));
             assert.equal(0, balance0.pool.nest.cmp(ETHER(100000)));
 
             // Balance of nestMining
             assert.equal(0, (await ethBalance(ntokenMining.address)).cmp(ETHER(0)));
-            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 30)));
+            assert.equal(0, (await hbtc.balanceOf(ntokenMining.address)).cmp(HBTC(256 * 10)));
             //assert.equal(0, (await nhbtc.balanceOf(ntokenMining.address)).cmp(nHBTC(10 * 4 * 1.00)));
             assert.equal(0, (await nhbtc.balanceOf(ntokenMining.address)).cmp(nHBTC(0)));
             assert.equal(0, (await nest.balanceOf(ntokenMining.address)).cmp(ETHER(8000000000 + 100000)));
@@ -201,7 +201,7 @@ contract("NestMining", async accounts => {
             }
 
             console.log('3. Post a price sheet 2');
-            receipt = await ntokenMining.post(hbtc.address, 30, HBTC(258), { value: ETHER(30.1) });
+            receipt = await ntokenMining.post(hbtc.address, 10, HBTC(258), { value: ETHER(10.1) });
             console.log(receipt);
 
             await skipBlocks(20);
@@ -216,7 +216,7 @@ contract("NestMining", async accounts => {
             }
 
             console.log('4. Post a price sheet 3');
-            receipt = await ntokenMining.post(hbtc.address, 30, HBTC(234), { value: ETHER(30.1) });
+            receipt = await ntokenMining.post(hbtc.address, 10, HBTC(234), { value: ETHER(10.1) });
             console.log(receipt);
 
             await skipBlocks(20);

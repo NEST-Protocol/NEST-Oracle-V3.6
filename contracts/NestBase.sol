@@ -12,6 +12,7 @@ contract NestBase {
     // TODO: Define NEST_TOKEN_ADDRESS as variable is for testing, it should be constant for mainnet 
     // Address of nest token contract
     //address constant NEST_TOKEN_ADDRESS = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
+    //address constant NEST_TOKEN_ADDRESS = 0xdE6A3E1153E9465d8E8011C5F846C567E1E05c41;
     address NEST_TOKEN_ADDRESS;
 
     // TODO: Define NEST_GENESIS_BLOCK 0 is for testing, it should be 6236588 for mainnet 
