@@ -53,7 +53,7 @@ async function setConfig(contracts) {
             doublePostThreshold: 500,
             
             // The limit of ntoken mined blocks. 100
-            ntokenMinedBlockLimit: 100,
+            ntokenMinedBlockLimit: 300,
     
             // -- Public configuration
             // The number of times the sheet assets have doubled. 4
@@ -74,7 +74,7 @@ async function setConfig(contracts) {
             postEthUnit: 10,
     
             // Post fee(0.0001eth，DIMI_ETHER). 1000
-            postFeeUnit: 1000,
+            postFeeUnit: 500,
     
             // Proportion of miners digging(10000 based). 8000
             minerNestReward: 8000,
@@ -87,7 +87,7 @@ async function setConfig(contracts) {
             doublePostThreshold: 500,
             
             // The limit of ntoken mined blocks. 100
-            ntokenMinedBlockLimit: 100,
+            ntokenMinedBlockLimit: 300,
     
             // -- Public configuration
             // The number of times the sheet assets have doubled. 4
@@ -153,7 +153,7 @@ async function setConfig(contracts) {
         await contracts.nTokenController.setConfig({
 
             // The number of nest needed to pay for opening ntoken. 10000 ether
-            openFeeNestAmount: '10000000000000000000000',
+            openFeeNestAmount: '1000000000000000000000',
     
             // ntoken management is enabled. 0: not enabled, 1: enabled
             state: 1
