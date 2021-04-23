@@ -16,7 +16,9 @@ The NEST Oracle Smart Contract 3.6 is a solidity smart contract implementation o
 
 **[NEST V3.6 Contract Structure Diagram](docs/nest36-contracts.svg)**
 
-**[Learn More ...](https://nestprotocol.org/)**
+**[NEST V3.6 Application Scenarios](docs/readme.md#5-application-scenarios)**
+
+**[Learn More...](https://nestprotocol.org/)**
 
 ## Usage
 
