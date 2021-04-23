@@ -163,16 +163,16 @@ async function setConfig(contracts) {
 
 module.exports = async function (deployer, network) {
 
-    //return;
-    
     //await deployer.deploy(IterableMapping);
     //await deployer.link(IterableMapping, IBNEST);
     //let nest = await deployer.deploy(IBNEST);
-    let nest = await IBNEST.at('0xdE6A3E1153E9465d8E8011C5F846C567E1E05c41');
+    // TODO: Set nest address
+    let nest = await IBNEST.at('0x1d2829adfAc6F808bE0f7D330E68BD9a9bD317D7');
     console.log('nest: ' + nest.address);
     //let nn = await deployer.deploy(NNToken, 1500, 'NN');
     //let usdt = await deployer.deploy(TestERC20, 'USDT', 'USDT', 6);
-    let usdt = await TestERC20.at('0x9B70F432b8eE4e2B2BdDFb200AA9486c04081d12');
+    // TODO: Set usdt address
+    let usdt = await TestERC20.at('0xc3f9794C9f50537194ef0bd9e74e9658d51a0eBa');
     console.log('usdt: ' + usdt.address);
     //let hbtc = await deployer.deploy(TestERC20, 'HBTC', 'HBTC', 18);
     let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
@@ -206,6 +206,7 @@ module.exports = async function (deployer, network) {
     // //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
     // console.log('nhbtc: ' + nhbtc.address);
     // let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
+    // TODO: Set nn address
     let nn = await SuperMan.at('0x52Ab1592d71E20167EB657646e86ae5FC04e9E01');
     console.log('nn: ' + nn.address);
 

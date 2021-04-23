@@ -109,7 +109,7 @@ module.exports = async function() {
     nestGovernance: '0xA2D58989ef9981065f749C217984DB21970fF0b7'
     */
 
-    console.log('***** .deploy.rinkeby@20210414.js *****');
+    console.log('***** .deploy.rinkeby@20210420.js *****');
     //let nest = await IBNEST.new();
     let nest = await IBNEST.at('0xdE6A3E1153E9465d8E8011C5F846C567E1E05c41');
     console.log('nest: ' + nest.address);
@@ -152,6 +152,42 @@ module.exports = async function() {
     //let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
     let nn = await SuperMan.at('0x52Ab1592d71E20167EB657646e86ae5FC04e9E01');
     console.log('nn: ' + nn.address);
+
+    let contracts = {
+        nest: nest,
+        nn: nn,
+        usdt: usdt,
+        hbtc: hbtc,
+        nhbtc: nhbtc,
+        nestLedger: nestLedger,
+        nestMining: nestMining,
+        ntokenMining: ntokenMining,
+        nestPriceFacade: nestPriceFacade,
+        nestVote: nestVote,
+        nnIncome: nnIncome,
+        nTokenController: nTokenController,
+        nestRedeeming: nestRedeeming,
+        nestGovernance: nestGovernance
+    };
+
+    let contractAddresses = {
+        nest: nest.address,
+        nn: nn.address,
+        usdt: usdt.address,
+        hbtc: hbtc.address,
+        nhbtc: nhbtc.address,
+        nestLedger: nestLedger.address,
+        nestMining: nestMining.address,
+        ntokenMining: ntokenMining.address,
+        nestPriceFacade: nestPriceFacade.address,
+        nestVote: nestVote.address,
+        nnIncome: nnIncome.address,
+        nTokenController: nTokenController.address,
+        nestRedeeming: nestRedeeming.address,
+        nestGovernance: nestGovernance.address
+    };
+
+    console.log(contractAddresses);
 
     if (false) {
         console.log('1. nestGovernance.setBuiltinAddress()');
@@ -210,30 +246,11 @@ module.exports = async function() {
         await nestGovernance.setGovernance(nestVote.address, 1);
         console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
         await nestLedger.setApplication(nestRedeeming.address, 1);
-        //console.log('19. nn.setContracts(nnIncome.address)');
-        //await nn.setContracts(nnIncome.address);
-    } else {
 
-        let contracts = {
-            nest: nest,
-            nn: nn,
-            usdt: usdt,
-            hbtc: hbtc,
-            nhbtc: nhbtc,
-            nestLedger: nestLedger,
-            nestMining: nestMining,
-            ntokenMining: ntokenMining,
-            nestPriceFacade: nestPriceFacade,
-            nestVote: nestVote,
-            nnIncome: nnIncome,
-            nTokenController: nTokenController,
-            nestRedeeming: nestRedeeming,
-            nestGovernance: nestGovernance
-        };
         await setConfig(contracts);
-
-        return contracts;
+    } else {
     }
+    return contracts;
 };
 
 async function setConfig(contracts) {

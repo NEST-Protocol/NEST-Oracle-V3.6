@@ -94,48 +94,99 @@ module.exports = async function() {
     nnIncome: 0x73832B6dF01E253E3CaDefD68f7c1a0e71241301
     */
    
-    console.log('***** .deploy.rinkeby@20210414.js *****');
+    /*
+    2021-04-20
+    nest: '0xdE6A3E1153E9465d8E8011C5F846C567E1E05c41',
+    nn: '0x52Ab1592d71E20167EB657646e86ae5FC04e9E01',
+    nestLedger: '0x8D765fA9C16e6f5AdfcFAeC3F5e52a085Fa17f70',
+    nestMining: '0xE63cBCbd6163f4872529D60961396758ffcFBF7c',
+    ntokenMining: '0x0C5E0FBd686B2AB85328A1487A37ad336Ab89aee',
+    nestPriceFacade: '0x8AFe105D7D239f4e693B4A80222267637437F1c2',
+    nestVote: '0x285298fBd5DB0BB530fF1Fd22b0DBa03e27b8697',
+    nnIncome: '0x6Fc46387CD1041d32C49976a76c2b624feE282eC',
+    nTokenController: '0x51C7a4CDe357aeC596337161Bf40a682BEf61D82',
+    nestRedeeming: '0xeACeFE83eA5296403b75a289c19d3DDAc8a8d791',
+    nestGovernance: '0xA2D58989ef9981065f749C217984DB21970fF0b7'
+    */
+
+    /*
+    2021-04-21
+    USDT: "0xc3f9794C9f50537194ef0bd9e74e9658d51a0eBa",
+    nest: '0xCB35fE6Ba7E9a4d7aE1D34Cf32095ed9653301B5',
+    nn: '0x52Ab1592d71E20167EB657646e86ae5FC04e9E01',
+    nestLedger: '0x19E46549DAA00AbaE8c4C30eBBe3C7c0f562Ff5C',
+    nestMining: '0x1522c284B0eD0fF5a6DB8a8922b597A361a63bb2',
+    ntokenMining: '0x2Ea38A9a418402C7a2D245744DfD6baA83cfA80c',
+    nestPriceFacade: '0xAF69fD1b77618087058fE9C1BaC3E31A7A3F1bC8',
+    nestVote: '0x0D6fCCF3383E8701A6CE11239084207b334FB7e5',
+    nnIncome: '0xe0a5dea5f513b44BeDfA0b19fe5a3fbF07626E40',
+    nTokenController: '0xF39AC8b44956371d2ad89092Db69b498900FF098',
+    nestRedeeming: '0xf48041aD10727937c721606B37223c0814a3357F',
+    nestGovernance: '0x1729fcb4C10f8bB643B687aC95C4fA7f4553f3E2'
+    */
+
+    /*
+    2021-04-22
+    USDT: "0xE23BD82499041fd1E375F4b6c4aA20ab9c4aF507",
+    NEST: "0x1d2829adfAc6F808bE0f7D330E68BD9a9bD317D7",
+    NN: "0x52Ab1592d71E20167EB657646e86ae5FC04e9E01"
+
+    nest: 0x1d2829adfAc6F808bE0f7D330E68BD9a9bD317D7
+    usdt: 0xE23BD82499041fd1E375F4b6c4aA20ab9c4aF507
+    nestGovernance: 0xdA6053286EAea567766c06652a1ea27008a3D045
+    nestLedger: 0xD671C712a18f61B84133e574e9455DeF1Ac34979
+    nTokenController: 0xa532A9a38bC4052002BdDeF6DDF19E936863960F
+    nestVote: 0x1428E1d3c84C4cd75BEc50EAd08AD9Bd88bf30E8
+    nestMining: 0xdd3976cBf61071eA8BEAe2FB76A1fDf30dBF2c6F
+    ntokenMining: 0xD97b9f95a3A779B67c10142b0B1328FedB0Af991
+    nestPriceFacade: 0xa9efef6BCa40A3Ca7d221ddd97b05765265983cE
+    nestRedeeming: 0x0B6F1b88801A7B90015b09edc2BC7e96Af391edd
+    nnIncome: 0xCb509804CF909f483daBE9e973511D0f970c2d08
+    nn: 0x52Ab1592d71E20167EB657646e86ae5FC04e9E01
+    */
+
+    console.log('***** .deploy.rinkeby@20210422.js *****');
     //let nest = await IBNEST.new();
-    let nest = await IBNEST.at('0x6158Ebb8022Ab0Cea5Ee507eDa9648A5f96538fE');
+    let nest = await IBNEST.at('0x1d2829adfAc6F808bE0f7D330E68BD9a9bD317D7');
     console.log('nest: ' + nest.address);
     //let usdt = await TestERC20.new('USDT', 'USDT', 6);
-    let usdt = await TestERC20.at('0xE3972FF989F8aC7d6950B4bccE2D7e39B3F8A83f');
+    let usdt = await TestERC20.at('0xE23BD82499041fd1E375F4b6c4aA20ab9c4aF507');
     console.log('usdt: ' + usdt.address);
     //let hbtc = await TestERC20.new('HBTC', 'HBTC', 18);
     let hbtc = await TestERC20.at('0xaE73d363Cb4aC97734E07e48B01D0a1FF5D1190B');
     console.log('hbtc: ' + hbtc.address);
     //let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
-    let nestGovernance = await NestGovernance.at('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
+    let nestGovernance = await NestGovernance.at('0xdA6053286EAea567766c06652a1ea27008a3D045');
     console.log('nestGovernance: ' + nestGovernance.address);
     //let nestLedger = await deployProxy(NestLedger, [nestGovernance.address], { initializer: 'initialize' });
-    let nestLedger = await NestLedger.at('0x566909EEc3B9cCbF3C5E1a3eCFCb439F54b2AF51');
+    let nestLedger = await NestLedger.at('0xD671C712a18f61B84133e574e9455DeF1Ac34979');
     console.log('nestLedger: ' + nestLedger.address);
     //let nTokenController = await deployProxy(NTokenController, [nestGovernance.address], { initializer: 'initialize' });
-    let nTokenController = await NTokenController.at('0x046528d4E9C9A8b0744163e1220758cF1FB58471');
+    let nTokenController = await NTokenController.at('0xa532A9a38bC4052002BdDeF6DDF19E936863960F');
     console.log('nTokenController: ' + nTokenController.address);
     //let nestVote = await deployProxy(NestVote, [nestGovernance.address], { initializer: 'initialize' });
-    let nestVote = await NestVote.at('0xB31f969571e09d832E582820457d614Ca482C822');
+    let nestVote = await NestVote.at('0x1428E1d3c84C4cd75BEc50EAd08AD9Bd88bf30E8');
     console.log('nestVote: ' + nestVote.address);
     //let nestMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
-    let nestMining = await NestMining.at('0xe8Bec71aeac191bbf4c870f927fE8fFaAEd9efc8');
+    let nestMining = await NestMining.at('0xdd3976cBf61071eA8BEAe2FB76A1fDf30dBF2c6F');
     console.log('nestMining: ' + nestMining.address);
     //let ntokenMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
-    let ntokenMining = await NestMining.at('0xaD223aBB38aE83b08facFD7469E8ef49fb525Ca1');
+    let ntokenMining = await NestMining.at('0xD97b9f95a3A779B67c10142b0B1328FedB0Af991');
     console.log('ntokenMining: ' + ntokenMining.address);
     //let nestPriceFacade = await deployProxy(NestPriceFacade, [nestGovernance.address], { initializer: 'initialize' });
-    let nestPriceFacade = await NestPriceFacade.at('0x831fE938eEEC8dd7b993aB64F5B596dEdE9513D0');
+    let nestPriceFacade = await NestPriceFacade.at('0xa9efef6BCa40A3Ca7d221ddd97b05765265983cE');
     console.log('nestPriceFacade: ' + nestPriceFacade.address);
     //let nestRedeeming = await deployProxy(NestRedeeming, [nestGovernance.address], { initializer: 'initialize' });
-    let nestRedeeming = await NestRedeeming.at('0xd170c041FD00876a77762E764e1433bed12Ca5D9');
+    let nestRedeeming = await NestRedeeming.at('0x0B6F1b88801A7B90015b09edc2BC7e96Af391edd');
     console.log('nestRedeeming: ' + nestRedeeming.address);
     //let nnIncome = await deployProxy(NNIncome, [nestGovernance.address], { initializer: 'initialize' });
-    let nnIncome = await NNIncome.at('0x73832B6dF01E253E3CaDefD68f7c1a0e71241301');
+    let nnIncome = await NNIncome.at('0xCb509804CF909f483daBE9e973511D0f970c2d08');
     console.log('nnIncome: ' + nnIncome.address);
     //let nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
     let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
     console.log('nhbtc: ' + nhbtc.address);
     //let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
-    let nn = await SuperMan.at('0x7cFb525161d0062923CAA6AbfaBcDb7c580acd48');
+    let nn = await SuperMan.at('0x52Ab1592d71E20167EB657646e86ae5FC04e9E01');
     console.log('nn: ' + nn.address);
 
     let contracts = {
@@ -174,7 +225,7 @@ module.exports = async function() {
 
     console.log(contractAddresses);
 
-    if (false) {
+    if (true) {
         console.log('1. nestGovernance.setBuiltinAddress()');
         await nestGovernance.setBuiltinAddress(
             nest.address,
@@ -189,31 +240,31 @@ module.exports = async function() {
             nTokenController.address //nTokenControllerAddress
         );
 
-        console.log('2. nestGovernance.update()');
-        await nestGovernance.update(nestGovernance.address);
-        console.log('3. nestLedger.update()');
-        await nestLedger.update(nestGovernance.address);
-        console.log('4. nTokenController.update()');
-        await nTokenController.update(nestGovernance.address);
-        console.log('5. nestVote.update()');
-        await nestVote.update(nestGovernance.address);
-        console.log('6. nestMining.update()');
-        await nestMining.update(nestGovernance.address);
-        console.log('7. ntokenMining.update()');
-        await ntokenMining.update(nestGovernance.address);
-        console.log('8. nestPriceFacade.update()');
-        await nestPriceFacade.update(nestGovernance.address);
-        console.log('9. nestRedeeming.update()');
-        await nestRedeeming.update(nestGovernance.address);
-        console.log('10. nnIncome.update()');
-        await nnIncome.update(nestGovernance.address);
+        // console.log('2. nestGovernance.update()');
+        // await nestGovernance.update(nestGovernance.address);
+        // console.log('3. nestLedger.update()');
+        // await nestLedger.update(nestGovernance.address);
+        // console.log('4. nTokenController.update()');
+        // await nTokenController.update(nestGovernance.address);
+        // console.log('5. nestVote.update()');
+        // await nestVote.update(nestGovernance.address);
+        // console.log('6. nestMining.update()');
+        // await nestMining.update(nestGovernance.address);
+        // console.log('7. ntokenMining.update()');
+        // await ntokenMining.update(nestGovernance.address);
+        // console.log('8. nestPriceFacade.update()');
+        // await nestPriceFacade.update(nestGovernance.address);
+        // console.log('9. nestRedeeming.update()');
+        // await nestRedeeming.update(nestGovernance.address);
+        // console.log('10. nnIncome.update()');
+        // await nnIncome.update(nestGovernance.address);
 
-        console.log('11. nestGovernance.registerAddress(nest.dao.redeeming)');
-        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
-        console.log('12. nestGovernance.registerAddress(nest.nToken.offerMain)');
-        await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address);
-        console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
-        await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
+        // console.log('11. nestGovernance.registerAddress(nest.dao.redeeming)');
+        // await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
+        // console.log('12. nestGovernance.registerAddress(nest.nToken.offerMain)');
+        // await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address);
+        // console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
+        // await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
 
         // Add ntoken mapping
         console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
@@ -226,13 +277,13 @@ module.exports = async function() {
         console.log('16. nestPriceFacade.setNestQuery(nest.address, nestMining.address)');
         await nestPriceFacade.setNestQuery(nest.address, nestMining.address);
 
-        // Authorization of voting contracts
-        console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
-        await nestGovernance.setGovernance(nestVote.address, 1);
-        console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
-        await nestLedger.setApplication(nestRedeeming.address, 1);
+        // // Authorization of voting contracts
+        // console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
+        // await nestGovernance.setGovernance(nestVote.address, 1);
+        // console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
+        // await nestLedger.setApplication(nestRedeeming.address, 1);
 
-        await setConfig(contracts);
+        // await setConfig(contracts);
     } else {
     }
     return contracts;
