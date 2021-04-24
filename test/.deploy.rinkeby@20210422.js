@@ -225,7 +225,7 @@ module.exports = async function() {
 
     console.log(contractAddresses);
 
-    if (true) {
+    if (false) {
         console.log('1. nestGovernance.setBuiltinAddress()');
         await nestGovernance.setBuiltinAddress(
             nest.address,
@@ -240,31 +240,31 @@ module.exports = async function() {
             nTokenController.address //nTokenControllerAddress
         );
 
-        // console.log('2. nestGovernance.update()');
-        // await nestGovernance.update(nestGovernance.address);
-        // console.log('3. nestLedger.update()');
-        // await nestLedger.update(nestGovernance.address);
-        // console.log('4. nTokenController.update()');
-        // await nTokenController.update(nestGovernance.address);
-        // console.log('5. nestVote.update()');
-        // await nestVote.update(nestGovernance.address);
-        // console.log('6. nestMining.update()');
-        // await nestMining.update(nestGovernance.address);
-        // console.log('7. ntokenMining.update()');
-        // await ntokenMining.update(nestGovernance.address);
-        // console.log('8. nestPriceFacade.update()');
-        // await nestPriceFacade.update(nestGovernance.address);
-        // console.log('9. nestRedeeming.update()');
-        // await nestRedeeming.update(nestGovernance.address);
-        // console.log('10. nnIncome.update()');
-        // await nnIncome.update(nestGovernance.address);
+        console.log('2. nestGovernance.update()');
+        await nestGovernance.update(nestGovernance.address);
+        console.log('3. nestLedger.update()');
+        await nestLedger.update(nestGovernance.address);
+        console.log('4. nTokenController.update()');
+        await nTokenController.update(nestGovernance.address);
+        console.log('5. nestVote.update()');
+        await nestVote.update(nestGovernance.address);
+        console.log('6. nestMining.update()');
+        await nestMining.update(nestGovernance.address);
+        console.log('7. ntokenMining.update()');
+        await ntokenMining.update(nestGovernance.address);
+        console.log('8. nestPriceFacade.update()');
+        await nestPriceFacade.update(nestGovernance.address);
+        console.log('9. nestRedeeming.update()');
+        await nestRedeeming.update(nestGovernance.address);
+        console.log('10. nnIncome.update()');
+        await nnIncome.update(nestGovernance.address);
 
-        // console.log('11. nestGovernance.registerAddress(nest.dao.redeeming)');
-        // await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
-        // console.log('12. nestGovernance.registerAddress(nest.nToken.offerMain)');
-        // await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address);
-        // console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
-        // await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
+        console.log('11. nestGovernance.registerAddress(nest.dao.redeeming)');
+        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
+        console.log('12. nestGovernance.registerAddress(nest.nToken.offerMain)');
+        await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address);
+        console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
+        await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
 
         // Add ntoken mapping
         console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
@@ -280,8 +280,8 @@ module.exports = async function() {
         // // Authorization of voting contracts
         // console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
         // await nestGovernance.setGovernance(nestVote.address, 1);
-        // console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
-        // await nestLedger.setApplication(nestRedeeming.address, 1);
+        console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
+        await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // await setConfig(contracts);
     } else {

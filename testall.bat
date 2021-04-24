@@ -28,4 +28,3 @@ call npx truffle test ./test/27.NestMining.Collect.test.js
 call npx truffle test ./test/28.NestBase.test.js
 call npx truffle test ./test/29.NestPriceFacade.test3.js
 call npx truffle test ./test/30.NestMining.Proxy.test.js
-call npx truffle test ./test/31.CreateNToken.test.js

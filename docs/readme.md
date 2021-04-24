@@ -4,15 +4,30 @@
 NEST V3.6 has made certain functional adjustments and non-functional modifications based on NEST V3.5.
 
 ### 1.1. Functional Class
-1. Cancel dividends
-2. Add voting-governance module (see product document for details), system maintained accounts can be deleted by voting after V3.6 releases
-3. The quotation scale of nest is 30eth, the quotation scale of ntoken is 10eth, the commission is changed from the original calculation based on the scale ratio to a fixed value, and the commissions of nest and ntoken are both set to 0.1eth
-4. The verification block is proposed to adjust to 20 blocks
-5. NestNode mining independently, the mining speed is 15% of the total mining speed of nest
+1. Add a voting governance module which will remove system maintenance accounts by voting after v3.6 launches. Decentralize developer rights to the community and require 51% votes for any changes of the protocol.
+
+2. Completely elimination of dividends with all income used for repurchase.
+
+3. Quotation scale adjustment: NEST Token dual-track quotation scale 30 ETH unchanged, nToken quotation scale adjusted to 10 ETH.
+
+4. Both quotation fees are adjusted from 0.33% of the scale to positive integer multiples of a fixed unit fee and up to 255 times. The unit fee of NEST is 0.1ETH and the unit fee of nToken is 0.05ETH.
+
+5. The rate of NEST ming by launching enters the next damping period when 204 NEST will be mined in each block.
+
+6. The upper limit of the block interval of nToken mining is adjusted to 300.
+
+7. Charges for opening nToken oracle are adjusted to 1000 NEST.
+
+8. The quantity of verification blocks is adjusted from 25 to 20.
+
+9. NestNode Token independent mining separates from NEST miner mining and gets NEST Token by block with the 15% speed of all NEST Token mining.
 
 ### 1.2. Non-functional Class
-1. Adjust the contract structure, redefine contracts which allowing changes and need to be fixed this time and in the future, and the DAO is divided into the ledger and the application (currently there is only one application: repurchase, there might be more DAO application in the future)
-2. Adjust the contract data structure. The main goal is to save gas consumption. After the adjustment, some calculations will have a loss of accuracy, but the accuracy loss will be controlled within one trillionth
+1. Adjust the contract structure and redefine the contracts that are allowed to change and need to be fixed this time and in the future.
+
+2. Split DAO into ledger and application (currently there is only one application: repurchase and in the future there may be more DAO applications) which is equivalent to reinventing a Snapshot governed functional contract within NEST Protocol that fully executes on-chain.
+
+3. Adjust the contract data structure mainly to save Gas consumption and part of the calculation will have accuracy loss which is controlled within one part per trillion after the adjustment.
 
 ## 2. Contract Structure
 
@@ -169,13 +184,13 @@ The data structure of the quotation sheet processes the two fields of the miner'
 
 ## 5. Application scenarios
 
-    It mainly includes quotation, voting, buy back, price call and other scenarios.
+It mainly includes quotation, voting, buy back, price call and other scenarios.
 
 ### 5.1 Post price sheet and bite - NestMining
-    1. The verification period is changed to 20 blocks. Only when the height of the block where the quotation is located and the current block height is greater than 20 can it be closed. Only when the height of the block where the quotation is located and the current block height is less than 20 can it be verified.
-    2. Only when the quotation is closed will the ore drawing calculation be carried out, and the verification sheet will not be mined.
-    3. Eth assets (quotation + commission) required for quotation mining and sheet quotation must be entered into the quotation contract each time. When closing, the remaining eth of the quotation will be returned.
-    4. After 256 price sheets are settled, the quotation Commission is transferred to the corresponding Dao to save gas consumption. Parameter adjustment or contract upgrade will automatically trigger Commission settlement.
+1. The verification period is changed to 20 blocks. Only when the height of the block where the quotation is located and the current block height is greater than 20 can it be closed. Only when the height of the block where the quotation is located and the current block height is less than 20 can it be verified.
+2. Only when the quotation is closed will the ore drawing calculation be carried out, and the verification sheet will not be mined.
+3. Eth assets (quotation + commission) required for quotation mining and sheet quotation must be entered into the quotation contract each time. When closing, the remaining eth of the quotation will be returned.
+4. After 256 price sheets are settled, the quotation Commission is transferred to the corresponding Dao to save gas consumption. Parameter adjustment or contract upgrade will automatically trigger Commission settlement.
     
 #### 5.1.1 Single post
     
@@ -219,8 +234,7 @@ The data structure of the quotation sheet processes the two fields of the miner'
 
 **PriceSheetView structure:**
 
-``
-
+```
     struct PriceSheetView {
         
         // Index of the price sheeet
@@ -253,7 +267,7 @@ The data structure of the quotation sheet processes the two fields of the miner'
         // The token price. (1eth equivalent to (price) token)
         uint152 price;
     }
-``
+```
 
 #### 5.1.4 ETH eats single verification
     
@@ -271,14 +285,12 @@ The data structure of the quotation sheet processes the two fields of the miner'
   + the number of tokens required to quote the order = (bitEnum * newTokenAamountPereth * 2) + the verified quotation price * BitEnum
   + If the TokenAddress is the NEST address, the number of NEST required for the mortgage also needs to be counted
 
-  
 2. This quotation for single depth value ` level ` greater than or equal to ` config. maxBiteNestedLevel `, quotation need the ETH, token does not need to be doubled, double mortgage NEST requires:
   + the number of ETH required to eat a single quote = 0
   + the number of NEST = ((biteNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
   + the number of tokens required to quote the order = (bitEnum * newTokenAamountPereth) + the price of the verified quotation * BitEnum
   + If the TokenAddress is the NEST address, the number of NEST required for the mortgage also needs to be counted
         
-  
 **Note:**
   + Disallow contract calls
   + The quotation must be in the verification period, that is, the interval between the height of the quotation block and the height of the latest block is less than 20
@@ -321,7 +333,6 @@ The data structure of the quotation sheet processes the two fields of the miner'
   + `tokenAddress` It can be a token address or a Ntoken address.
   + `index` The index index of the quotation to be closed.
 
-
 **Assets Settlement:**
   
   + The number of ETH remaining in the quotation (the value of `ethNumBal`) will be transferred to the miner's address.
@@ -337,7 +348,6 @@ The data structure of the quotation sheet processes the two fields of the miner'
 **Function：** `closeList(address tokenAddress, uint32[] memory indices)`
   + `tokenAddress` It can be a token address or a Ntoken address.
   + `indices` The index collection of quotations to close.
-
 
 **Assets Settlement:**
   
@@ -375,16 +385,16 @@ The data structure of the quotation sheet processes the two fields of the miner'
 
 
 ### 5.2 vote--NestVote
-    Anyone can create an execution contract by implementing the IvotePropose interface and initiate a vote, after which the execution contract will be executed.
+Anyone can create an execution contract by implementing the IvotePropose interface and initiate a vote, after which the execution contract will be executed.
         
-    1. Modify the scope
-        What remains unchanged: Nest Token Contract, NToken Token Contract, Mapping Contract, Ledger Contract
-        Can be modified: the logical implementation part, can be modified, including mining contract, DAO contract, NN mining contract, NToken opening contract
+1. Modify the scope
+    What remains unchanged: Nest Token Contract, NToken Token Contract, Mapping Contract, Ledger Contract
+    Can be modified: the logical implementation part, can be modified, including mining contract, DAO contract, NN mining contract, NToken opening contract
             
-    2. The vote
-        Voting method: voting by NEST mortgage contract, the number of votes reached the circulation (deducting DAO, mine pool, destruction) 51% can take effect, after reaching 51% can be triggered by anyone can take effect
-        Voting period: the voting period is 5 days. The voting period will be valid if 51% of the votes are reached at any time within the 5 days
-        Effective period: takes effect immediately after triggering
+2. The vote
+    Voting method: voting by NEST mortgage contract, the number of votes reached the circulation (deducting DAO, mine pool, destruction) 51% can take effect, after reaching 51% can be triggered by anyone can take effect
+    Voting period: the voting period is 5 days. The voting period will be valid if 51% of the votes are reached at any time within the 5 days
+    Effective period: takes effect immediately after triggering
 
      
 #### 5.2.1 Initiate a ballot proposal
@@ -407,7 +417,6 @@ The data structure of the quotation sheet processes the two fields of the miner'
 
 **ProposalView structure**
 ```     
-
    struct ProposalView {
         // Index of proposal
         uint index;
@@ -598,23 +607,23 @@ The data structure of the quotation sheet processes the two fields of the miner'
    
 ### 5.4 redeem--NestRedeeming
 ```
-   1. Eliminate dividends
-       All revenue generated by the NEST system (quote commission + price call fee) will be transferred to the DAO, and the use of revenue will be determined by voting +DAO governance.
+1. Eliminate dividends
+  All revenue generated by the NEST system (quote commission + price call fee) will be transferred to the DAO, and the use of revenue will be determined by voting +DAO governance.
 
-   2. NEST DAO
-       Nest mining commission 100% into the Nest DAO
-       By calling USDT/ETH, 100% of the commission fee of Nest /ETH goes into the Nest DAO
-       N-Token Prophet machine commission 20% into Nest DAO
-       Repurchase: Anyone can sell Nest to Nest DAO for ETH at the price of the Prophet
+2. NEST DAO
+  Nest mining commission 100% into the Nest DAO
+  By calling USDT/ETH, 100% of the commission fee of Nest /ETH goes into the Nest DAO
+  N-Token Prophet machine commission 20% into Nest DAO
+  Repurchase: Anyone can sell Nest to Nest DAO for ETH at the price of the Prophet
     
-   3. N-Token DAO
-      80% of the N-token mining commission goes into the N-token DAO
-      The N-Token Prophecer invocation fee is 100% into the N-Token DAO
-      Repurchase: Anyone can sell an Ntoken to an N-token DAO in exchange for ETH at the price quoted by the Prophetor
+3. N-Token DAO
+  80% of the N-token mining commission goes into the N-token DAO
+  The N-Token Prophecer invocation fee is 100% into the N-Token DAO
+  Repurchase: Anyone can sell an Ntoken to an N-token DAO in exchange for ETH at the price quoted by the Prophetor
 
-   4. Buy back
+4. Buy back
 
-      NEST3.5 has opened NEST repurchase, and 3.6 will open other N-token repurchase.
+  NEST3.5 has opened NEST repurchase, and 3.6 will open other N-token repurchase.
 ```
    
 #### 5.4.1 View the current amount available for repurchase

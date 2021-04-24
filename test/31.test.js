@@ -201,7 +201,7 @@ contract("NestMining", async accounts => {
             }
         }
 
-        if (true) {
+        if (false) {
             let qry = await NestMining.at(nestPriceFacade.address);
             let pi = await qry.latestPriceAndTriggeredPriceInfo(usdt.address);
             
@@ -225,6 +225,34 @@ contract("NestMining", async accounts => {
 
             console.log('findPrice')
             console.log(str);
+        }
+
+        if (true) {
+
+            console.log('nest balance of account0: ' + await nest.balanceOf(account0));
+            let nestMiningBalance = await nest.balanceOf(nestMining.address);
+            let nestLedgerBalance = await nest.balanceOf(nestLedger.address);
+            console.log('nest balance of nestMining: ' + nestMiningBalance);
+            console.log('nest balance of nestLedger: ' + nestLedgerBalance);
+
+            console.log('nestMining.migrate(nest.address, nestMiningBalance)');
+            await nestMining.migrate(nest.address, nestMiningBalance);
+            console.log('nest balance of account0: ' + await nest.balanceOf(account0));
+            nestMiningBalance = await nest.balanceOf(nestMining.address);
+            nestLedgerBalance = await nest.balanceOf(nestLedger.address);
+            console.log('nest balance of nestMining: ' + nestMiningBalance);
+            console.log('nest balance of nestLedger: ' + nestLedgerBalance);
+
+            console.log('nestLedger.setApplication(account0, 1)');
+            await nestLedger.setApplication(account0, 1);
+            console.log("nestLedger.pay('0x0000000000000000000000000000000000000000', nest.address, account0, nestLedgerBalance)");
+            await nestLedger.pay('0x0000000000000000000000000000000000000000', nest.address, account0, nestLedgerBalance);
+
+            console.log('nest balance of account0: ' + await nest.balanceOf(account0));
+            nestMiningBalance = await nest.balanceOf(nestMining.address);
+            nestLedgerBalance = await nest.balanceOf(nestLedger.address);
+            console.log('nest balance of nestMining: ' + nestMiningBalance);
+            console.log('nest balance of nestLedger: ' + nestLedgerBalance);
         }
     });
 });
