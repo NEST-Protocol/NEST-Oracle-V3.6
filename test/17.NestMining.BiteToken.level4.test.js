@@ -89,43 +89,43 @@ contract("NestMining", async accounts => {
 
         {
             // 2. Bite 1
-            let receipt = await nestMining.biteToken(usdt.address, 0, 30, USDT(1500), { value: ETHER(90), from: account1 });
+            let receipt = await nestMining.takeToken(usdt.address, 0, 30, USDT(1500), { value: ETHER(90), from: account1 });
             console.log(receipt);
         }
 
         {
             // 3. Bite 2
-            let receipt = await nestMining.biteToken(usdt.address, 1, 60, USDT(1400), { value: ETHER(180) });
+            let receipt = await nestMining.takeToken(usdt.address, 1, 60, USDT(1400), { value: ETHER(180) });
             console.log(receipt);
         }
 
         {
             // 4. Bite 3
-            let receipt = await nestMining.biteToken(usdt.address, 2, 120, USDT(1300), { value: ETHER(360), from: account1 });
+            let receipt = await nestMining.takeToken(usdt.address, 2, 120, USDT(1300), { value: ETHER(360), from: account1 });
             console.log(receipt);
         }
 
         {
             // 5. Bite 4
-            let receipt = await nestMining.biteToken(usdt.address, 3, 240, USDT(1200), { value: ETHER(720) });
+            let receipt = await nestMining.takeToken(usdt.address, 3, 240, USDT(1200), { value: ETHER(720) });
             console.log(receipt);
         }
 
         {
             // 6. Bite 5
-            let receipt = await nestMining.biteToken(usdt.address, 4, 480, USDT(1100), { value: ETHER(960), from: account1 });
+            let receipt = await nestMining.takeToken(usdt.address, 4, 480, USDT(1100), { value: ETHER(960), from: account1 });
             console.log(receipt);
         }
 
         {
             // 7. Bite 6
-            let receipt = await nestMining.biteToken(usdt.address, 5, 480, USDT(1000), { value: ETHER(960) });
+            let receipt = await nestMining.takeToken(usdt.address, 5, 480, USDT(1000), { value: ETHER(960) });
             console.log(receipt);
         }
 
         {
             // 8. Bite 7
-            let receipt = await nestMining.biteToken(usdt.address, 6, 480, USDT(900), { value: ETHER(960), from: account1 });
+            let receipt = await nestMining.takeToken(usdt.address, 6, 480, USDT(900), { value: ETHER(960), from: account1 });
             console.log(receipt);
         }
 

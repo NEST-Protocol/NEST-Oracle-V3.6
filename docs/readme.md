@@ -271,23 +271,23 @@ It mainly includes quotation, voting, buy back, price call and other scenarios.
 
 #### 5.1.4 ETH eats single verification
     
-**Function：** `biteEth(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) `
+**Function：** `takeEth(address tokenAddress, uint index, uint takeNum, uint newTokenAmountPerEth) `
   + `tokenAddress`  A single token address can be the USDT address or the corresponding token address of the enabled predictor.
   + `index` Index of quotation sheet.
-  + `biteNum` The ETH size of the order must be greater than 0 and `postEthUnit` (currently ETHUSDT quote is 30ETH, other quote trading pairs are 10ETH). The integer times of.
+  + `takeNum` The ETH size of the order must be greater than 0 and `postEthUnit` (currently ETHUSDT quote is 30ETH, other quote trading pairs are 10ETH). The integer times of.
   + `newTokenAmountPerEth` The re-quoted price after the purchase order, i.e. how many tokens can be exchanged for 1 ETH, must be greater than 0. Note that the unit of token is the smallest unit.
 
 **ETH to eat a single quote assets:**
   
 1. This quotation for single depth value `level` less than  ` config. maxBiteNestedLevel `, quotation need the ETH, token and mortgage NEST will be doubled:
   + the number of ETH required to eat the quotation = BITENUM
-  + the number of NEST = ((biteNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
+  + the number of NEST = ((takeNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
   + the number of tokens required to quote the order = (bitEnum * newTokenAamountPereth * 2) + the verified quotation price * BitEnum
   + If the TokenAddress is the NEST address, the number of NEST required for the mortgage also needs to be counted
 
 2. This quotation for single depth value ` level ` greater than or equal to ` config. maxBiteNestedLevel `, quotation need the ETH, token does not need to be doubled, double mortgage NEST requires:
   + the number of ETH required to eat a single quote = 0
-  + the number of NEST = ((biteNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
+  + the number of NEST = ((takeNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
   + the number of tokens required to quote the order = (bitEnum * newTokenAamountPereth) + the price of the verified quotation * BitEnum
   + If the TokenAddress is the NEST address, the number of NEST required for the mortgage also needs to be counted
         
@@ -295,28 +295,28 @@ It mainly includes quotation, voting, buy back, price call and other scenarios.
   + Disallow contract calls
   + The quotation must be in the verification period, that is, the interval between the height of the quotation block and the height of the latest block is less than 20
   + The `remainNum` of the offer must be greater than 0
-  + `biteNum` must be less than or equal to `remainNum`.
+  + `takeNum` must be less than or equal to `remainNum`.
    
 #### 5.1.5 Token eating bill verification
     
-**Function：** `biteToken(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth)`
+**Function：** `takeToken(address tokenAddress, uint index, uint takeNum, uint newTokenAmountPerEth)`
   + `tokenAddress`  A single token address can be the USDT address or the corresponding token address of the enabled predictor.
   + `index` Index of quotation sheet.
-  + `biteNum` The ETH size of the order must be greater than 0 and `postethUnit` (currently ETHUSDT quote is 30ETH, other quote trading pairs are 10ETH). Integer multiples of PI.
+  + `takeNum` The ETH size of the order must be greater than 0 and `postethUnit` (currently ETHUSDT quote is 30ETH, other quote trading pairs are 10ETH). Integer multiples of PI.
   + `newTokenAmountPerEth` The re-quoted price after the purchase order, i.e. how many tokens can be exchanged for 1 ETH, must be greater than 0. Note that the unit of token is the smallest unit.
 
 **Token eating order quoted assets:**
   
 1. This quotation for single depth value `level` less than  `config. maxBiteNestedLevel`, quotation need the ETH, double token and mortgage of the NEST：
-  + the number of ETH required to eat a single quote = biteNum * 3
-  + the number of NEST = ((biteNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
+  + the number of ETH required to eat a single quote = takeNum * 3
+  + the number of NEST = ((takeNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
   + The number of tokens required to quote the order = (bitEnum * newTokenAamountPereth * 2) - the verified quotation price * BitEnum
   + If the TokenAddress is the NEST address, the number of NEST required for the mortgage also needs to be counted
   + If the number of tokens needed is greater than 0, the tokens will be frozen; if the number of tokens needed is less than 0, the tokens will be returned as available assets
     
 2. This quotation for single depth value ` level ` greater than or equal to `config.maxBiteNestedLevel` , quotation need the ETH, token does not need to be doubled, double mortgage NEST requires:
-  + the number of ETH required to eat a single quote = biteNum * 2
-  + the number of NEST = ((biteNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
+  + the number of ETH required to eat a single quote = takeNum * 2
+  + the number of NEST = ((takeNum << 1)/uint(config.postethUnit)) * uint(config.nestledGenest)
   + The number of tokens required to quote the order = (bitEnum * newTokenAamountPereth) - the verified quotation price * BitEnum
   + If the TokenAddress is the NEST address, the number of NEST required for the mortgage also needs to be counted
   + If the number of tokens needed is greater than 0, the tokens will be frozen; if the number of tokens needed is less than 0, the tokens will be returned as available assets
@@ -325,7 +325,7 @@ It mainly includes quotation, voting, buy back, price call and other scenarios.
   + Disallow contract calls
   + The quotation must be in the verification period, that is, the interval between the height of the quotation block and the height of the latest block is less than 20
   + The `remainNum` of the offer must be greater than 0
-  + `biteNum` must be less than or equal to `remainNum`.
+  + `takeNum` must be less than or equal to `remainNum`.
  
 #### 5.1.6 Close quotation sheet
     

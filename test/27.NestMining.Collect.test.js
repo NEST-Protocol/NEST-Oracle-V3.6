@@ -105,10 +105,10 @@ contract("NestMining", async accounts => {
                         if (j > 4) {
                             eth = 30;
                         }
-                        let receipt = await nestMining.biteToken(usdt.address, i + j + (n - 1) * (i / 47 - 1) - 2, 30, USDT(1000), { value : ETHER(eth + 30) });
+                        let receipt = await nestMining.takeToken(usdt.address, i + j + (n - 1) * (i / 47 - 1) - 2, 30, USDT(1000), { value : ETHER(eth + 30) });
                         console.log(receipt);
                         console.log({
-                            index: 'biteToken-' + j,
+                            index: 'takeToken-' + j,
                             nestMining: (await ethBalance(nestMining.address)).toString(),
                             nestLedger: (await ethBalance(nestLedger.address)).toString(),
                             nestReward: (await nestLedger.totalETHRewards(nest.address)).toString(),

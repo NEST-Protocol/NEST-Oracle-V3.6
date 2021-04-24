@@ -93,15 +93,15 @@ contract("NestMining", async accounts => {
             });
         }
 
-        let receipt = await nestMining.biteEth(usdt.address, 37, 30, USDT(2000), { from: account1, value: ETHER(60 - 30) });
-        console.log('== biteEth ' + i);
+        let receipt = await nestMining.takeEth(usdt.address, 37, 30, USDT(2000), { from: account1, value: ETHER(60 - 30) });
+        console.log('== takeEth ' + i);
         LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
             nestMining: await ethDouble(nestMining.address),
             nestLedger: await ethDouble(nestLedger.address)
         });
 
-        receipt = await nestMining.biteToken(usdt.address, 39, 60, USDT(1000), { from: account0, value: ETHER(120 + 60) });
-        console.log('== biteToken ' + i);
+        receipt = await nestMining.takeToken(usdt.address, 39, 60, USDT(1000), { from: account0, value: ETHER(120 + 60) });
+        console.log('== takeToken ' + i);
         LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
             nestMining: await ethDouble(nestMining.address),
             nestLedger: await ethDouble(nestLedger.address)

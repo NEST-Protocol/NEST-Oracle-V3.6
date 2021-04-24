@@ -103,7 +103,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 
         // totalFee = fee * increment
         // 
-        // In consideration of biteToken, biteEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
+        // In consideration of takeToken, takeEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
         // at this point, it is need to settle immediately, the details of triggering settlement logic are as follows
         // 
         // 1. When there is a bite transaction(currentFee is 0), the counter of no fee sheets will be increase 1
@@ -403,19 +403,19 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of biting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
+    /// @param takeNum The amount of biting (in the unit of ETH), realAmount = takeNum * newTokenAmountPerEth
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteToken(
+    function takeToken(
         address tokenAddress,
         uint index,
-        uint biteNum,
+        uint takeNum,
         uint newTokenAmountPerEth
     ) override external payable {
 
         Config memory config = _config;
 
         // 1. Check arguments
-        require(biteNum > 0 && biteNum % uint(config.postEthUnit) == 0, "NM:!biteNum");
+        require(takeNum > 0 && takeNum % uint(config.postEthUnit) == 0, "NM:!takeNum");
         require(newTokenAmountPerEth > 0, "NM:!price");
 
         // 2. Load price sheet
@@ -424,7 +424,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet = sheets[index];
 
         // 3. Check state
-        require(uint(sheet.remainNum) >= biteNum, "NM:!remainNum");
+        require(uint(sheet.remainNum) >= takeNum, "NM:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
         // 4. Deposit fee
@@ -443,29 +443,29 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // When the level of the sheet is less than 4, both the nest and the scale of the offer are doubled
         if (level < uint(config.maxBiteNestedLevel)) {
             // Double scale sheet
-            needEthNum = biteNum << 1;
+            needEthNum = takeNum << 1;
             ++level;
         } 
         // When the level of the sheet reaches 4 or more, nest doubles, but the scale does not
         else {
             // Single scale sheet
-            needEthNum = biteNum;
+            needEthNum = takeNum;
             // It is possible that the length of a single chain exceeds 255. When the length of a chain reaches 4
             // or more, there is no logical dependence on the specific value of the contract, and the count will
             // not increase after it is accumulated to 255
             if (level < 255) ++level;
         }
-        require(msg.value == (needEthNum + biteNum) * 1 ether, "NM:!value");
+        require(msg.value == (needEthNum + takeNum) * 1 ether, "NM:!value");
 
         // Number of nest to be pledged
-        //uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
+        //uint needNest1k = ((takeNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
         // sheet.ethNumBal + sheet.tokenNumBal is always two times to sheet.ethNum
-        uint needNest1k = (biteNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
+        uint needNest1k = (takeNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
         // Freeze nest and token
         uint accountIndex = _addressIndex(msg.sender);
         {
             mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-            uint backTokenValue = decodeFloat(sheet.priceFloat) * biteNum;
+            uint backTokenValue = decodeFloat(sheet.priceFloat) * takeNum;
             if (needEthNum * newTokenAmountPerEth > backTokenValue) {
                 _freeze2(
                     balances,
@@ -480,9 +480,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         }
 
         // 6. Update the biten sheet
-        sheet.remainNum = uint32(uint(sheet.remainNum) - biteNum);
-        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) + biteNum);
-        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) - biteNum);
+        sheet.remainNum = uint32(uint(sheet.remainNum) - takeNum);
+        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) + takeNum);
+        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) - takeNum);
         sheets[index] = sheet;
 
         // 7. Calculate the price
@@ -499,19 +499,19 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @dev bite ETH by TOKEN(NTOKEN),  (-ethNumBal, +tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of biting (in the unit of ETH), realAmount = biteNum
+    /// @param takeNum The amount of biting (in the unit of ETH), realAmount = takeNum
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteEth(
+    function takeEth(
         address tokenAddress,
         uint index,
-        uint biteNum,
+        uint takeNum,
         uint newTokenAmountPerEth
     ) override external payable {
 
         Config memory config = _config;
 
         // 1. Check arguments
-        require(biteNum > 0 && biteNum % uint(config.postEthUnit) == 0, "NM:!biteNum");
+        require(takeNum > 0 && takeNum % uint(config.postEthUnit) == 0, "NM:!takeNum");
         require(newTokenAmountPerEth > 0, "NM:!price");
 
         // 2. Load price sheet
@@ -520,7 +520,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet = sheets[index];
 
         // 3. Check state
-        require(uint(sheet.remainNum) >= biteNum, "NM:!remainNum");
+        require(uint(sheet.remainNum) >= takeNum, "NM:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
         // 4. Deposit fee
@@ -539,37 +539,37 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // When the level of the sheet is less than 4, both the nest and the scale of the offer are doubled
         if (level < uint(config.maxBiteNestedLevel)) {
             // Double scale sheet
-            needEthNum = biteNum << 1;
+            needEthNum = takeNum << 1;
             ++level;
         } 
         // When the level of the sheet reaches 4 or more, nest doubles, but the scale does not
         else {
             // Single scale sheet
-            needEthNum = biteNum;
+            needEthNum = takeNum;
             // It is possible that the length of a single chain exceeds 255. When the length of a chain reaches 4 
             // or more, there is no logical dependence on the specific value of the contract, and the count will
             // not increase after it is accumulated to 255
             if (level < 255) ++level;
         }
-        require(msg.value == (needEthNum - biteNum) * 1 ether, "NM:!value");
+        require(msg.value == (needEthNum - takeNum) * 1 ether, "NM:!value");
 
         // Number of nest to be pledged
-        //uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
+        //uint needNest1k = ((takeNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
         // sheet.ethNumBal + sheet.tokenNumBal is always two times to sheet.ethNum
-        uint needNest1k = (biteNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
+        uint needNest1k = (takeNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
         // Freeze nest and token
         uint accountIndex = _addressIndex(msg.sender);
         _freeze2(
             _accounts[accountIndex].balances, 
             tokenAddress, 
-            needEthNum * newTokenAmountPerEth + decodeFloat(sheet.priceFloat) * biteNum, 
+            needEthNum * newTokenAmountPerEth + decodeFloat(sheet.priceFloat) * takeNum, 
             needNest1k * 1000 ether
         );
             
         // 6. Update the biten sheet
-        sheet.remainNum = uint32(uint(sheet.remainNum) - biteNum);
-        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) - biteNum);
-        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) + biteNum);
+        sheet.remainNum = uint32(uint(sheet.remainNum) - takeNum);
+        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) - takeNum);
+        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) + takeNum);
         sheets[index] = sheet;
 
         // 7. Calculate the price
@@ -1064,7 +1064,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 
         // totalFee = fee * increment
         // 
-        // In consideration of biteToken, biteEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
+        // In consideration of takeToken, takeEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
         // at this point, it is need to settle immediately, the details of triggering settlement logic are as follows
         // 
         // 1. When there is a bite transaction(currentFee is 0), the counter of no fee sheets will be increase 1

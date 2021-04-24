@@ -117,7 +117,7 @@ contract("NestMining", async accounts => {
         assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalETHRewards(nest.address))));
         assert.equal(0, ETHER(0).cmp(new BN(await nestLedger.totalETHRewards(nhbtc.address))));
 
-        // addReward
+        // addETHReward
         await nestLedger.setConfig({
             // nest reward scale(10000 based). 2000
             nestRewardScale: 3000,

@@ -100,7 +100,7 @@ contract("NestMining", async accounts => {
             prevBlockNumber = receipt.receipt.blockNumber;
 
             // Bite by account1
-            receipt = await nestMining.biteToken(usdt.address, 0, 30, USDT(1000), {
+            receipt = await nestMining.takeToken(usdt.address, 0, 30, USDT(1000), {
                 from: account1,
                 value: ETHER(90)
             });

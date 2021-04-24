@@ -74,7 +74,7 @@ contract("NestMining", async accounts => {
         LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
 
         await nest.approve(nestRedeeming.address, ETHER(1000000000));
-        await nestLedger.addReward (nest.address, { value: ETHER(20) });
+        await nestLedger.addETHReward (nest.address, { value: ETHER(20) });
 
         let receipt = await nestRedeeming.redeem(nest.address, ETHER(30000), account0, { value : ETHER(0.1)});
         console.log(receipt);
