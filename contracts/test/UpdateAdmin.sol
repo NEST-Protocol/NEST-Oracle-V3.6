@@ -6,7 +6,7 @@ import "../interface/IVotePropose.sol";
 import "../interface/INestMapping.sol";
 import "../interface/INestGovernance.sol";
 
-// 通过投票添加和删除管理员
+// Add and remove administrators by voting
 contract UpdateAdmin is IVotePropose {
 
     address _nestMappingAddress;
@@ -18,14 +18,15 @@ contract UpdateAdmin is IVotePropose {
     address _addr;
     uint _flag;
 
-    // 为了方便测试，这个合约可以修改合约执行的参数
-    // 现实的投票，为了保证投票的目标的确定性，是不应该允许修改参数，或者传参数来执行的
+    // To facilitate testing, this contract can modify the parameters of contract execution
+    // In real voting, in order to ensure the certainty of voting goal, it is not allowed to 
+    // modify parameters or transfer parameters to execute
     function setAddress(address addr, uint flag) external {
         _addr = addr;
         _flag = flag;
     }
 
-    /// @dev 投票通过后需要执行的代码
+    /// @dev Methods to be called after approved
     function run() override external {
 
         address nestGovernanceAddress = _nestMappingAddress;// INestMapping(_nestMappingAddress).getNestGovernanceAddress();

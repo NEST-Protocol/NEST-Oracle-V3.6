@@ -4,7 +4,6 @@ pragma solidity ^0.8.3;
 import "./lib/IERC20.sol";
 import "./NestBase.sol";
 import "./interface/INNIncome.sol";
-import "./interface/INestGovernance.sol";
 
 /// @dev NestNode mining contract
 contract NNIncome is NestBase, INNIncome {
@@ -21,29 +20,23 @@ contract NNIncome is NestBase, INNIncome {
     //     _blockCursor = block.number;
     // }
 
-    /// @dev To support open-zeppelin/upgrades
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
-    function initialize(address nestGovernanceAddress) override public {
-        super.initialize(nestGovernanceAddress);
-        _blockCursor = block.number;
-    }
+    // /// @dev To support open-zeppelin/upgrades
+    // /// @param nestGovernanceAddress INestGovernance implementation contract address
+    // function initialize(address nestGovernanceAddress) override public {
+    //     super.initialize(nestGovernanceAddress);
+    // }
 
-    // TODO: This method is for testing, it should be deleted for mainnet
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call
-    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
-    function update(address nestGovernanceAddress) override public {
-        super.update(nestGovernanceAddress);
-        NEST_NODE_ADDRESS = INestGovernance(nestGovernanceAddress).getNestNodeAddress();
+    /// @dev Reset the blockCursor
+    /// @param blockCursor blockCursor value
+    function setBlockCursor(uint blockCursor) override external onlyGovernance {
+        _blockCursor = blockCursor;
     }
 
     // Total supply of nest node
     uint constant NEST_NODE_TOTALSUPPLY = 1500;
 
-    // TODO: Define NEST_NODE_ADDRESS as variable is for testing, it should be constant for mainnet 
     // Address of nest node contract
-    // address constant NEST_NODE_ADDRESS = 0xB4ca64C3820E3B837bA3f1475fc871FD1C3f232a;
-    address NEST_NODE_ADDRESS;
+    address constant NEST_NODE_ADDRESS = 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e;
 
     // Generated nest
     uint _generatedNest;

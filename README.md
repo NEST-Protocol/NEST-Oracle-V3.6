@@ -1,9 +1,52 @@
 # NEST-Oracle-V3.6
 The NEST Oracle Smart Contract 3.6 is a solidity smart contract implementation of NEST Protocol which provide a unique on-chain Price Oracle through a decentralized mechanism.
 
-# Contract Addresses
+![](https://img.shields.io/github/issues/NEST-Protocol/NEST-Oracle-V3.6)
+![](https://img.shields.io/github/stars/NEST-Protocol/NEST-Oracle-V3.6)
+![](https://img.shields.io/github/license/NEST-Protocol/NEST-Oracle-V3.6)
+![](https://img.shields.io/twitter/url?url=https%3A%2F%2Fgithub.com%2FNEST-Protocol%2FNEST-Oracle-V3.6%2F)
 
-2021-04-06
+## Whitepaper
+
+**[https://nestprotocol.org/doc/ennestwhitepaper.pdf](https://nestprotocol.org/doc/ennestwhitepaper.pdf)**
+
+## Documents
+
+**[NEST V3.6 Contract Specification](docs/readme.md)**
+
+**[NEST V3.6 Contract Structure Diagram](docs/nest36-contracts.svg)**
+
+**[NEST V3.6 Application Scenarios](docs/readme.md#5-application-scenarios)**
+
+**[Audit Report](docs/PeckShield-Audit-Report-NestV3.6.pdf)**
+
+**[Learn More...](https://nestprotocol.org/)**
+
+## Usage
+
+### Run test
+
+```shell
+npm install
+
+truffle test
+```
+
+### Compile
+
+Run `truffle compile`, get build results in `build/contracts` folder, including `ABI` json files.
+
+### Deploy
+
+Deploy with `truffle` and you will get a contract deployement summary on contract addresses.
+
+```shell
+truffle migrate --network ropsten
+```
+
+## Contract Addresses
+
+### 2021-04-06@rinkeby
 | Name | Interfaces | rinkeby |
 | ---- | ---- | ---- |
 | hbtc | IERC20 | 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04 |
@@ -22,7 +65,7 @@ The NEST Oracle Smart Contract 3.6 is a solidity smart contract implementation o
 | nTokenController | INTokenController | 0x57513Fc3133C7A4a930c345AB3aA9a4D21600Db9 |
 | NestStaking35 | --- | 0x5BC253b9fE40d92f8a01e62899A77ae124F68C5a |
 
-2021-04-04
+### 2021-04-04@rinkeby
 | Name | Interfaces | rinkeby |
 | ---- | ---- | ---- |
 | hbtc | IERC20 | 0x52e669eb87fBF69027190a0ffb6e6fEd48451E04 |

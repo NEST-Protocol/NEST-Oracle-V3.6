@@ -11,7 +11,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
         await usdt.transfer(account0, USDT('10000000'), { from: account1 });
@@ -27,7 +27,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -59,7 +59,7 @@ contract("NestMining", async accounts => {
         await usdt.approve(nestMining.address, USDT(100000000));
         await nest.approve(nestMining.address, ETHER(100000000));
         {
-            // 1. 报价
+            // 1. Post price sheet
             await nestMining.post2(usdt.address, 30, USDT(1600), ETHER(51200 + 512 * 0), { value: ETHER(60 + 10) });
             await nestMining.post2(usdt.address, 30, USDT(1700), ETHER(51200 + 512 * 1), { value: ETHER(60 + 10) });
             await nestMining.post2(usdt.address, 30, USDT(1800), ETHER(51200 + 512 * 2), { value: ETHER(60 + 10) });
@@ -79,24 +79,24 @@ contract("NestMining", async accounts => {
                 + 'triggeredSigmaSQ: {triggeredSigmaSQ}\n'
                 , latestPriceAndTriggeredPriceInfo);
 
-            // 2. 累计佣金
+            // 2. Total eth rewards
             //console.log('feeUnit: ' + (await nestMining.getFeeUnit(usdt.address)).toString());
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
             await nestMining.settle(usdt.address);
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
 
-            // 3. 检查回购额度
+            // 3. Check quota of redeeming
             console.log('nest quota: ' + await nestRedeeming.quotaOf(nest.address));
 
-            // 4. 第一次回购
+            // 4. First redeem
             await nest.approve(nestRedeeming.address, ETHER(10000000));
             await nestRedeeming.redeem(nest.address, ETHER(100000), account0, { value: ETHER(0.1) });
-            console.log('nest rewards: ' + await nestLedger.totalRewards(nest.address));
+            console.log('nest rewards: ' + await nestLedger.totalETHRewards(nest.address));
 
-            // 5. 检查回购额度
+            // 5. Check quota of redeeming
             console.log('nest quota: ' + await nestRedeeming.quotaOf(nest.address));
             
-            // 6. 报价
+            // 6. Post price sheet
             await nestMining.post2(usdt.address, 30, USDT(1600), ETHER(51200 + 512 * 0), { value: ETHER(60 + 10) });
             await nestMining.post2(usdt.address, 30, USDT(1700), ETHER(51200 + 512 * 1), { value: ETHER(60 + 10) });
             await nestMining.post2(usdt.address, 30, USDT(1800), ETHER(51200 + 512 * 2), { value: ETHER(60 + 10) });
@@ -120,10 +120,10 @@ contract("NestMining", async accounts => {
             console.log('nest quota: ' + quota);
             assert.equal(0, quota.cmp(ETHER(200000 + 1000 * 27)));
 
-            // 7. 第二次回购
+            // 7. Second redeem
             await nestRedeeming.redeem(nest.address, ETHER(100000), account0, { value: ETHER(0.01) });
 
-            // 8. 检查回购额度
+            // 8. Check quota of redeeming
             console.log('nest quota: ' + await nestRedeeming.quotaOf(nest.address));
 
             let arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];

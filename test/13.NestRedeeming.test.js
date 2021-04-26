@@ -11,7 +11,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
         await usdt.transfer(account0, USDT('10000000'), { from: account1 });
@@ -27,7 +27,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -56,7 +56,7 @@ contract("NestMining", async accounts => {
             return balances;
         };
 
-        // 发起报价
+        // Post a price sheet
         await usdt.approve(nestMining.address, USDT('10000000'));
         await nest.approve(nestMining.address, ETHER('1000000000'));
         await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.1)});
@@ -74,7 +74,7 @@ contract("NestMining", async accounts => {
         LOG('latestPrice: blockNumber={blockNumber}, price={price}', latestPrice);
 
         await nest.approve(nestRedeeming.address, ETHER(1000000000));
-        await nestLedger.addReward (nest.address, { value: ETHER(20) });
+        await nestLedger.addETHReward (nest.address, { value: ETHER(20) });
 
         let receipt = await nestRedeeming.redeem(nest.address, ETHER(30000), account0, { value : ETHER(0.1)});
         console.log(receipt);
@@ -91,26 +91,24 @@ contract("NestMining", async accounts => {
         // config
         console.log(await nestRedeeming.getConfig());
         await nestRedeeming.setConfig({
-            // 单轨询价费用。0.01ether
-            // 调用价格改为在NestPriceFacade里面确定。需要考虑退回的情况
-            //fee: '10000000000000000',
     
-            // 激活回购阈值，当ntoken的发行量超过此阈值时，激活回购（单位：10000 ether）。500
+            // Redeem activate threshold, when the circulation of token exceeds this threshold, 
+            // activate redeem (Unit: 10000 ether). 500 
             activeThreshold: 200,
     
-            // 每区块回购nest数量。1000
+            // The number of nest redeem per block. 1000
             nestPerBlock: 800,
     
-            // 单次回购nest数量上限。300000
+            // The maximum number of nest in a single redeem. 300000
             nestLimit: 240000,
     
-            // 每区块回购ntoken数量。10
+            // The number of ntoken redeem per block. 10
             ntokenPerBlock: 12,
     
-            // 单次回购ntoken数量上限。3000
+            // The maximum number of ntoken in a single redeem. 3000
             ntokenLimit: 3600,
     
-            // 价格偏差上限，超过此上限停止回购（万分制）。500
+            // Price deviation limit, beyond this upper limit stop redeem (10000 based). 500
             priceDeviationLimit: 200
         });
         console.log(await nestRedeeming.getConfig());

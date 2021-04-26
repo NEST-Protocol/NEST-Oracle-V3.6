@@ -36,14 +36,14 @@ interface INestPriceFacade {
     /// @return Address flag
     function getAddressFlag(address addr) external view returns(uint);
 
-    /// @dev Set INestQuery implemention contract address for token
+    /// @dev Set INestQuery implementation contract address for token
     /// @param tokenAddress Destination token address
-    /// @param nestQueryAddress INestQuery implemention contract address, 0 means delete
+    /// @param nestQueryAddress INestQuery implementation contract address, 0 means delete
     function setNestQuery(address tokenAddress, address nestQueryAddress) external;
 
-    /// @dev Get INestQuery implemention contract address for token
+    /// @dev Get INestQuery implementation contract address for token
     /// @param tokenAddress Destination token address
-    /// @return INestQuery implemention contract address, 0 means use default
+    /// @return INestQuery implementation contract address, 0 means use default
     function getNestQuery(address tokenAddress) external view returns (address);
 
     /// @dev Get the latest trigger price

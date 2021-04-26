@@ -12,7 +12,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await hbtc.transfer(account0, ETHER('10000000'), { from: account0 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account0 });
         await usdt.transfer(account1, USDT('10000000'), { from: account0 });
@@ -26,7 +26,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -68,9 +68,9 @@ contract("NestMining", async accounts => {
         
         if (true) {
             // config
-            console.log('读取配置');
+            console.log('getConfig()');
             console.log(await nestPriceFacade.getConfig());
-            console.log('修改配置');
+            console.log('setConfig()');
             nestPriceFacade.setConfig({
                 // Single query fee（0.0001 ether, DIMI_ETHER). 100
                 singleFee: 137,
@@ -97,7 +97,7 @@ contract("NestMining", async accounts => {
         nestPriceFacade = await INestPriceFacade.at(nestPriceFacade.address);
         if (true) {
             
-            // 直接调用价格
+            // Direct query price
             console.log('triggeredPrice()')
             let price = await nestMining.triggeredPrice(usdt.address);
             console.log({
@@ -134,16 +134,16 @@ contract("NestMining", async accounts => {
             console.log('latestPrice2()');
             pi = await nestPriceFacade.latestPrice2(usdt.address, account1, { value: ETHER(0.0247) });
             LOG('rewards: {rewards}, balance: {balance}', {
-                rewards: await nestLedger.totalRewards(usdt.address),
+                rewards: await nestLedger.totalETHRewards(usdt.address),
                 balance: await ethBalance(nestLedger.address)
             });
-            assert.equal(0, ETHER(0.0137 * 5 + 0.0247 * 3).cmp(await nestLedger.totalRewards(nest.address)));
+            assert.equal(0, ETHER(0.0137 * 5 + 0.0247 * 3).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 5 + 0.0247 * 3).cmp(await ethBalance(nestLedger.address)));
         }
 
         if (true) {
-            // 报价后调用价格
-            console.log('报价后调用价格');
+            // Post price sheet and query price
+            console.log('Post price sheet and query price');
             await nest.approve(nestMining.address, ETHER(1000000000));
             await usdt.approve(nestMining.address, USDT(1000000000));
             let receipt = await nestMining.post2(usdt.address, 30, USDT(1600), ETHER(65536), { value: ETHER(60.1) });
@@ -227,8 +227,8 @@ contract("NestMining", async accounts => {
         }
 
         if (true) {
-            // 等待后调用价格
-            console.log('等待后调用价格');
+            // Query price after wait 20 blocks
+            console.log('Query price after wait 20 blocks');
             await skipBlocks(20);
             await nestMining.closeList2(usdt.address, [0], [0]);
             console.log('triggeredPrice()');
@@ -309,8 +309,8 @@ contract("NestMining", async accounts => {
         }
 
         if (true) {
-            // 多次报价后调用价格
-            console.log('多次报价后调用价格');
+            // Post multi price sheets and query price
+            console.log('Post multi price sheets and query price');
             
             let arr = [];
             let avgUsdtPrice = USDT(1600);
@@ -323,7 +323,7 @@ contract("NestMining", async accounts => {
             let prevNestPrice = new ETHER(65535);
             for (var i = 0; i < 10; ++i) {
                 let receipt = await nestMining.post2(usdt.address, 30, USDT(1600 + i * 10), ETHER(65536 + i * 655.36), { value: ETHER(60.1) });
-                console.log('报价' + i + ': ' + (1600 + i * 10));
+                console.log('Post' + i + ': ' + (1600 + i * 10));
                 console.log(receipt);
                 arr.push(i + 1);
 
@@ -461,7 +461,7 @@ contract("NestMining", async accounts => {
 
         if (true) {
             
-            // 直接调用价格
+            // Direct query price
             console.log('triggeredPrice()')
             let price = await nestMining.triggeredPrice(usdt.address);
             console.log({
@@ -498,26 +498,26 @@ contract("NestMining", async accounts => {
             pi = await nestPriceFacade.latestPrice2(usdt.address, account1, { value: ETHER(0.0247) });
 
             LOG('rewards: {rewards}, balance: {balance}', {
-                rewards: await nestLedger.totalRewards(nest.address),
+                rewards: await nestLedger.totalETHRewards(nest.address),
                 balance: await ethBalance(nestLedger.address)
             });
 
-            assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1).cmp(await nestLedger.totalRewards(nest.address)));
+            assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1).cmp(await ethBalance(nestLedger.address)));
 
             await nestMining.settle(usdt.address);
-            console.log('余额:');
+            console.log('Balances:');
             LOG('rewards: {rewards}, balance: {balance}', {
-                rewards: await nestLedger.totalRewards(nest.address),
+                rewards: await nestLedger.totalETHRewards(nest.address),
                 balance: await ethBalance(nestLedger.address)
             });
-            console.log('预期差:');
+            console.log('Poor expectations:');
             LOG('rewards: {rewards}, balance: {balance}', {
-                rewards: ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).sub(await nestLedger.totalRewards(nest.address)).toString(),
+                rewards: ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).sub(await nestLedger.totalETHRewards(nest.address)).toString(),
                 balance: ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).sub(await ethBalance(nestLedger.address)).toString()
             });
 
-            assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).cmp(await nestLedger.totalRewards(nest.address)));
+            assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).cmp(await ethBalance(nestLedger.address)));
         }
 
@@ -535,7 +535,7 @@ contract("NestMining", async accounts => {
             });
             await nestPriceFacade.setAddressFlag(account0, 0);
             
-            // 直接调用价格
+            // Direct query price
             console.log('triggeredPrice()')
             let price = await nestMining.triggeredPrice(usdt.address);
             console.log({
@@ -572,26 +572,26 @@ contract("NestMining", async accounts => {
             pi = await nestPriceFacade.latestPrice2(usdt.address, account1, { value: ETHER(0.0247) });
 
             LOG('rewards: {rewards}, balance: {balance}', {
-                rewards: await nestLedger.totalRewards(nest.address),
+                rewards: await nestLedger.totalETHRewards(nest.address),
                 balance: await ethBalance(nestLedger.address)
             });
 
-            assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await nestLedger.totalRewards(nest.address)));
+            assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await ethBalance(nestLedger.address)));
 
             await nestMining.settle(usdt.address);
-            console.log('余额:');
+            console.log('Balances:');
             LOG('rewards: {rewards}, balance: {balance}', {
-                rewards: await nestLedger.totalRewards(nest.address),
+                rewards: await nestLedger.totalETHRewards(nest.address),
                 balance: await ethBalance(nestLedger.address)
             });
-            console.log('预期差:');
+            console.log('Poor expectations:');
             LOG('rewards: {rewards}, balance: {balance}', {
-                rewards: ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).sub(await nestLedger.totalRewards(nest.address)).toString(),
+                rewards: ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).sub(await nestLedger.totalETHRewards(nest.address)).toString(),
                 balance: ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).sub(await ethBalance(nestLedger.address)).toString()
             });
 
-            assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await nestLedger.totalRewards(nest.address)));
+            assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await ethBalance(nestLedger.address)));
             console.log('addressFlag: ' + await nestPriceFacade.getAddressFlag(account0));
         }
@@ -616,7 +616,7 @@ contract("NestMining", async accounts => {
             await nest.approve(ntokenMining.address, ETHER(100000000));
             await usdt.approve(ntokenMining.address, ETHER(100000000));
             //await ntokenMining.setNTokenAddress(usdt.address, usdt.address);
-            await ntokenMining.post2(usdt.address, 30, USDT(512), ETHER(32768), { value: ETHER(60.1) });
+            await ntokenMining.post2(usdt.address, 10, USDT(512), ETHER(32768), { value: ETHER(20.1) });
             await skipBlocks(20);
 
             console.log('findPrice()');

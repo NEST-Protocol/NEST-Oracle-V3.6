@@ -40,7 +40,7 @@
 
         // -- Public configuration
         // The number of times the sheet assets have doubled. 4
-        uint16 maxBiteNestedLevel;
+        uint8 maxBiteNestedLevel;
 
         // Price effective block interval. 20
         uint16 priceEffectSpan;
@@ -92,9 +92,9 @@
     /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
+    /// @param takeNum The amount of biting (in the unit of ETH), realAmount = takeNum * newTokenAmountPerEth
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteToken(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
+    function takeToken(address tokenAddress, uint index, uint takeNum, uint newTokenAmountPerEth) external payable;
 ```
 
 ### 2.6. Call the function to buy ETH from a posted price sheet
@@ -104,9 +104,9 @@
     /// @dev bite ETH by TOKEN(NTOKEN),  (-ethNumBal, +tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum
+    /// @param takeNum The amount of biting (in the unit of ETH), realAmount = takeNum
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteEth(address tokenAddress, uint index, uint biteNum, uint newTokenAmountPerEth) external payable;
+    function takeEth(address tokenAddress, uint index, uint takeNum, uint newTokenAmountPerEth) external payable;
 ``` 
 
 ### 2.7. Close a price sheet of (ETH, USDT) | (ETH, NEST) | (ETH, TOKEN) | (ETH, NTOKEN)

@@ -11,7 +11,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await usdt.transfer(account0, USDT('10000000'), { from: account1 });
         await usdt.transfer(account1, USDT('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
@@ -25,7 +25,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -54,7 +54,7 @@ contract("NestMining", async accounts => {
 
         // 1. config
         let config = await nestMining.getConfig();
-        console.log('修改配置前');
+        console.log('Before setConfig()');
         console.log(config);
         await nestMining.setConfig({
             // Eth number of each post. 30
@@ -79,7 +79,7 @@ contract("NestMining", async accounts => {
 
             // -- Public configuration
             // The number of times the sheet assets have doubled. 4
-            maxBiteNestedLevel: 3,
+            maxBiteNestedLevel: 4,
             
             // Price effective block interval. 20
             priceEffectSpan: 25,
@@ -88,7 +88,7 @@ contract("NestMining", async accounts => {
             pledgeNest: 200
         });
         config = await nestMining.getConfig();
-        console.log('修改配置后');
+        console.log('After setConfig()');
         console.log(config);
 
         // 2. token cache

@@ -3,6 +3,11 @@
 // .deploy.normal.js means deployed normal
 // .deploy.proxy.js means deployed by proxy
 // You can choose one mode for testing
+// .deploy.rinkeby@20210414.js
+// .deploy.rinkeby@20210420.js
+// .deploy.rinkeby@20210421.js
+// .deploy.normal.js
+// .deploy.proxy.js
 const deploy = require('./.deploy.proxy.js');
 const $hcj = require("./hcore.js");
 const BN = require("bn.js");

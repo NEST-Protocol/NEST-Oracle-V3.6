@@ -14,7 +14,7 @@ contract NestGovernance is NestMapping, INestGovernance {
     // }
 
     /// @dev To support open-zeppelin/upgrades
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function initialize(address nestGovernanceAddress) override public {
 
         // While initialize NestGovernance, nestGovernanceAddress is address(this),

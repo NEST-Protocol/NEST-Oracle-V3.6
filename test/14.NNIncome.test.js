@@ -11,7 +11,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await hbtc.transfer(account0, ETHER('10000000'), { from: account1 });
         await hbtc.transfer(account1, ETHER('10000000'), { from: account1 });
         await usdt.transfer(account0, USDT('10000000'), { from: account1 });
@@ -27,7 +27,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -57,7 +57,7 @@ contract("NestMining", async accounts => {
         };
 
         if (false) {
-            // 发起报价
+            // Post a price sheet
             await usdt.approve(nestMining.address, USDT('10000000'));
             await nest.approve(nestMining.address, ETHER('1000000000'));
             await nestMining.post2(usdt.address, 30, USDT(1560), ETHER(1000000), { value: ETHER(60.1)});

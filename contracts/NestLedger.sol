@@ -49,11 +49,19 @@ contract NestLedger is NestBase, INestLedger {
     /// @param flag Authorization flag, 1 means authorization, 0 means cancel authorization
     function setApplication(address addr, uint flag) override external onlyGovernance {
         _applications[addr] = flag;
+        emit ApplicationChanged(addr, flag);
+    }
+
+    /// @dev Check DAO application flag
+    /// @param addr DAO application contract address
+    /// @return Authorization flag, 1 means authorization, 0 means cancel authorization
+    function checkApplication(address addr) override external view returns (uint) {
+        return _applications[addr];
     }
 
     /// @dev Carve reward
     /// @param ntokenAddress Destination ntoken address
-    function carveReward(address ntokenAddress) override external payable {
+    function carveETHReward(address ntokenAddress) override external payable {
 
         // nest not carve
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -76,7 +84,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev Add reward
     /// @param ntokenAddress Destination ntoken address
-    function addReward(address ntokenAddress) override external payable {
+    function addETHReward(address ntokenAddress) override external payable {
 
         // Ledger for nest is independent
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -91,7 +99,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev The function returns eth rewards of specified ntoken
     /// @param ntokenAddress The ntoken address
-    function totalRewards(address ntokenAddress) override external view returns (uint) {
+    function totalETHRewards(address ntokenAddress) override external view returns (uint) {
 
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             return _nestLedger;

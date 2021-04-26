@@ -11,7 +11,7 @@ contract("NestMining", async accounts => {
         const account0 = accounts[0];
         const account1 = accounts[1];
 
-        // 初始化usdt余额
+        // Initialize usdt balance
         await usdt.transfer(account0, USDT('10000000'), { from: account1 });
         await usdt.transfer(account1, USDT('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
@@ -23,7 +23,7 @@ contract("NestMining", async accounts => {
             }
         };
 
-        // 显示余额
+        // Show balances
         const getBalance = async function(account) {
             let balances = {
                 balance: {
@@ -54,13 +54,13 @@ contract("NestMining", async accounts => {
         let balance1 = await showBalance(account1, 'account1');
         assert.equal(0, balance1.balance.usdt.cmp(USDT('10000000')));
 
-        // account0余额
+        // Balance of account0
         assert.equal(0, balance0.balance.usdt.cmp(USDT('10000000')));
         assert.equal(0, balance0.balance.nest.cmp(ETHER('1000000000')));
         assert.equal(0, balance0.pool.usdt.cmp(USDT(0)));
         assert.equal(0, balance0.pool.nest.cmp(ETHER(0)));
 
-        // nestMining余额
+        // Balance of nestMining
         assert.equal(0, (await ethBalance(nestMining.address)).cmp(ETHER(0)));
         assert.equal(0, (await usdt.balanceOf(nestMining.address)).cmp(USDT(0)));
         assert.equal(0, (await nest.balanceOf(nestMining.address)).cmp(ETHER(8000000000)));
@@ -93,15 +93,15 @@ contract("NestMining", async accounts => {
             });
         }
 
-        let receipt = await nestMining.biteEth(usdt.address, 37, 30, USDT(2000), { from: account1, value: ETHER(60 - 30) });
-        console.log('== biteEth ' + i);
+        let receipt = await nestMining.takeEth(usdt.address, 37, 30, USDT(2000), { from: account1, value: ETHER(60 - 30) });
+        console.log('== takeEth ' + i);
         LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
             nestMining: await ethDouble(nestMining.address),
             nestLedger: await ethDouble(nestLedger.address)
         });
 
-        receipt = await nestMining.biteToken(usdt.address, 39, 60, USDT(1000), { from: account0, value: ETHER(120 + 60) });
-        console.log('== biteToken ' + i);
+        receipt = await nestMining.takeToken(usdt.address, 39, 60, USDT(1000), { from: account0, value: ETHER(120 + 60) });
+        console.log('== takeToken ' + i);
         LOG('nestMining: {nestMining}, nestLedger: {nestLedger}', {
             nestMining: await ethDouble(nestMining.address),
             nestLedger: await ethDouble(nestLedger.address)

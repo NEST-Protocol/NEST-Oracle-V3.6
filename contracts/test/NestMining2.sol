@@ -25,18 +25,18 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     // }
 
     /// @dev To support open-zeppelin/upgrades
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function initialize(address nestGovernanceAddress) override public {
         super.initialize(nestGovernanceAddress);
         // Placeholder in _accounts, the index of a real account must greater than 0
         _accounts.push();
     }
 
-    ///@dev Definitions for the price sheet, include the full information. (use 256bits, a storage unit in ethereum evm)
+    ///@dev Definitions for the price sheet, include the full information. (use 256-bits, a storage unit in ethereum evm)
     struct PriceSheet {
         
-        // Index of miner account in _accounts. for this way, mapping an address(which need 160bits) to a 32bits 
-        // integer, support 4billion accounts
+        // Index of miner account in _accounts. for this way, mapping an address(which need 160-bits) to a 32-bits 
+        // integer, support 4 billion accounts
         uint32 miner;
 
         // The block number of this price sheet packaged
@@ -98,10 +98,33 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // Price information
         PriceInfo price;
 
+        // Commission is charged for every post(post2), the commission should be deposited to NestLedger,
+        // for saving gas, according to sheets.length, every increase of 256 will deposit once, The calculation formula is:
+        // 
+        // totalFee = fee * increment
+        // 
+        // In consideration of takeToken, takeEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
+        // at this point, it is need to settle immediately, the details of triggering settlement logic are as follows
+        // 
+        // 1. When there is a bite transaction(currentFee is 0), the counter of no fee sheets will be increase 1
+        // 2. If the Commission of this time is inconsistent with that of last time, deposit immediately
+        // 3. When the increment of sheets.length is 256, deposit immediately
+        // 4. Everyone can trigger immediate settlement by manually calling the settle() method
+        // 
+        // In order to realize the logic above, the following values are defined
+        // 
+        // 1. PriceChannel.feeInfo
+        //    Low 128-bits represent last fee per post
+        //    High 128-bits represent the current counter of no fee sheets (including settled)
+        // 
+        // 2. COLLECT_REWARD_MASK
+        //    The mask of batch deposit trigger, while COLLECT_REWARD_MASK & sheets.length == COLLECT_REWARD_MASK, it will trigger deposit,
+        //    COLLECT_REWARD_MASK is set to 0xF for testing (means every 16 sheets will deposit once), 
+        //    and it will be set to 0xFF for mainnet (means every 256 sheets will deposit once)
+
         // The information of mining fee
-        // low 128bits represent fee per post
-        // high 128bits in the high level indicate the current cumulative number of sheets that do not require
-        // Commission (including bills and settled ones)
+        // Low 128-bits represent fee per post
+        // High 128-bits represent the current counter of no fee sheets (including settled)
         uint feeInfo;
     }
 
@@ -139,20 +162,21 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     // Cache for genesis block number of ntoken. ntokenAddress=>genesisBlockNumber
     mapping(address=>uint) _genesisBlockNumberCache;
 
-    // INestPriceFacade implemention contract address
+    // INestPriceFacade implementation contract address
     address _nestPriceFacadeAddress;
 
-    // INTokenController implemention contract address
+    // INTokenController implementation contract address
     address _nTokenControllerAddress;
 
-    // INestLegder implemention contract address
+    // INestLegder implementation contract address
     address _nestLedgerAddress;
 
     // Unit of post fee. 0.0001 ether
-    uint constant DIMI_ETHER = 0.0001 ether; // 1 ether / 10000;
+    uint constant DIMI_ETHER = 0.0001 ether;
 
-    // The mask of batch settlement dividend. During the test, it is settled once every 16 sheets and
-    // once every 256 sheets of the online version
+    // The mask of batch deposit trigger, while COLLECT_REWARD_MASK & sheets.length == COLLECT_REWARD_MASK, it will trigger deposit,
+    // COLLECT_REWARD_MASK is set to 0xF for testing (means every 16 sheets will deposit once), 
+    // and it will be set to 0xFF for mainnet (means every 256 sheets will deposit once)
     uint constant COLLECT_REWARD_MASK = 0xFF;
 
     // Ethereum average block time interval, 14 seconds
@@ -162,7 +186,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implemention contract address
+    /// @param nestGovernanceAddress INestGovernance implementation contract address
     function update(address nestGovernanceAddress) override public {
         
         super.update(nestGovernanceAddress);
@@ -260,9 +284,9 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     /// @param tokenAmountPerEth The price of TOKEN
     function post(address tokenAddress, uint ethNum, uint tokenAmountPerEth) override external payable {
 
+        tokenAmountPerEth = tokenAmountPerEth * 3;
         Config memory config = _config;
 
-        tokenAmountPerEth = tokenAmountPerEth * 3;
         // 1. Check arguments
         require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NM:!ethNum");
         require(tokenAmountPerEth > 0, "NM:!price");
@@ -283,9 +307,9 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // 4. Freeze assets
         uint accountIndex = _addressIndex(msg.sender);
         // Freeze token and nest
-        // Because of the use of floating-point representation(uint48 fraction, uint8 exponent), it may bring some precision loss
-        // After assets are frozen according to tokenAmountPerEth * ethNum, the part with poor accuracy may be lost when the assets are returned
-        // It should be frozen according to decodeFloat(fraction, exponent) * ethNum
+        // Because of the use of floating-point representation(fraction * 16 ^ exponent), it may bring some precision loss
+        // After assets are frozen according to tokenAmountPerEth * ethNum, the part with poor accuracy may be lost when
+        // the assets are returned, It should be frozen according to decodeFloat(fraction, exponent) * ethNum
         // However, considering that the loss is less than 1 / 10 ^ 14, the loss here is ignored, and the part of
         // precision loss can be transferred out as system income in the future
         _freeze2(
@@ -325,8 +349,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     ) override external payable {
 
         Config memory config = _config;
-        tokenAmountPerEth = tokenAmountPerEth * 8;
-        ntokenAmountPerEth = ntokenAmountPerEth << 1;
+
         // 1. Check arguments
         require(ethNum > 0 && ethNum == uint(config.postEthUnit), "NM:!ethNum");
         require(tokenAmountPerEth > 0 && ntokenAmountPerEth > 0, "NM:!price");
@@ -381,19 +404,19 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     /// @dev bite TOKEN(NTOKEN) by ETH,  (+ethNumBal, -tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum * newTokenAmountPerEth
+    /// @param takeNum The amount of biting (in the unit of ETH), realAmount = takeNum * newTokenAmountPerEth
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteToken(
+    function takeToken(
         address tokenAddress,
         uint index,
-        uint biteNum,
+        uint takeNum,
         uint newTokenAmountPerEth
     ) override external payable {
 
         Config memory config = _config;
 
         // 1. Check arguments
-        require(biteNum > 0 && biteNum % uint(config.postEthUnit) == 0, "NM:!biteNum");
+        require(takeNum > 0 && takeNum % uint(config.postEthUnit) == 0, "NM:!takeNum");
         require(newTokenAmountPerEth > 0, "NM:!price");
 
         // 2. Load price sheet
@@ -402,7 +425,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet = sheets[index];
 
         // 3. Check state
-        require(uint(sheet.remainNum) >= biteNum, "NM:!remainNum");
+        require(uint(sheet.remainNum) >= takeNum, "NM:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
         // 4. Deposit fee
@@ -421,29 +444,29 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // When the level of the sheet is less than 4, both the nest and the scale of the offer are doubled
         if (level < uint(config.maxBiteNestedLevel)) {
             // Double scale sheet
-            needEthNum = biteNum << 1;
+            needEthNum = takeNum << 1;
             ++level;
         } 
         // When the level of the sheet reaches 4 or more, nest doubles, but the scale does not
         else {
             // Single scale sheet
-            needEthNum = biteNum;
+            needEthNum = takeNum;
             // It is possible that the length of a single chain exceeds 255. When the length of a chain reaches 4
             // or more, there is no logical dependence on the specific value of the contract, and the count will
             // not increase after it is accumulated to 255
             if (level < 255) ++level;
         }
-        require(msg.value == (needEthNum + biteNum) * 1 ether, "NM:!value");
+        require(msg.value == (needEthNum + takeNum) * 1 ether, "NM:!value");
 
         // Number of nest to be pledged
-        //uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
+        //uint needNest1k = ((takeNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
         // sheet.ethNumBal + sheet.tokenNumBal is always two times to sheet.ethNum
-        uint needNest1k = (biteNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
+        uint needNest1k = (takeNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
         // Freeze nest and token
         uint accountIndex = _addressIndex(msg.sender);
         {
             mapping(address=>UINT) storage balances = _accounts[accountIndex].balances;
-            uint backTokenValue = decodeFloat(sheet.priceFloat) * biteNum;
+            uint backTokenValue = decodeFloat(sheet.priceFloat) * takeNum;
             if (needEthNum * newTokenAmountPerEth > backTokenValue) {
                 _freeze2(
                     balances,
@@ -458,9 +481,9 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         }
 
         // 6. Update the biten sheet
-        sheet.remainNum = uint32(uint(sheet.remainNum) - biteNum);
-        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) + biteNum);
-        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) - biteNum);
+        sheet.remainNum = uint32(uint(sheet.remainNum) - takeNum);
+        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) + takeNum);
+        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) - takeNum);
         sheets[index] = sheet;
 
         // 7. Calculate the price
@@ -477,19 +500,19 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     /// @dev bite ETH by TOKEN(NTOKEN),  (-ethNumBal, +tokenNumBal)
     /// @param tokenAddress The address of token(ntoken)
     /// @param index The position of the sheet in priceSheetList[token]
-    /// @param biteNum The amount of bitting (in the unit of ETH), realAmount = biteNum
+    /// @param takeNum The amount of biting (in the unit of ETH), realAmount = takeNum
     /// @param newTokenAmountPerEth The new price of token (1 ETH : some TOKEN), here some means newTokenAmountPerEth
-    function biteEth(
+    function takeEth(
         address tokenAddress,
         uint index,
-        uint biteNum,
+        uint takeNum,
         uint newTokenAmountPerEth
     ) override external payable {
 
         Config memory config = _config;
 
         // 1. Check arguments
-        require(biteNum > 0 && biteNum % uint(config.postEthUnit) == 0, "NM:!biteNum");
+        require(takeNum > 0 && takeNum % uint(config.postEthUnit) == 0, "NM:!takeNum");
         require(newTokenAmountPerEth > 0, "NM:!price");
 
         // 2. Load price sheet
@@ -498,7 +521,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         PriceSheet memory sheet = sheets[index];
 
         // 3. Check state
-        require(uint(sheet.remainNum) >= biteNum, "NM:!remainNum");
+        require(uint(sheet.remainNum) >= takeNum, "NM:!remainNum");
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
         // 4. Deposit fee
@@ -517,37 +540,37 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // When the level of the sheet is less than 4, both the nest and the scale of the offer are doubled
         if (level < uint(config.maxBiteNestedLevel)) {
             // Double scale sheet
-            needEthNum = biteNum << 1;
+            needEthNum = takeNum << 1;
             ++level;
         } 
         // When the level of the sheet reaches 4 or more, nest doubles, but the scale does not
         else {
             // Single scale sheet
-            needEthNum = biteNum;
+            needEthNum = takeNum;
             // It is possible that the length of a single chain exceeds 255. When the length of a chain reaches 4 
             // or more, there is no logical dependence on the specific value of the contract, and the count will
             // not increase after it is accumulated to 255
             if (level < 255) ++level;
         }
-        require(msg.value == (needEthNum - biteNum) * 1 ether, "NM:!value");
+        require(msg.value == (needEthNum - takeNum) * 1 ether, "NM:!value");
 
         // Number of nest to be pledged
-        //uint needNest1k = ((biteNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
+        //uint needNest1k = ((takeNum << 1) / uint(config.postEthUnit)) * uint(config.pledgeNest);
         // sheet.ethNumBal + sheet.tokenNumBal is always two times to sheet.ethNum
-        uint needNest1k = (biteNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
+        uint needNest1k = (takeNum << 2) * uint(sheet.nestNum1k) / (uint(sheet.ethNumBal) + uint(sheet.tokenNumBal));
         // Freeze nest and token
         uint accountIndex = _addressIndex(msg.sender);
         _freeze2(
             _accounts[accountIndex].balances, 
             tokenAddress, 
-            needEthNum * newTokenAmountPerEth + decodeFloat(sheet.priceFloat) * biteNum, 
+            needEthNum * newTokenAmountPerEth + decodeFloat(sheet.priceFloat) * takeNum, 
             needNest1k * 1000 ether
         );
             
         // 6. Update the biten sheet
-        sheet.remainNum = uint32(uint(sheet.remainNum) - biteNum);
-        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) - biteNum);
-        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) + biteNum);
+        sheet.remainNum = uint32(uint(sheet.remainNum) - takeNum);
+        sheet.ethNumBal = uint32(uint(sheet.ethNumBal) - takeNum);
+        sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) + takeNum);
         sheets[index] = sheet;
 
         // 7. Calculate the price
@@ -966,7 +989,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
 
                         // When the accuracy of the token is very high or the value of the token relative to
                         // eth is very low, the price may be very large, and there may be overflow problem,
-                        // so it is not considered for the moment
+                        // it is not considered for the moment
                         tmp = (price << 48) / tmp;
                         if (tmp > 0x1000000000000) {
                             tmp = tmp - 0x1000000000000;
@@ -1031,7 +1054,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         _stat(_config, channel, channel.sheets);
     }
 
-    // Deposit the accumulated dividends into nest ledger
+    // Collect and deposit the commission into NestLedger
     function _collect(
         Config memory config,
         PriceChannel storage channel,
@@ -1039,6 +1062,30 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         uint length,
         uint currentFee
     ) private returns (uint) {
+
+        // Commission is charged for every post(post2), the commission should be deposited to NestLedger,
+        // for saving gas, according to sheets.length, every increase of 256 will deposit once, The calculation formula is:
+        // 
+        // totalFee = fee * increment
+        // 
+        // In consideration of takeToken, takeEth, change postFeeUnit or miner pay more fee, the formula will be invalid,
+        // at this point, it is need to settle immediately, the details of triggering settlement logic are as follows
+        // 
+        // 1. When there is a bite transaction(currentFee is 0), the counter of no fee sheets will be increase 1
+        // 2. If the Commission of this time is inconsistent with that of last time, deposit immediately
+        // 3. When the increment of sheets.length is 256, deposit immediately
+        // 4. Everyone can trigger immediate settlement by manually calling the settle() method
+        // 
+        // In order to realize the logic above, the following values are defined
+        // 
+        // 1. PriceChannel.feeInfo
+        //    Low 128-bits represent last fee per post
+        //    High 128-bits represent the current counter of no fee sheets (including settled)
+        // 
+        // 2. COLLECT_REWARD_MASK
+        //    The mask of batch deposit trigger, while COLLECT_REWARD_MASK & sheets.length == COLLECT_REWARD_MASK, it will trigger deposit,
+        //    COLLECT_REWARD_MASK is set to 0xF for testing (means every 16 sheets will deposit once), 
+        //    and it will be set to 0xFF for mainnet (means every 256 sheets will deposit once)
 
         uint feeUnit = uint(config.postFeeUnit) * DIMI_ETHER;
         require(currentFee % feeUnit == 0, "NM:!fee");
@@ -1049,7 +1096,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // currentFee != oldFee means the fee is changed, need to settle
         if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || (currentFee != oldFee && currentFee > 0)) {
             // Save reward
-            INestLedger(_nestLedgerAddress).carveReward { 
+            INestLedger(_nestLedgerAddress).carveETHReward { 
                 value: currentFee + oldFee * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
             } (ntokenAddress);
             // Update fee information
@@ -1078,7 +1125,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
             uint feeInfo = channel.feeInfo;
 
             // Save reward
-            INestLedger(_nestLedgerAddress).carveReward {
+            INestLedger(_nestLedgerAddress).carveETHReward {
                 value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (length - (feeInfo >> 128))
             } (ntokenAddress);
 

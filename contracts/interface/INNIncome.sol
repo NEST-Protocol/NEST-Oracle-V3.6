@@ -4,6 +4,10 @@ pragma solidity ^0.8.3;
 /// @dev This interface defines the methods for NNIncome
 interface INNIncome {
 
+    /// @dev Reset the blockCursor
+    /// @param blockCursor blockCursor value
+    function setBlockCursor(uint blockCursor) external;
+    
     /// @dev Nest node transfer settlement. This method is triggered during nest node transfer and must be called by nest node contract
     /// @param from Transfer from address
     /// @param to Transfer to address

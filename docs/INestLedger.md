@@ -40,32 +40,42 @@
     /// @param flag Authorization flag, 1 means authorization, 0 means cancel authorization
     function setApplication(address addr, uint flag) external;
 ```
+    Note: This method will triggers the Post event, See also 3.1.
 
-### 2.4. Carve reward
+### 2.4. Check DAO application
+
+```javascript
+    /// @dev Check DAO application flag
+    /// @param addr DAO application contract address
+    /// @return Authorization flag, 1 means authorization, 0 means cancel authorization
+    function checkApplication(address addr) external view returns (uint);
+```
+
+### 2.5. Carve reward
 
 ```javascript
     /// @dev Carve reward
     /// @param ntokenAddress Destination ntoken address
-    function carveReward(address ntokenAddress) external payable;
+    function carveETHReward(address ntokenAddress) external payable;
 ```
 
-### 2.5. Add reward
+### 2.6. Add reward
 
 ```javascript
     /// @dev Add reward
     /// @param ntokenAddress Destination ntoken address
-    function addReward(address ntokenAddress) external payable;
+    function addETHReward(address ntokenAddress) external payable;
 ```
 
-### 2.6. The function returns eth rewards of specified ntoken
+### 2.7. The function returns eth rewards of specified ntoken
 
 ```javascript
     /// @dev The function returns eth rewards of specified ntoken
     /// @param ntokenAddress The ntoken address
-    function totalRewards(address ntokenAddress) external view returns (uint);
+    function totalETHRewards(address ntokenAddress) external view returns (uint);
 ```
 
-### 2.7. Pay
+### 2.8. Pay
 
 ```javascript
     /// @dev Pay
@@ -76,7 +86,7 @@
     function pay(address ntokenAddress, address tokenAddress, address to, uint value) external;
 ```
 
-### 2.8. Settlement
+### 2.9. Settlement
 
 ```javascript
     /// @dev Settlement
@@ -85,4 +95,15 @@
     /// @param to Address to receive
     /// @param value Amount to receive
     function settle(address ntokenAddress, address tokenAddress, address to, uint value) external payable;
+```
+
+## 3. Event Description
+
+### 3.1. Application Flag Changed event
+
+```javascript 
+    /// @dev Application Flag Changed event
+    /// @param addr DAO application contract address
+    /// @param flag Authorization flag, 1 means authorization, 0 means cancel authorization
+    event ApplicationChanged(address addr, uint flag);
 ```

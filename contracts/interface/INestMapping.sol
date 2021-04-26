@@ -8,14 +8,14 @@ interface INestMapping {
     /// @dev Set the built-in contract address of the system
     /// @param nestTokenAddress Address of nest token contract
     /// @param nestNodeAddress Address of nest node contract
-    /// @param nestLedgerAddress INestLedger implemention contract address
-    /// @param nestMiningAddress INestMining implemention contract address for nest
-    /// @param ntokenMiningAddress INestMining implemention contract address for ntoken
-    /// @param nestPriceFacadeAddress INestPriceFacade implemention contract address
-    /// @param nestVoteAddress INestVote implemention contract address
-    /// @param nestQueryAddress INestQuery implemention contract address
+    /// @param nestLedgerAddress INestLedger implementation contract address
+    /// @param nestMiningAddress INestMining implementation contract address for nest
+    /// @param ntokenMiningAddress INestMining implementation contract address for ntoken
+    /// @param nestPriceFacadeAddress INestPriceFacade implementation contract address
+    /// @param nestVoteAddress INestVote implementation contract address
+    /// @param nestQueryAddress INestQuery implementation contract address
     /// @param nnIncomeAddress NNIncome contract address
-    /// @param nTokenControllerAddress INTokenController implemention contract address
+    /// @param nTokenControllerAddress INTokenController implementation contract address
     function setBuiltinAddress(
         address nestTokenAddress,
         address nestNodeAddress,
@@ -32,14 +32,14 @@ interface INestMapping {
     /// @dev Get the built-in contract address of the system
     /// @return nestTokenAddress Address of nest token contract
     /// @return nestNodeAddress Address of nest node contract
-    /// @return nestLedgerAddress INestLedger implemention contract address
-    /// @return nestMiningAddress INestMining implemention contract address for nest
-    /// @return ntokenMiningAddress INestMining implemention contract address for ntoken
-    /// @return nestPriceFacadeAddress INestPriceFacade implemention contract address
-    /// @return nestVoteAddress INestVote implemention contract address
-    /// @return nestQueryAddress INestQuery implemention contract address
+    /// @return nestLedgerAddress INestLedger implementation contract address
+    /// @return nestMiningAddress INestMining implementation contract address for nest
+    /// @return ntokenMiningAddress INestMining implementation contract address for ntoken
+    /// @return nestPriceFacadeAddress INestPriceFacade implementation contract address
+    /// @return nestVoteAddress INestVote implementation contract address
+    /// @return nestQueryAddress INestQuery implementation contract address
     /// @return nnIncomeAddress NNIncome contract address
-    /// @return nTokenControllerAddress INTokenController implemention contract address
+    /// @return nTokenControllerAddress INTokenController implementation contract address
     function getBuiltinAddress() external view returns (
         address nestTokenAddress,
         address nestNodeAddress,
@@ -61,36 +61,36 @@ interface INestMapping {
     /// @return Address of nest node contract
     function getNestNodeAddress() external view returns (address);
 
-    /// @dev Get INestLedger implemention contract address
-    /// @return INestLedger implemention contract address
+    /// @dev Get INestLedger implementation contract address
+    /// @return INestLedger implementation contract address
     function getNestLedgerAddress() external view returns (address);
 
-    /// @dev Get INestMining implemention contract address for nest
-    /// @return INestMining implemention contract address for nest
+    /// @dev Get INestMining implementation contract address for nest
+    /// @return INestMining implementation contract address for nest
     function getNestMiningAddress() external view returns (address);
 
-    /// @dev Get INestMining implemention contract address for ntoken
-    /// @return INestMining implemention contract address for ntoken
+    /// @dev Get INestMining implementation contract address for ntoken
+    /// @return INestMining implementation contract address for ntoken
     function getNTokenMiningAddress() external view returns (address);
 
-    /// @dev Get INestPriceFacade implemention contract address
-    /// @return INestPriceFacade implemention contract address
+    /// @dev Get INestPriceFacade implementation contract address
+    /// @return INestPriceFacade implementation contract address
     function getNestPriceFacadeAddress() external view returns (address);
 
-    /// @dev Get INestVote implemention contract address
-    /// @return INestVote implemention contract address
+    /// @dev Get INestVote implementation contract address
+    /// @return INestVote implementation contract address
     function getNestVoteAddress() external view returns (address);
 
-    /// @dev Get INestQuery implemention contract address
-    /// @return INestQuery implemention contract address
+    /// @dev Get INestQuery implementation contract address
+    /// @return INestQuery implementation contract address
     function getNestQueryAddress() external view returns (address);
 
     /// @dev Get NNIncome contract address
     /// @return NNIncome contract address
     function getNnIncomeAddress() external view returns (address);
 
-    /// @dev Get INTokenController implemention contract address
-    /// @return INTokenController implemention contract address
+    /// @dev Get INTokenController implementation contract address
+    /// @return INTokenController implementation contract address
     function getNTokenControllerAddress() external view returns (address);
 
     /// @dev Registered address. The address registered here is the address accepted by nest system
