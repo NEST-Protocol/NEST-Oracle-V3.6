@@ -166,13 +166,13 @@ module.exports = async function (deployer, network) {
     //await deployer.deploy(IterableMapping);
     //await deployer.link(IterableMapping, IBNEST);
     //let nest = await deployer.deploy(IBNEST);
-    // TODO: Set nest address
-    let nest = await IBNEST.at('0x1d2829adfAc6F808bE0f7D330E68BD9a9bD317D7');
+    // Set nest address: 0x04abEdA201850aC0124161F037Efd70c74ddC74C
+    let nest = await IBNEST.at('0x04abEdA201850aC0124161F037Efd70c74ddC74C');
     console.log('nest: ' + nest.address);
     //let nn = await deployer.deploy(NNToken, 1500, 'NN');
     //let usdt = await deployer.deploy(TestERC20, 'USDT', 'USDT', 6);
-    // TODO: Set usdt address
-    let usdt = await TestERC20.at('0xc3f9794C9f50537194ef0bd9e74e9658d51a0eBa');
+    // Set usdt address: 0xdAC17F958D2ee523a2206206994597C13D831ec7
+    let usdt = await TestERC20.at('0xdAC17F958D2ee523a2206206994597C13D831ec7');
     console.log('usdt: ' + usdt.address);
     //let hbtc = await deployer.deploy(TestERC20, 'HBTC', 'HBTC', 18);
     let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
@@ -206,8 +206,8 @@ module.exports = async function (deployer, network) {
     // //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
     // console.log('nhbtc: ' + nhbtc.address);
     // let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
-    // TODO: Set nn address
-    let nn = await SuperMan.at('0x52Ab1592d71E20167EB657646e86ae5FC04e9E01');
+    // Set nn address: 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e
+    let nn = await SuperMan.at('0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e');
     console.log('nn: ' + nn.address);
 
     let contracts = {
