@@ -14,4 +14,9 @@ interface IProxyAdmin {
     ///      Can only be called by the current owner
     /// @param newOwner The address of new owner
     function transferOwnership(address newOwner) external;
+
+    /// @dev Returns the current implementation of a proxy.
+    ///      This is needed because only the proxy admin can query it.
+    /// @return The address of the current implementation of the proxy.
+    function getProxyImplementation(address proxy) external view returns (address);
 }
