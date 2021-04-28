@@ -3,6 +3,7 @@
 // .deploy.normal.js means deployed normal
 // .deploy.proxy.js means deployed by proxy
 // You can choose one mode for testing
+// .deploy.mainnet@20210427.js
 // .deploy.rinkeby@20210414.js
 // .deploy.rinkeby@20210420.js
 // .deploy.rinkeby@20210421.js

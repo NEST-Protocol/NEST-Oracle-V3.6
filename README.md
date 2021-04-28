@@ -46,6 +46,21 @@ truffle migrate --network ropsten
 
 ## Contract Addresses
 
+### 2021-04-27@mainnet
+| Name | Interfaces | mainnet |
+| ---- | ---- | ---- |
+| nest | IERC20 | 0x04abEdA201850aC0124161F037Efd70c74ddC74C |
+| nn | IERC20 | 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e |
+| nestGovernance | INestGovernance | 0xA2eFe217eD1E56C743aeEe1257914104Cf523cf5 |
+| nestLedger | INestLedger | 0x34B931C7e5Dc45dDc9098A1f588A0EA0dA45025D |
+| nestMining | INestMining, INestQuery | 0x03dF236EaCfCEf4457Ff7d6B88E8f00823014bcd |
+| ntokenMining | INestMining, INestQuery | 0xC2058Dd4D55Ae1F3e1b0744Bdb69386c9fD902CA |
+| nestPriceFacade | INestPriceFacade, INestQuery | 0xB5D2890c061c321A5B6A4a4254bb1522425BAF0A |
+| nestRedeeming | INestRedeeming | 0xF48D58649dDb13E6e29e03059Ea518741169ceC8 |
+| nestVote | INestVote | 0xDa52f53a5bE4cb876DE79DcfF16F34B95e2D38e9 |
+| nnIncome | INNIncome | 0x95557DE67444B556FE6ff8D7939316DA0Aa340B2 |
+| nTokenController | INTokenController | 0xc4f1690eCe0145ed544f0aee0E2Fa886DFD66B62 |
+
 ### 2021-04-06@rinkeby
 | Name | Interfaces | rinkeby |
 | ---- | ---- | ---- |
