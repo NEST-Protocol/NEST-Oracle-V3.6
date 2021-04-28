@@ -88,7 +88,7 @@ The V3.6 has made some adjustments to the data structure. The main goal is to sa
 ### 4.1. PriceSheet
 
 ```javascript
-    ///@dev Definitions for the price sheet, include the full information. (use 256bits, a storage unit in ethereum evm)
+    /// @dev Definitions for the price sheet, include the full information. (use 256bits, a storage unit in ethereum evm)
     struct PriceSheet {
         
         // Index of miner account in _accounts. for this way, mapping an address(which need 160bits) to a 32bits 
@@ -126,7 +126,7 @@ The data structure of the quotation sheet processes the two fields of the miner'
 
 1. Change the address to the registration number. Each miner (verifier) address will have a unique corresponding registered account information in the mining contract, including the miner address, token balance and other information. At the same time, a number is used to mark the miner, so Mapping the original 160-bit address information into 32-bit plastic data, theoretically about 4 billion addresses can be registered. If the registered address is full, it needs to be resolved by updating the mining contract.
 
-2. 2)	Change the original 128-bit price field to a representation of fraction * 16 ^ exponent. Because the decimal places of different tokens are quite different, the price of the currency is also different, and the fixed decimal place is difficult to meet. Therefore, using this floating-point-like representation method can theoretically provide 14 significant digits, with loss of precision Keep it within one part per trillion. Below is the code for encoding and decoding of this representation.
+2. Change the original 128-bit price field to a representation of fraction * 16 ^ exponent. Because the decimal places of different tokens are quite different, the price of the currency is also different, and the fixed decimal place is difficult to meet. Therefore, using this floating-point-like representation method can theoretically provide 14 significant digits, with loss of precision Keep it within one part per trillion. Below is the code for encoding and decoding of this representation.
 
 ```javascript
     /// @dev Encode the uint value as a floating-point representation in the form of fraction * 16 ^ exponent
