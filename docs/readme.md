@@ -508,12 +508,12 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + If the proposal is currently in the voting period, fetching at this time is equivalent to canceling the previous affirmative votes, and the vote percentage of the proposal after fetching will be reduced accordingly.
 
 
-### 5.3 Price is called
+### 5.3 Calling Price
 ```
     Price invocation is free: NestMining, contract invocation is prohibited.
     Price call fee: NestPriceFacade, which supports contract calls, currently costs 0.01ETH per call.
 ```
-#### 5.2.1 Get the latest trigger price
+#### 5.3.1 Get the latest trigger price
 **Function：** `triggeredPrice(address tokenAddress)`
   + `tokenAddress` To query the token address for the specified token price.
 
@@ -521,7 +521,7 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + `blockNumber` Block number of the price.
   + `price` Price (how many tokens can be exchanged for 1ETH).
 
-#### 5.2.2 Get the latest trigger price complete information
+#### 5.3.2 Get the latest trigger price complete information
 **Function：** `triggeredPriceInfo(address tokenAddress)`
   + `tokenAddress` To query the token address for the specified token price.
 
@@ -531,7 +531,7 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + `avgPrice` Average price.
   + `sigmaSQ` Volatility squared.
   
-#### 5.2.3 Get the latest effective price
+#### 5.3.3 Get the latest effective price
 **Function：** `latestPrice(address tokenAddress)`
   + `tokenAddress` To query the token address for the specified token price.
 
@@ -539,19 +539,19 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + `blockNumber` Block number of the price.
   + `price` Price (how many tokens can be exchanged for 1ETH).
   
- #### 5.2.4 Returns the results of the latestPrice() and triggeredPriceInfo() methods
- **Function：** `latestPriceAndTriggeredPriceInfo(address tokenAddress)`
-   + `tokenAddress` To query the token address for the specified token price.
+#### 5.3.4 Returns the results of the latestPrice() and triggeredPriceInfo() methods
+**Function：** `latestPriceAndTriggeredPriceInfo(address tokenAddress)`
+  + `tokenAddress` To query the token address for the specified token price.
  
- **The return value:** 
-   + `latestPriceBlockNumber` Block number of the latest effective price.
-   + `latestPriceValue` The latest effective price (how many tokens can be exchanged for 1ETH). 
-   + `triggeredPriceBlockNumber` Block number of the latest trigger price.
-   + `triggeredPriceValue` Latest trigger price (how many tokens can be exchanged for 1ETH).
-   + `triggeredAvgPrice` Average price.
-   + `triggeredSigmaSQ` Volatility squared.
- 
-#### 5.2.5 Gets the effective price for the specified block height
+**The return value:** 
+  + `latestPriceBlockNumber` Block number of the latest effective price.
+  + `latestPriceValue` The latest effective price (how many tokens can be exchanged for 1ETH). 
+  + `triggeredPriceBlockNumber` Block number of the latest trigger price.
+  + `triggeredPriceValue` Latest trigger price (how many tokens can be exchanged for 1ETH).
+  + `triggeredAvgPrice` Average price.
+  + `triggeredSigmaSQ` Volatility squared.
+
+#### 5.3.5 Gets the effective price for the specified block height
 **Function：** `findPrice(address tokenAddress, uint height)`
   + `tokenAddress` To query the token address for the specified token price.
   + `height` The block number to query.
@@ -561,16 +561,16 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + `price` Price (how many tokens can be exchanged for 1ETH).
  
  
- #### 5.2.6 Get the latest set of effective prices
- **Function：** `lastPriceList(address tokenAddress, uint count)`
-   + `tokenAddress` To query the token address for the specified token price.
-   + `count` Number of queries to be made.
+#### 5.3.6 Get the latest set of effective prices
+**Function：** `lastPriceList(address tokenAddress, uint count)`
+  + `tokenAddress` To query the token address for the specified token price.
+  + `count` Number of queries to be made.
  
- **The return value:** 
-   + Returns an array size of count*2, each of which represents the blockNumber `blockNumber` and the `price` (how many tokens can be exchanged for one eth).
+**The return value:** 
+  + Returns an array size of count*2, each of which represents the blockNumber `blockNumber` and the `price` (how many tokens can be exchanged for one eth).
  
  
-#### 5.2.7 Gets the latest trigger price, including token and Ntoken prices
+#### 5.3.7 Gets the latest trigger price, including token and Ntoken prices
 **Function：** `triggeredPrice2(address tokenAddress)`
   + `tokenAddress` To query the token address for the specified price.
 
@@ -580,7 +580,7 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + `ntokenBlockNumber` Block number of the ntoken price.
   + `ntokenPrice` Price (how many Ntokens can be exchanged for 1ETH).
 
-#### 5.2.8 Get the latest trigger price complete information, including token and Ntoken prices
+#### 5.3.8 Get the latest trigger price complete information, including token and Ntoken prices
 **Function：** `triggeredPriceInfo2(address tokenAddress)`
   + `tokenAddress` To query the token address for the specified price.
 
@@ -594,7 +594,7 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + `ntokenAvgPrice` ntoken average price.
   + `ntokenSigmaSQ` ntoken volatility squared.
 
-#### 5.2.9 Gets the latest effective price, including token and Ntoken prices
+#### 5.3.9 Gets the latest effective price, including token and Ntoken prices
 **Function：** `latestPrice2(address tokenAddress)`
   + `tokenAddress` To query the token address for the specified price.
 

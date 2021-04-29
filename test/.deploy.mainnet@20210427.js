@@ -44,6 +44,8 @@ module.exports = async function() {
     nestPriceFacade: 0xD0B5532Cd0Ae1a14dAdf94f8562679A48aDa3643
     nestRedeeming: 0x5441B24FA3a2347Ac6EE70431dD3BfD0c224B4B7
     nnIncome: 0x718626a4b78e0ECfA60dE1D4C386302e68fac8cD
+
+    ProxyAdmin: 0x7DBe94A4D6530F411A1E7337c7eb84185c4396e6
     */
 
     console.log('***** .deploy.mainnet@20210427.js *****');
