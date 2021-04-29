@@ -14,6 +14,7 @@ const NestVote = artifacts.require('NestVote');
 const NestMining = artifacts.require('NestMining');
 const NestRedeeming = artifacts.require('NestRedeeming');
 const NNIncome = artifacts.require('NNIncome');
+const INestQuery = artifacts.require('INestQuery');
 
 const UpdateProxyPropose = artifacts.require('UpdateProxyPropose');
 const IProxyAdmin = artifacts.require('IProxyAdmin');
@@ -33,7 +34,7 @@ contract("NestMining", async accounts => {
 
         //const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
         const account0 = accounts[0];
-        
+        console.log('account0: ' + account0);
         // let ua = await UpdateAdmin.new('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
         // console.log('ua: ' + ua.address);
         // await ua.setAddress(account0, 2);
@@ -76,9 +77,39 @@ contract("NestMining", async accounts => {
         // console.log('nestRedeeming: ' + await proxyAdmin.getProxyImplementation(nestRedeeming.address));
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
-        let nestGovernance = await NestGovernance.at('0xA2eFe217eD1E56C743aeEe1257914104Cf523cf5');
-        //await nestGovernance.registerAddress('nodeAssignment', '0x0000000000000000000000000000000000000000');
-        await nestGovernance.setGovernance('0xb26443004dF6A8a79984749D93017F265aE0e7Db', 0);
+
+        if (false) {
+            let nTokenController = await NTokenController.at('0xc4f1690eCe0145ed544f0aee0E2Fa886DFD66B62');
+            let nestLedger = await NestLedger.at('0x34B931C7e5Dc45dDc9098A1f588A0EA0dA45025D');
+            let nTokenCount = await nTokenController.getNTokenCount();
+            console.log('nTokenCount=' + nTokenCount);
+            let nTokenList = await nTokenController.list(0, nTokenCount, 1);
+            let total = new BN('0');
+            //console.log(nTokenList);
+            for (var i in nTokenList) {
+                let tag = nTokenList[i];
+                console.log('tokenAddress: ' + tag.tokenAddress + ", ntokenAddress=" + tag.ntokenAddress);
+                let rewards = new BN(await nestLedger.totalETHRewards(tag.ntokenAddress));
+                total = total.add(rewards);
+                console.log('rewards=' + rewards.toString());
+                let token = await TestERC20.at(tag.tokenAddress);
+                let ntoken = await TestERC20.at(tag.ntokenAddress);
+
+                let inf = {
+                    index: i + ' - ' + tag.index,
+                    tokenAddress: tag.tokenAddress,
+                    ntokenAddress: tag.ntokenAddress,
+                    state: tag.state,
+                    tokenName: await token.name(),
+                    ntokenName: await ntoken.name(),
+                    ntokenTotalSupply: (await ntoken.totalSupply()).toString()
+                };
+                console.log(inf);
+            }
+
+            console.log('tatalRewards: ' + total.toString());
+        }
+
         return;
 
         if (false) {
@@ -275,6 +306,36 @@ contract("NestMining", async accounts => {
             nestLedgerBalance = await nest.balanceOf(nestLedger.address);
             console.log('nest balance of nestMining: ' + nestMiningBalance);
             console.log('nest balance of nestLedger: ' + nestLedgerBalance);
+        }
+
+        if (false) {
+            let usdt = await TestERC20.at('0xdAC17F958D2ee523a2206206994597C13D831ec7');
+            console.log('usdt: ' + usdt.address);
+            let nest = await TestERC20.at('0x04abEdA201850aC0124161F037Efd70c74ddC74C');
+            console.log('nest: ' + nest.address);
+            let qry = await INestQuery.at('0xB5D2890c061c321A5B6A4a4254bb1522425BAF0A');
+            console.log('qry: ' + qry.address);
+            let pi = await qry.latestPriceAndTriggeredPriceInfo(usdt.address); 
+            // (
+            //     uint latestPriceBlockNumber, 
+            //     uint latestPriceValue,
+            //     uint triggeredPriceBlockNumber,
+            //     uint triggeredPriceValue,
+            //     uint triggeredAvgPrice,
+            //     uint triggeredSigmaSQ
+            // )
+    
+            console.log(pi.toString());
+            let js = {
+                latestPriceBlockNumber: pi.latestPriceBlockNumber.toString(),
+                latestPriceValue: pi.latestPriceValue.toString(),
+                triggeredPriceBlockNumber: pi.triggeredPriceBlockNumber.toString(),
+                triggeredPriceValue: pi.triggeredPriceValue.toString(),
+                triggeredAvgPrice: pi.triggeredAvgPrice.toString(),
+                triggeredSigmaSQ: pi.triggeredSigmaSQ.toString()
+            };
+    
+            console.log(js);
         }
     });
 });
