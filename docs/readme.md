@@ -191,7 +191,10 @@ It mainly includes quotation, voting, buy back, price call and other scenarios.
 2. Only when the quotation is closed will the ore drawing calculation be carried out, and the verification sheet will not be mined.
 3. Eth assets (quotation + commission) required for quotation mining and sheet quotation must be entered into the quotation contract each time. When closing, the remaining eth of the quotation will be returned.
 4. After 256 price sheets are settled, the quotation Commission is transferred to the corresponding Dao to save gas consumption. Parameter adjustment or contract upgrade will automatically trigger Commission settlement.
-    
+
+**Warning:**
+  + The contract NestMining is deployed two instances, nestMining and ntokenMining, nestMining is for USDT and NEST, and ntokenMining is for other tokens, post a price sheet to nestMining is no effect, and there's no guarantee for these assets, do not do this!
+
 #### 5.1.1 Single post
     
 **Function：** `post(token, ethNum, tokenAmountPerEth)`
@@ -514,6 +517,9 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
     Price call fee: NestPriceFacade, which supports contract calls, currently costs 0.01ETH per call.
 ```
 #### 5.3.1 Get the latest trigger price
+  There are two method: triggeredPrice() and latestPrice() can return a price
+  + triggeredPrice() returns the calculated price, which calculated by post(), biteEth(), close() etc. so the price may not the latest.
+  + latestPrice() returns the latest effected price, it always find and calculate latest effect price, so it may use more gas, if you want a more real-time price, use this method.
 **Function：** `triggeredPrice(address tokenAddress)`
   + `tokenAddress` To query the token address for the specified token price.
 
@@ -603,8 +609,7 @@ Anyone can create an execution contract by implementing the IvotePropose interfa
   + `price` Price (how many tokens can be exchanged for 1ETH).
   + `ntokenBlockNumber` Block number of the Ntoken price.
   + `ntokenPrice` Price (how many Ntokens can be exchanged for 1ETH).
-  
-   
+
 ### 5.4 redeem--NestRedeeming
 ```
 1. Eliminate dividends
