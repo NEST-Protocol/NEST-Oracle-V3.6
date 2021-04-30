@@ -193,7 +193,7 @@ It mainly includes quotation, voting, buy back, price call and other scenarios.
 4. After 256 price sheets are settled, the quotation Commission is transferred to the corresponding Dao to save gas consumption. Parameter adjustment or contract upgrade will automatically trigger Commission settlement.
 
 **Warning:**
-  + The contract NestMining is deployed two instances, nestMining and ntokenMining, nestMining is for USDT and NEST, and ntokenMining is for other tokens, post a price sheet to nestMining is no effect, and there's no guarantee for these assets, do not do this!
+  + The contract NestMining is deployed two instances, nestMining and ntokenMining, nestMining is for USDT and NEST, and ntokenMining is for other tokens, post a price sheet for other token to nestMining is no effect, and there's no guarantee for these assets, do not do this!
 
 #### 5.1.1 Single post
     
