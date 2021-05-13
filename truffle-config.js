@@ -19,10 +19,18 @@
  */
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
 
-const config = require("dotenv").config();
+// Load `.env` file as configuration.
+const envResult = require("dotenv").config();
+//console.log(envResult);
+if (envResult.error) {
+  throw envResult.error;
+}
+const config = envResult.parsed;
 //console.log(config);
+//console.log(config.RINKEBY_MNEMONIC, config.RINKEBY_NODEADDR);
+//console.log(config.ROPSTEN_MNEMONIC, config.ROPSTEN_NODEADDR);
+//console.log(config.MAINNET_MNEMONIC, config.MAINNET_NODEADDR);
 
 module.exports = {
   /**
