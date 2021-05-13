@@ -19,13 +19,18 @@
  */
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
 
-const mnemonic = fs.readFileSync("../key.secret").toString().trim();
-const nodeaddr = fs.readFileSync("../nodeinfo.txt").toString().trim();
+// Load `.env` file as configuration.
+const envResult = require("dotenv").config();
+//console.log(envResult);
+if (envResult.error) {
+  throw envResult.error;
+}
+const config = envResult.parsed;
+//console.log(config);
+//console.log(config.RINKEBY_MNEMONIC, config.RINKEBY_NODEADDR);
+//console.log(config.ROPSTEN_MNEMONIC, config.ROPSTEN_NODEADDR);
+//console.log(config.MAINNET_MNEMONIC, config.MAINNET_NODEADDR);
 
 module.exports = {
   /**
@@ -65,7 +70,11 @@ module.exports = {
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
     rinkeby: {
-      provider: () => new HDWalletProvider(mnemonic, nodeaddr),
+      provider: () => new HDWalletProvider({
+        privateKeys: [config.RINKEBY_MNEMONIC],
+        providerOrUrl: config.RINKEBY_NODEADDR,
+        chainId: 4,
+      }),
       //provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
       network_id: 4,       // Ropsten's id
       gas: 8000000,        // Ropsten has a lower block limit than mainnet
@@ -78,7 +87,11 @@ module.exports = {
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
     ropsten: {
-      provider: () => new HDWalletProvider(mnemonic, nodeaddr),
+      provider: () => new HDWalletProvider({
+        privateKeys: [config.ROPSTEN_MNEMONIC],
+        providerOrUrl: config.ROPSTEN_NODEADDR,
+        chainId: 3,
+      }),
       //provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
       network_id: 3,       // Ropsten's id
       gas: 8000000,        // Ropsten has a lower block limit than mainnet
@@ -91,7 +104,11 @@ module.exports = {
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
     mainnet: {
-      provider: () => new HDWalletProvider(mnemonic, nodeaddr),
+      provider: () => new HDWalletProvider({
+        privateKeys: [config.MAINNET_MNEMONIC],
+        providerOrUrl: config.MAINNET_NODEADDR,
+        chainId: 1,
+      }),
       //provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
       network_id: 1,       // Mainnet's id
       gas: 8000000,        // Mainnet has a lower block limit than mainnet

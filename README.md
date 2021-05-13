@@ -29,19 +29,19 @@ The NEST Oracle Smart Contract 3.6 is a solidity smart contract implementation o
 ```shell
 npm install
 
-truffle test
+npx truffle test
 ```
 
 ### Compile
 
-Run `truffle compile`, get build results in `build/contracts` folder, including `ABI` json files.
+Run `npx truffle compile`, get build results in `build/contracts` folder, including `ABI` json files.
 
 ### Deploy
 
-Deploy with `truffle` and you will get a contract deployement summary on contract addresses.
+Deploy with `truffle` and you will get a contract deployment summary on contract addresses.
 
 ```shell
-truffle migrate --network ropsten
+npx truffle migrate --network ropsten
 ```
 
 ## Contract Addresses

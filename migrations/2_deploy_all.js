@@ -163,6 +163,21 @@ async function setConfig(contracts) {
 
 module.exports = async function (deployer, network) {
 
+    if (network == 'development') {
+        // Create contract in test/deploy.js
+        return;
+    }
+    
+    if (network == 'rinkeby') {
+        // Create contract in test/deploy.js
+        return;
+    }
+
+    if (network == 'ropsten') {
+        // Create contract in test/deploy.js
+        return;
+    }
+
     //await deployer.deploy(IterableMapping);
     //await deployer.link(IterableMapping, IBNEST);
     //let nest = await deployer.deploy(IBNEST);

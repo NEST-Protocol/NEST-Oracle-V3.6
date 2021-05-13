@@ -7,23 +7,14 @@
     "doc": "docs",
     "test": "test"
   },
-  "dependencies": {
-	"@truffle/hdwallet-provider": "^1.0.40",
-    "@openzeppelin/cli": "^2.8.2",
-    "@openzeppelin/contracts": "^3.2.0",
-    "@openzeppelin/test-helpers": "^0.5.6",
-    "@openzeppelin/truffle-upgrades": "^1.0.1",
-    "chai": "^4.2.0",
-    "mocha": "^8.1.2",
-    "truffle": "^5.3.2"
-  },
   "devDependencies": {
-	"@truffle/hdwallet-provider": "^1.0.40",
     "@openzeppelin/cli": "^2.8.2",
     "@openzeppelin/contracts": "^3.2.0",
     "@openzeppelin/test-helpers": "^0.5.6",
     "@openzeppelin/truffle-upgrades": "^1.0.1",
+    "@truffle/hdwallet-provider": "^1.0.40",
     "chai": "^4.2.0",
+    "dotenv": "^9.0.2",
     "mocha": "^8.1.2",
     "truffle": "^5.3.2"
   },
