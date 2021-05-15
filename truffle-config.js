@@ -32,7 +32,9 @@ const config = envResult.parsed;
 //console.log(config.ROPSTEN_MNEMONIC, config.ROPSTEN_NODEADDR);
 //console.log(config.MAINNET_MNEMONIC, config.MAINNET_NODEADDR);
 //console.log(config.BSCTESTNET_MNEMONIC, config.BSCTESTNET_NODEADDR);
-//console.log(config.BSC_MNEMONIC, config.BSC_NODEADDR);
+//console.log(config.BSCMAINNET_MNEMONIC, config.BSCMAINNET_NODEADDR);
+//console.log(config.HECOTESTNET_MNEMONIC, config.HECOTESTNET_NODEADDR);
+//console.log(config.HECOMAINNET_MNEMONIC, config.HECOMAINNET_NODEADDR);
 
 module.exports = {
   /**
@@ -135,12 +137,12 @@ module.exports = {
       timeoutBlocks: 200,
       skipDryRun: true,
     },
-    // bsc: BSC Mainnet
-    bsc: {
+    // bscmainnet: BSC Mainnet
+    bscmainnet: {
       // NB: It's important to wrap the provider as a function.
       provider: () => new HDWalletProvider({
-        privateKeys: [config.BSC_MNEMONIC],
-        providerOrUrl: config.BSC_NODEADDR,
+        privateKeys: [config.BSCMAINNET_MNEMONIC],
+        providerOrUrl: config.BSCMAINNET_NODEADDR,
       }),
       //provider: () => new HDWalletProvider(mnemonic, 'https://bsc-dataseed1.binance.org'),
       network_id: 56,
@@ -148,6 +150,29 @@ module.exports = {
       timeoutBlocks: 200,
       skipDryRun: true,
     },
+
+    // Settings for Huobi ECO Chain(HECO)
+    // See https://docs.hecochain.com/#/dev/contract?id=%e4%bd%bf%e7%94%a8truffle%e9%83%a8%e7%bd%b2%e5%90%88%e7%ba%a6
+    // hecotestnet: HECO Testnet
+    hecotestnet: {
+      // NB: It's important to wrap the provider as a function.
+      provider: () => new HDWalletProvider({
+        privateKeys: [config.HECOTESTNET_MNEMONIC],
+        providerOrUrl: config.HECOTESTNET_NODEADDR,
+      }),
+      //provider: () => new HDWalletProvider(mnemonic, 'https://http-testnet.hecochain.com'),
+      network_id: 256
+    },
+    // hecomainnet: HECO Mainnet
+    hecomainnet: {
+      // NB: It's important to wrap the provider as a function.
+      provider: () => new HDWalletProvider({
+        privateKeys: [config.HECOMAINNET_MNEMONIC],
+        providerOrUrl: config.HECOMAINNET_NODEADDR,
+      }),
+      //provider: () => new HDWalletProvider(mnemonic, 'https://http-mainnet.hecochain.com'),
+      network_id: 128
+    }
 
     // Useful for private networks
     // private: {
