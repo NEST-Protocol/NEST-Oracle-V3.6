@@ -35,6 +35,8 @@ const config = envResult.parsed;
 //console.log(config.BSCMAINNET_MNEMONIC, config.BSCMAINNET_NODEADDR);
 //console.log(config.HECOTESTNET_MNEMONIC, config.HECOTESTNET_NODEADDR);
 //console.log(config.HECOMAINNET_MNEMONIC, config.HECOMAINNET_NODEADDR);
+//console.log(config.OKEXTESTNET_MNEMONIC, config.OKEXTESTNET_NODEADDR);
+//console.log(config.OKEXMAINNET_MNEMONIC, config.OKEXMAINNET_NODEADDR);
 
 module.exports = {
   /**
@@ -172,7 +174,38 @@ module.exports = {
       }),
       //provider: () => new HDWalletProvider(mnemonic, 'https://http-mainnet.hecochain.com'),
       network_id: 128
-    }
+    },
+
+    // Settings for OKExChain
+    // See
+    //   * [JSON-RPC Endpoint — OKExChainDocs documentation](https://okexchain-docs.readthedocs.io/en/latest/developers/blockchainDetail/rpc.html)
+    //   * [Truffle — OKExChainDocs documentation](https://okexchain-docs.readthedocs.io/en/latest/developers/deploy/truffle.html)
+    // okextestnet: OKExChain Testnet
+    okextestnet: {
+      // NB: It's important to wrap the provider as a function.
+      provider: () => new HDWalletProvider({
+        privateKeys: [config.OKEXTESTNET_MNEMONIC],
+        providerOrUrl: config.OKEXTESTNET_NODEADDR,
+      }),
+      //provider: () => new HDWalletProvider(mnemonic, 'https://exchaintestrpc.okex.org'),
+      network_id: 65,
+      confirmations: 10,
+      timeoutBlocks: 200,
+      skipDryRun: true
+    },
+    // okexmainnet: OKExChain Mainnet
+    okexmainnet: {
+      // NB: It's important to wrap the provider as a function.
+      provider: () => new HDWalletProvider({
+        privateKeys: [config.OKEXMAINNET_MNEMONIC],
+        providerOrUrl: config.OKEXMAINNET_NODEADDR,
+      }),
+      //provider: () => new HDWalletProvider(mnemonic, 'https://exchainrpc.okex.org'),
+      network_id: 66,
+      confirmations: 10,
+      timeoutBlocks: 200,
+      skipDryRun: true
+    },
 
     // Useful for private networks
     // private: {
