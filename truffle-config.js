@@ -126,6 +126,13 @@ module.exports = {
 
     // Settings for Binance Smart Chain(BSC)
     // See [Truffle - Binance Chain Docs](https://docs.binance.org/smart-chain/developer/deploy/truffle.html)
+    // bscdevelopment: BSC Development Network
+    bscdevelopment: {
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 7545,            // Standard Ethereum port (default: none)
+      network_id: "*",       // Any network (default: none)
+      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+    },
     // bsctestnet: BSC Testnet
     bsctestnet: {
       // NB: It's important to wrap the provider as a function.
