@@ -10,7 +10,8 @@ import "./interface/INestLedger.sol";
 contract NestBase {
 
     // Address of nest token contract
-    address constant NEST_TOKEN_ADDRESS = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
+    // address constant NEST_TOKEN_ADDRESS = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
+    address NEST_TOKEN_ADDRESS;
 
     // Genesis block number of nest
     // NEST token contract is created at block height 6913517. However, because the mining algorithm of nest1.0
@@ -23,9 +24,14 @@ contract NestBase {
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function initialize(address nestGovernanceAddress) virtual public {
+    // function initialize(address nestGovernanceAddress) virtual public {
+    //     require(_governance == address(0), 'NEST:!initialize');
+    //     _governance = nestGovernanceAddress;
+    // }
+    function initialize(address nestGovernanceAddress, address nestTokenAddress) virtual public {
         require(_governance == address(0), 'NEST:!initialize');
         _governance = nestGovernanceAddress;
+        NEST_TOKEN_ADDRESS = nestTokenAddress;
     }
 
     /// @dev INestGovernance implementation contract address

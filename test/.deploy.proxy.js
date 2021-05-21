@@ -107,39 +107,51 @@ module.exports = async function() {
     let hbtc = await TestERC20.new('HBTC', 'HBTC', 18);
     //let hbtc = await TestERC20.at('0xaE73d363Cb4aC97734E07e48B01D0a1FF5D1190B');
     console.log('hbtc: ' + hbtc.address);
-    let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
+   
+    //let nestGovernance = await NestGovernance.new();
+    //let nestGovernance = await deployProxy(NestGovernance);
+    //let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
+    //let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
+    let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000']);
     //let nestGovernance = await NestGovernance.at('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
     console.log('nestGovernance: ' + nestGovernance.address);
-    let nestLedger = await deployProxy(NestLedger, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestLedger = await NestLedger.at('0x566909EEc3B9cCbF3C5E1a3eCFCb439F54b2AF51');
-    console.log('nestLedger: ' + nestLedger.address);
-    let nTokenController = await deployProxy(NTokenController, [nestGovernance.address], { initializer: 'initialize' });
-    //let nTokenController = await NTokenController.at('0x046528d4E9C9A8b0744163e1220758cF1FB58471');
-    console.log('nTokenController: ' + nTokenController.address);
-    let nestVote = await deployProxy(NestVote, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestVote = await NestVote.at('0xB31f969571e09d832E582820457d614Ca482C822');
-    console.log('nestVote: ' + nestVote.address);
-    let nestMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestMining = await NestMining.at('0xe8Bec71aeac191bbf4c870f927fE8fFaAEd9efc8');
-    console.log('nestMining: ' + nestMining.address);
-    let ntokenMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
-    //let ntokenMining = await NestMining.at('0xaD223aBB38aE83b08facFD7469E8ef49fb525Ca1');
-    console.log('ntokenMining: ' + ntokenMining.address);
-    let nestPriceFacade = await deployProxy(NestPriceFacade, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestPriceFacade = await NestPriceFacade.at('0x831fE938eEEC8dd7b993aB64F5B596dEdE9513D0');
-    console.log('nestPriceFacade: ' + nestPriceFacade.address);
-    let nestRedeeming = await deployProxy(NestRedeeming, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestRedeeming = await NestRedeeming.at('0xd170c041FD00876a77762E764e1433bed12Ca5D9');
-    console.log('nestRedeeming: ' + nestRedeeming.address);
-    let nnIncome = await deployProxy(NNIncome, [nestGovernance.address], { initializer: 'initialize' });
-    //let nnIncome = await NNIncome.at('0x73832B6dF01E253E3CaDefD68f7c1a0e71241301');
-    console.log('nnIncome: ' + nnIncome.address);
-    let nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
-    //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
-    console.log('nhbtc: ' + nhbtc.address);
+
     let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
     //let nn = await SuperMan.at('0x7cFb525161d0062923CAA6AbfaBcDb7c580acd48');
     console.log('nn: ' + nn.address);
+    let nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
+    //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
+    console.log('nhbtc: ' + nhbtc.address);
+
+    //const nestBaseInitArgs = [nestGovernance.address];
+    const nestBaseInitArgs = [nestGovernance.address, nest.address];
+    //const nnIncomeInitArgs = [nestGovernance.address];
+    const nnIncomeInitArgs = [nestGovernance.address, nest.address, nn.address];
+
+    let nestLedger = await deployProxy(NestLedger, nestBaseInitArgs, { initializer: 'initialize' });
+    //let nestLedger = await NestLedger.at('0x566909EEc3B9cCbF3C5E1a3eCFCb439F54b2AF51');
+    console.log('nestLedger: ' + nestLedger.address);
+    let nTokenController = await deployProxy(NTokenController, nestBaseInitArgs, { initializer: 'initialize' });
+    //let nTokenController = await NTokenController.at('0x046528d4E9C9A8b0744163e1220758cF1FB58471');
+    console.log('nTokenController: ' + nTokenController.address);
+    let nestVote = await deployProxy(NestVote, nestBaseInitArgs, { initializer: 'initialize' });
+    //let nestVote = await NestVote.at('0xB31f969571e09d832E582820457d614Ca482C822');
+    console.log('nestVote: ' + nestVote.address);
+    let nestMining = await deployProxy(NestMining, nestBaseInitArgs, { initializer: 'initialize' });
+    //let nestMining = await NestMining.at('0xe8Bec71aeac191bbf4c870f927fE8fFaAEd9efc8');
+    console.log('nestMining: ' + nestMining.address);
+    let ntokenMining = await deployProxy(NestMining, nestBaseInitArgs, { initializer: 'initialize' });
+    //let ntokenMining = await NestMining.at('0xaD223aBB38aE83b08facFD7469E8ef49fb525Ca1');
+    console.log('ntokenMining: ' + ntokenMining.address);
+    let nestPriceFacade = await deployProxy(NestPriceFacade, nestBaseInitArgs, { initializer: 'initialize' });
+    //let nestPriceFacade = await NestPriceFacade.at('0x831fE938eEEC8dd7b993aB64F5B596dEdE9513D0');
+    console.log('nestPriceFacade: ' + nestPriceFacade.address);
+    let nestRedeeming = await deployProxy(NestRedeeming, nestBaseInitArgs, { initializer: 'initialize' });
+    //let nestRedeeming = await NestRedeeming.at('0xd170c041FD00876a77762E764e1433bed12Ca5D9');
+    console.log('nestRedeeming: ' + nestRedeeming.address);
+    let nnIncome = await deployProxy(NNIncome, nnIncomeInitArgs, { initializer: 'initialize' });
+    //let nnIncome = await NNIncome.at('0x73832B6dF01E253E3CaDefD68f7c1a0e71241301');
+    console.log('nnIncome: ' + nnIncome.address);
 
     let contracts = {
         nest: nest,

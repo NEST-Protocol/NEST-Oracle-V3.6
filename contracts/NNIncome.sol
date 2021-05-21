@@ -25,6 +25,10 @@ contract NNIncome is NestBase, INNIncome {
     // function initialize(address nestGovernanceAddress) override public {
     //     super.initialize(nestGovernanceAddress);
     // }
+    function initialize(address nestGovernanceAddress, address nestTokenAddress, address nestNodeAddress) public {
+        super.initialize(nestGovernanceAddress, nestTokenAddress);
+        NEST_NODE_ADDRESS = nestNodeAddress;
+    }
 
     /// @dev Reset the blockCursor
     /// @param blockCursor blockCursor value
@@ -36,7 +40,8 @@ contract NNIncome is NestBase, INNIncome {
     uint constant NEST_NODE_TOTALSUPPLY = 1500;
 
     // Address of nest node contract
-    address constant NEST_NODE_ADDRESS = 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e;
+    // address constant NEST_NODE_ADDRESS = 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e;
+    address NEST_NODE_ADDRESS;
 
     // Generated nest
     uint _generatedNest;

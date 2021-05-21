@@ -15,14 +15,26 @@ contract NestGovernance is NestMapping, INestGovernance {
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function initialize(address nestGovernanceAddress) override public {
+    // function initialize(address nestGovernanceAddress) override public {
+    //
+    //     // While initialize NestGovernance, nestGovernanceAddress is address(this),
+    //     // So must let nestGovernanceAddress to 0
+    //     require(nestGovernanceAddress == address(0), "NestGovernance:!address");
+    //
+    //     // nestGovernanceAddress is address(this)
+    //     super.initialize(address(this));
+    //
+    //     // Add msg.sender to governance
+    //     _governanceMapping[msg.sender] = GovernanceInfo(msg.sender, uint96(0xFFFFFFFFFFFFFFFFFFFFFFFF));
+    // }
+    function initialize(address nestGovernanceAddress, address nestTokenAddress) override public {
 
         // While initialize NestGovernance, nestGovernanceAddress is address(this),
         // So must let nestGovernanceAddress to 0
         require(nestGovernanceAddress == address(0), "NestGovernance:!address");
 
         // nestGovernanceAddress is address(this)
-        super.initialize(address(this));
+        super.initialize(address(this), nestTokenAddress);
 
         // Add msg.sender to governance
         _governanceMapping[msg.sender] = GovernanceInfo(msg.sender, uint96(0xFFFFFFFFFFFFFFFFFFFFFFFF));

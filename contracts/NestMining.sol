@@ -26,8 +26,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function initialize(address nestGovernanceAddress) override public {
-        super.initialize(nestGovernanceAddress);
+    // function initialize(address nestGovernanceAddress) override public {
+    //     super.initialize(nestGovernanceAddress);
+    //     // Placeholder in _accounts, the index of a real account must greater than 0
+    //     _accounts.push();
+    // }
+    function initialize(address nestGovernanceAddress, address nestTokenAddress) override public {
+        super.initialize(nestGovernanceAddress, nestTokenAddress);
         // Placeholder in _accounts, the index of a real account must greater than 0
         _accounts.push();
     }
