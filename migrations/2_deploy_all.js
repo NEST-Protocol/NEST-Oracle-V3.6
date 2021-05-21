@@ -3,8 +3,8 @@ const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 // Load compiled artifacts
 const IterableMapping = artifacts.require("IterableMapping");
 const IBNEST = artifacts.require('IBNEST');
-const NNToken = artifacts.require('NNToken');
-const SuperMan = artifacts.require('SuperMan');
+const NNToken = artifacts.require('NNToken'); // for test only
+const SuperMan = artifacts.require('SuperMan'); // NNToken on Mainnet
 const TestERC20 = artifacts.require('TestERC20');
 const Nest_NToken = artifacts.require('Nest_NToken');
 const NToken = artifacts.require('NToken');
@@ -163,67 +163,78 @@ async function setConfig(contracts) {
 
 module.exports = async function (deployer, network) {
 
-    if (network == 'development') {
-        // Create contract in test/deploy.js
-        return;
-    }
-    
-    if (network == 'rinkeby') {
-        // Create contract in test/deploy.js
-        return;
-    }
-
-    if (network == 'ropsten') {
-        // Create contract in test/deploy.js
-        return;
-    }
-
-    //await deployer.deploy(IterableMapping);
-    //await deployer.link(IterableMapping, IBNEST);
-    //let nest = await deployer.deploy(IBNEST);
-    // Set nest address: 0x04abEdA201850aC0124161F037Efd70c74ddC74C
-    let nest = await IBNEST.at('0x04abEdA201850aC0124161F037Efd70c74ddC74C');
-    console.log('nest: ' + nest.address);
-    //let nn = await deployer.deploy(NNToken, 1500, 'NN');
-    //let usdt = await deployer.deploy(TestERC20, 'USDT', 'USDT', 6);
-    // Set usdt address: 0xdAC17F958D2ee523a2206206994597C13D831ec7
-    let usdt = await TestERC20.at('0xdAC17F958D2ee523a2206206994597C13D831ec7');
-    console.log('usdt: ' + usdt.address);
     //let hbtc = await deployer.deploy(TestERC20, 'HBTC', 'HBTC', 18);
-    let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000'], { initializer: 'initialize' });
+ 
+    let nest;
+    if (network == 'mainnet') {
+        // Set nest address: 0x04abEdA201850aC0124161F037Efd70c74ddC74C
+        nest = await IBNEST.at('0x04abEdA201850aC0124161F037Efd70c74ddC74C');
+        return;
+    }
+    else {
+        await deployer.deploy(IterableMapping);
+        await deployer.link(IterableMapping, IBNEST);
+        nest = await deployer.deploy(IBNEST);
+    }
+    console.log('nest: ' + nest.address);
+
+    let usdt;
+    if (network == 'mainnet') {
+        // Set usdt address: 0xdAC17F958D2ee523a2206206994597C13D831ec7
+        usdt = await TestERC20.at('0xdAC17F958D2ee523a2206206994597C13D831ec7');
+    }
+    else {
+        usdt = await deployer.deploy(TestERC20, 'USDT', 'USDT', 6);
+    }
+    console.log('usdt: ' + usdt.address);
+
+    let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000'], { deployer, initializer: 'initialize' });
     //let nestGovernance = await NestGovernance.at('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
     console.log('nestGovernance: ' + nestGovernance.address);
-    let nestLedger = await deployProxy(NestLedger, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestLedger = await NestLedger.at('0x566909EEc3B9cCbF3C5E1a3eCFCb439F54b2AF51');
-    console.log('nestLedger: ' + nestLedger.address);
-    let nTokenController = await deployProxy(NTokenController, [nestGovernance.address], { initializer: 'initialize' });
-    //let nTokenController = await NTokenController.at('0x046528d4E9C9A8b0744163e1220758cF1FB58471');
-    console.log('nTokenController: ' + nTokenController.address);
-    let nestVote = await deployProxy(NestVote, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestVote = await NestVote.at('0xB31f969571e09d832E582820457d614Ca482C822');
-    console.log('nestVote: ' + nestVote.address);
-    let nestMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestMining = await NestMining.at('0xe8Bec71aeac191bbf4c870f927fE8fFaAEd9efc8');
-    console.log('nestMining: ' + nestMining.address);
-    let ntokenMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
-    //let ntokenMining = await NestMining.at('0xaD223aBB38aE83b08facFD7469E8ef49fb525Ca1');
-    console.log('ntokenMining: ' + ntokenMining.address);
-    let nestPriceFacade = await deployProxy(NestPriceFacade, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestPriceFacade = await NestPriceFacade.at('0x831fE938eEEC8dd7b993aB64F5B596dEdE9513D0');
-    console.log('nestPriceFacade: ' + nestPriceFacade.address);
-    let nestRedeeming = await deployProxy(NestRedeeming, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestRedeeming = await NestRedeeming.at('0xd170c041FD00876a77762E764e1433bed12Ca5D9');
-    console.log('nestRedeeming: ' + nestRedeeming.address);
-    let nnIncome = await deployProxy(NNIncome, [nestGovernance.address], { initializer: 'initialize' });
-    //let nnIncome = await NNIncome.at('0x73832B6dF01E253E3CaDefD68f7c1a0e71241301');
-    console.log('nnIncome: ' + nnIncome.address);
-    // let nhbtc = await deployer.deploy(Nest_NToken, 'NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
-    // //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
-    // console.log('nhbtc: ' + nhbtc.address);
-    // let nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
-    // Set nn address: 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e
-    let nn = await SuperMan.at('0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e');
+
+    let nn;
+    if (network == 'mainnet') {
+        // nn = await SuperMan.new(nestGovernance.address);//.new(1500, 'NN');
+        // Set nn address: 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e
+        await SuperMan.at('0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e');
+    }
+    else {
+        nn = await deployer.deploy(NNToken, 1500, 'NN');
+    }
     console.log('nn: ' + nn.address);
+
+    //let nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
+    //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
+    //console.log('nhbtc: ' + nhbtc.address);
+
+    //const nestBaseInitArgs = [nestGovernance.address];
+    const nestBaseInitArgs = [nestGovernance.address, nest.address];
+    //const nnIncomeInitArgs = [nestGovernance.address];
+    const nnIncomeInitArgs = [nestGovernance.address, nest.address, nn.address];
+    
+    let nestLedger = await deployProxy(NestLedger, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    console.log('nestLedger: ' + nestLedger.address);
+
+    let nTokenController = await deployProxy(NTokenController, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    console.log('nTokenController: ' + nTokenController.address);
+
+    let nestVote = await deployProxy(NestVote, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    console.log('nestVote: ' + nestVote.address);
+
+    let nestMining = await deployProxy(NestMining, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    console.log('nestMining: ' + nestMining.address);
+
+    let ntokenMining = await deployProxy(NestMining, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    console.log('ntokenMining: ' + ntokenMining.address);
+
+    let nestPriceFacade = await deployProxy(NestPriceFacade, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    console.log('nestPriceFacade: ' + nestPriceFacade.address);
+
+    let nestRedeeming = await deployProxy(NestRedeeming, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    console.log('nestRedeeming: ' + nestRedeeming.address);
+
+    let nnIncome = await deployProxy(NNIncome, nnIncomeInitArgs, { deployer, initializer: 'initialize' });
+    console.log('nnIncome: ' + nnIncome.address);
 
     let contracts = {
         nest: nest,
