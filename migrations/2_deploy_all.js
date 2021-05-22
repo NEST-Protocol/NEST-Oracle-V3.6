@@ -5,11 +5,12 @@ const IterableMapping = artifacts.require("IterableMapping");
 const IBNEST = artifacts.require('IBNEST');
 const USDT = artifacts.require('USDT');
 const HBTC = artifacts.require('HBTC');
+const NHBTC = artifacts.require('NHBTC');
 const NNToken = artifacts.require('NNToken'); // for test only
 const SuperMan = artifacts.require('SuperMan'); // NNToken on Mainnet
 //const TestERC20 = artifacts.require('TestERC20');
-const Nest_NToken = artifacts.require('Nest_NToken');
-const NToken = artifacts.require('NToken');
+//const Nest_NToken = artifacts.require('Nest_NToken');
+//const NToken = artifacts.require('NToken');
 const NestGovernance = artifacts.require('NestGovernance');
 const NestLedger = artifacts.require('NestLedger');
 const NestPriceFacade = artifacts.require('NestPriceFacade');
@@ -164,9 +165,7 @@ async function setConfig(contracts) {
     }
 }
 
-module.exports = async function (deployer, network) {
-
-    //let hbtc = await deployer.deploy(TestERC20, 'HBTC', 'HBTC', 18);
+module.exports = async function (deployer, network, accounts) {
  
     let nest;
     if (network == 'mainnet') {
@@ -205,10 +204,6 @@ module.exports = async function (deployer, network) {
         nn = await deployer.deploy(NNToken, 1500, 'NN');
     }
     console.log('nn: ' + nn.address);
-
-    //let nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
-    //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');
-    //console.log('nhbtc: ' + nhbtc.address);
 
     //const nestBaseInitArgs = [nestGovernance.address];
     const nestBaseInitArgs = [nestGovernance.address, nest.address];
@@ -317,11 +312,20 @@ module.exports = async function (deployer, network) {
         console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
         await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
 
-        // // Add ntoken mapping
-        // console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
-        // await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
-        // console.log('14. nTokenController.setNTokenMapping(usdt.address, nest.address, 1)');
-        // await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
+        if (network != "mainnet") {
+            const hbtc = await deployer.deploy(HBTC, 'HBTC', 'HBTC', 18);
+            console.log('hbtc: ' + hbtc.address);
+            const nhbtc = await deployer.deploy(NHBTC, 'NHBTC', 'NToken0001', nestGovernance.address, accounts[0]);
+            //nhbtc = await Nest_NToken.new('NHBTC', 'NToken0001', nestGovernance.address, (await web3.eth.getAccounts())[0]);
+            //let nhbtc = await Nest_NToken.at('0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198');            
+            console.log('nhbtc: ' + nhbtc.address);
+
+            // Add ntoken mapping
+            console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
+            await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
+            console.log('14. nTokenController.setNTokenMapping(usdt.address, nest.address, 1)');
+            await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
+        }
 
         console.log('15. nestPriceFacade.setNestQuery(usdt.address, nestMining.address)');
         await nestPriceFacade.setNestQuery(usdt.address, nestMining.address);

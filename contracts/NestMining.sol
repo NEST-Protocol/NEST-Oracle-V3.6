@@ -298,7 +298,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // 2. Check price channel
         // Check if the token allow post()
         address ntokenAddress = _getNTokenAddress(tokenAddress);
-        require(ntokenAddress != address(0) && ntokenAddress != tokenAddress, "NM:!tokenAddress");
+        require(ntokenAddress != address(0), "NM:!ntokenAddress");
+        require(ntokenAddress != tokenAddress, "NM:!tokenAddress");
         // Unit of nest is different, but the total supply already exceeded the number of this issue. No additional judgment will be made
         // ntoken is mint when the price sheet is closed (or withdrawn), this may be the problem that the user
         // intentionally does not close or withdraw, which leads to the inaccurate judgment of the total amount. ignore
