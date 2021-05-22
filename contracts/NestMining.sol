@@ -1785,3 +1785,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
         return (uint(floatValue) >> 6) << ((uint(floatValue) & 0x3F) << 2);
     }
 }
+
+contract NTokenMining is NestMining {
+}

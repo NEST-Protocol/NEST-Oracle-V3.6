@@ -16,6 +16,7 @@ const NestPriceFacade = artifacts.require('NestPriceFacade');
 const NTokenController = artifacts.require('NTokenController');
 const NestVote = artifacts.require('NestVote');
 const NestMining = artifacts.require('NestMining');
+const NTokenMining = artifacts.require('NTokenMining');
 const NestRedeeming = artifacts.require('NestRedeeming');
 const NNIncome = artifacts.require('NNIncome');
 
@@ -226,7 +227,7 @@ module.exports = async function (deployer, network) {
     let nestMining = await deployProxy(NestMining, nestBaseInitArgs, { deployer, initializer: 'initialize' });
     console.log('nestMining: ' + nestMining.address);
 
-    let ntokenMining = await deployProxy(NestMining, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let ntokenMining = await deployProxy(NTokenMining, nestBaseInitArgs, { deployer, initializer: 'initialize' });
     console.log('ntokenMining: ' + ntokenMining.address);
 
     let nestPriceFacade = await deployProxy(NestPriceFacade, nestBaseInitArgs, { deployer, initializer: 'initialize' });
