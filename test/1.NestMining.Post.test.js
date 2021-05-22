@@ -1,13 +1,21 @@
 const BN = require("bn.js");
-const { expect } = require('chai');
-const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
+//const { expect } = require('chai');
+const IBNEST = artifacts.require('IBNEST');
+const USDTToken = artifacts.require('USDT');
+const NestLedger = artifacts.require('NestLedger');
+const NestMining = artifacts.require('NestMining');
+const { USDT, ETHER, LOG, ethBalance } = require("./.utils.js");
 
 contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
-        
+        //const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
+        const nest = await IBNEST.deployed();
+        const usdt = await USDTToken.deployed();
+        const nestLedger = await NestLedger.deployed();
+        const nestMining = await NestMining.deployed();
+
         const account0 = accounts[0];
         const account1 = accounts[1];
 

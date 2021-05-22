@@ -3,9 +3,11 @@ const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 // Load compiled artifacts
 const IterableMapping = artifacts.require("IterableMapping");
 const IBNEST = artifacts.require('IBNEST');
+const USDT = artifacts.require('USDT');
+const HBTC = artifacts.require('HBTC');
 const NNToken = artifacts.require('NNToken'); // for test only
 const SuperMan = artifacts.require('SuperMan'); // NNToken on Mainnet
-const TestERC20 = artifacts.require('TestERC20');
+//const TestERC20 = artifacts.require('TestERC20');
 const Nest_NToken = artifacts.require('Nest_NToken');
 const NToken = artifacts.require('NToken');
 const NestGovernance = artifacts.require('NestGovernance');
@@ -181,10 +183,10 @@ module.exports = async function (deployer, network) {
     let usdt;
     if (network == 'mainnet') {
         // Set usdt address: 0xdAC17F958D2ee523a2206206994597C13D831ec7
-        usdt = await TestERC20.at('0xdAC17F958D2ee523a2206206994597C13D831ec7');
+        usdt = await USDT.at('0xdAC17F958D2ee523a2206206994597C13D831ec7');
     }
     else {
-        usdt = await deployer.deploy(TestERC20, 'USDT', 'USDT', 6);
+        usdt = await deployer.deploy(USDT, 'USDT', 'USDT', 6);
     }
     console.log('usdt: ' + usdt.address);
 
