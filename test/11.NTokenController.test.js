@@ -3,15 +3,20 @@ const TestERC20 = artifacts.require('TestERC20');
 const ERC20 = artifacts.require('ERC20');
 
 const BN = require("bn.js");
-const { expect } = require('chai');
-const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
+//const { expect } = require('chai');
+const { USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.utils.js");
 
 contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        const { nest, nn, usdt, hbtc,/* nhbtc,*/ nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
-        
+        //const { nest, nn, usdt, hbtc,/* nhbtc,*/ nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming } = await deploy();
+        const nest = await artifacts.require('IBNEST').deployed();
+        const usdt = await artifacts.require('USDT').deployed();
+        const hbtc = await artifacts.require('HBTC').deployed();
+        const ntokenMining = await artifacts.require('NTokenMining').deployed();
+        const nTokenController = await artifacts.require('NTokenController').deployed();
+
         const account0 = accounts[0];
         const account1 = accounts[1];
 

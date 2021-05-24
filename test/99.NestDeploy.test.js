@@ -1,4 +1,4 @@
-const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
+const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.utils.js");
 const IBNEST = artifacts.require('IBNEST');
 const UpdateProxyPropose = artifacts.require('UpdateProxyPropose');
 const IProxyAdmin = artifacts.require('IProxyAdmin');
