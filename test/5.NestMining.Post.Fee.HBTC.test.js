@@ -24,7 +24,7 @@ contract("NestMining", async accounts => {
         await nest.transfer(nestMining.address, ETHER('8000000000'));
 
         const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
+            for (let i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
             }
         };
@@ -78,10 +78,10 @@ contract("NestMining", async accounts => {
         await usdt.approve(nestMining.address, USDT('10000000'), { from: account1 });
         await hbtc.approve(nestMining.address, HBTC('10000000'), { from: account1 });
 
-        let prevBlockNumber = 0;
-        let minedNest = ETHER(0);
+        // let prevBlockNumber = 0;
+        // let minedNest = ETHER(0);
         
-        for (var i = 1; i < 256; i += 10) {
+        for (let i = 1; i < 256; i += 10) {
             let ethNum = 30;
             let usdtPrice = HBTC(0.03);
             let value = ETHER(30 + 0.1 * i);
@@ -93,7 +93,7 @@ contract("NestMining", async accounts => {
         await skipBlocks(20);
 
         var index = 0;
-        for (var i = 1; i < 256; i += 10) {
+        for (let i = 1; i < 256; i += 10) {
             let receipt = await nestMining.close(hbtc.address, index++);
             console.log('== close ' + i);
             console.log(receipt);

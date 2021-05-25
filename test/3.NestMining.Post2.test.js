@@ -206,7 +206,7 @@ contract("NestMining", async accounts => {
         // list(address tokenAddress, uint offset, uint count, uint order)
         let sheets = await nestMining.list(usdt.address, 0, 1, 1);
 
-        for (var i in sheets) {
+        for (const i in sheets) {
             console.log(sheets[i]);
         }
 

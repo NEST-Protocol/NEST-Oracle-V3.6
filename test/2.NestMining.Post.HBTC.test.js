@@ -246,19 +246,19 @@ contract("NestMining", async accounts => {
 
             LOG('------------------------');
             let arr = await ntokenMining.lastPriceList(hbtc.address, 3);
-            for (var i in arr) {
+            for (const i in arr) {
                 console.log(arr[i].toString());
             }
 
             LOG('------------------------');
             arr = await ntokenMining.lastPriceList(hbtc.address, 4);
-            for (var i in arr) {
+            for (const i in arr) {
                 console.log(arr[i].toString());
             }
 
             LOG('------------------------');
             arr = await ntokenMining.lastPriceList(hbtc.address, 5);
-            for (var i in arr) {
+            for (const i in arr) {
                 console.log(arr[i].toString());
             }
         }

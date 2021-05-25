@@ -21,14 +21,14 @@ contract("NestMining", async accounts => {
         await nest.transfer(nestMining.address, ETHER('8000000000'));
 
         const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
+            for (let i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
             }
         };
 
         // Show balances
         const getBalance = async function(account) {
-            let balances = {
+            const balances = {
                 balance: {
                     eth: await ethBalance(account),
                     usdt: await usdt.balanceOf(account),
@@ -45,7 +45,7 @@ contract("NestMining", async accounts => {
         };
         const showBalance = async function(account, msg) {
             console.log(msg);
-            let balances = await getBalance(account);
+            const balances = await getBalance(account);
 
             LOG('balance: {eth}eth, {nest}nest, {usdt}usdt', balances.balance);
             LOG('pool: {eth}eth, {nest}nest, {usdt}usdt', balances.pool);
@@ -53,8 +53,8 @@ contract("NestMining", async accounts => {
             return balances;
         };
 
-        let balance0 = await showBalance(account0, 'account0');
-        let balance1 = await showBalance(account1, 'account1');
+        const balance0 = await showBalance(account0, 'account0');
+        const balance1 = await showBalance(account1, 'account1');
         assert.equal(0, balance1.balance.usdt.cmp(USDT('10000000')));
 
         // Balance of account0
@@ -73,11 +73,11 @@ contract("NestMining", async accounts => {
         await nest.approve(nestMining.address, ETHER('1000000000'), { from: account1 });
         await usdt.approve(nestMining.address, USDT('10000000'), { from: account1 });
 
-        let prevBlockNumber = 0;
-        let minedNest = ETHER(0);
+        // let prevBlockNumber = 0;
+        // let minedNest = ETHER(0);
         
         await nest.setTotalSupply(ETHER(5000000).sub(ETHER(1)));
-        for (var i = 1; i < 256; i += 10) {
+        for (let i = 1; i < 256; i += 10) {
             let ethNum = 30;
             let usdtPrice = USDT(1714);
             let value = ETHER(30 + 0.1 * i);
@@ -89,8 +89,8 @@ contract("NestMining", async accounts => {
         await skipBlocks(20);
 
         var index = 0;
-        for (var i = 1; i < 256; i += 10) {
-            let receipt = await nestMining.close(usdt.address, index++);
+        for (let i = 1; i < 256; i += 10) {
+            const receipt = await nestMining.close(usdt.address, index++);
             console.log('== close ' + i);
             console.log(receipt);
         }

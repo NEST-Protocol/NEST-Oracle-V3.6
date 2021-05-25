@@ -22,7 +22,7 @@ contract("NestMining", async accounts => {
         await nest.transfer(nestMining.address, ETHER('8000000000'));
 
         const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
+            for (let i = 0; i < blockCount; ++i) {
                 await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
             }
         };
@@ -84,8 +84,8 @@ contract("NestMining", async accounts => {
         };
 
         await nest.setTotalSupply(ETHER(5000000).sub(ETHER(1)));
-        var i = 1;
-        for (i = 1; i < 40; ++i) {
+        let i = 1;
+        for (; i < 40; ++i) {
             let ethNum = 30;
             let usdtPrice = USDT(1714);
             let value = ETHER(30 + 0.1);
