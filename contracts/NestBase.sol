@@ -20,7 +20,8 @@ contract NestBase {
     // where the nest begins to decay. According to the circulation when nest2.0 is online, the new mining
     // algorithm is used to deduce and convert the nest, and the new algorithm is used to mine the nest2.0
     // on-line flow, the actual block is 5120000
-    uint constant NEST_GENESIS_BLOCK = 5120000;
+    //uint constant NEST_GENESIS_BLOCK = 5120000;
+    int constant NEST_GENESIS_BLOCK = -7385259;
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
