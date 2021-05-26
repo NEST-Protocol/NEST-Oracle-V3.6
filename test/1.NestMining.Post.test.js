@@ -1,4 +1,5 @@
 const BN = require("bn.js");
+const { time } = require('@openzeppelin/test-helpers');
 //const { expect } = require('chai');
 const IBNEST = artifacts.require('IBNEST');
 const USDTToken = artifacts.require('USDT');
@@ -28,8 +29,9 @@ contract("NestMining", async accounts => {
         //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
         
         const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
-                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
+            for (let ii = 0; ii < blockCount; ++ii) {
+                //await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
+                time.advanceBlock();
             }
         };
 
@@ -87,6 +89,8 @@ contract("NestMining", async accounts => {
             await nest.setTotalSupply(ETHER(5000000).sub(ETHER(1)));
             // 1. Post a price sheet
             console.log('Post as price sheet');
+            let config = await nestMining.getConfig();
+            console.log(config);
             let receipt = await nestMining.post(usdt.address, 30, USDT(1560), { value: ETHER(30.1) });
             console.log(receipt);
             balance0 = await showBalance(account0, 'After price posted');
@@ -191,7 +195,7 @@ contract("NestMining", async accounts => {
         // list(address tokenAddress, uint offset, uint count, uint order)
         let sheets = await nestMining.list(usdt.address, 0, 1, 1);
 
-        for (var i in sheets) {
+        for (const i in sheets) {
             console.log(sheets[i]);
         }
 
