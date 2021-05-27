@@ -130,7 +130,7 @@ contract NNIncome is NestBase, INNIncome {
     /// @return Ore drawing increment
     function increment() override public view returns (uint) {
         //return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 15 ether / 100;
-        return _redution(int(block.number) - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 0.15 ether;
+        return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 0.15 ether;
     }
 
     /// @dev Query the current available nest
@@ -174,10 +174,10 @@ contract NNIncome is NestBase, INNIncome {
         // | (uint(40) << (16 * 10));
 
     // Calculation of attenuation gradient
-    function _redution(int delta) private pure returns (uint) {
+    function _redution(uint delta) private pure returns (uint) {
         
-        if (uint(delta) < NEST_REDUCTION_LIMIT) {
-            return (NEST_REDUCTION_STEPS >> ((uint(delta) / NEST_REDUCTION_SPAN) << 4)) & 0xFFFF;
+        if (delta < NEST_REDUCTION_LIMIT) {
+            return (NEST_REDUCTION_STEPS >> ((delta / NEST_REDUCTION_SPAN) << 4)) & 0xFFFF;
         }
         return (NEST_REDUCTION_STEPS >> 160) & 0xFFFF;
     }

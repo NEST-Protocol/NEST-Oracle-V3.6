@@ -632,10 +632,10 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         // | (uint(40) << (16 * 10));
 
     // Calculation of attenuation gradient
-    function _redution(int delta) private pure returns (uint) {
+    function _redution(uint delta) private pure returns (uint) {
 
-        if (uint(delta) < NEST_REDUCTION_LIMIT) {
-            return (NEST_REDUCTION_STEPS >> ((uint(delta) / NEST_REDUCTION_SPAN) << 4)) & 0xFFFF;
+        if (delta < NEST_REDUCTION_LIMIT) {
+            return (NEST_REDUCTION_STEPS >> ((delta / NEST_REDUCTION_SPAN) << 4)) & 0xFFFF;
         }
         return (NEST_REDUCTION_STEPS >> 160) & 0xFFFF;
     }
@@ -834,7 +834,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
                     mined = (
                         mined
                         * tmp
-                        * _redution(int(height) - NEST_GENESIS_BLOCK)
+                        * _redution(height - NEST_GENESIS_BLOCK)
                         * uint(config.minerNestReward)
                         * 0.0001 ether
                         / totalShares
@@ -852,7 +852,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
                     mined = (
                         mined
                         * tmp
-                        * _redution(int(height) - int(_getNTokenGenesisBlock(ntokenAddress)))
+                        * _redution(height - _getNTokenGenesisBlock(ntokenAddress))
                         * 0.01 ether
                         / totalShares
                     );
@@ -1230,19 +1230,17 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
                 // Standard mining amount
                 uint standard = (block.number - uint(sheet.height)) * 1 ether;
                 // Genesis block number of ntoken
-                int genesisBlock = NEST_GENESIS_BLOCK;
+                uint genesisBlock = NEST_GENESIS_BLOCK;
 
                 // Not nest, the calculation methods of standard mining amount and genesis block number are different
                 if (ntokenAddress != NEST_TOKEN_ADDRESS) {
                     // The standard mining amount of ntoken is 1/100 of nest
                     standard /= 100;
                     // Genesis block number of ntoken is obtained separately
-                    //(genesisBlock,) = INToken(ntokenAddress).checkBlockInfo();
-                    (uint tmp,) = INToken(ntokenAddress).checkBlockInfo();
-                    genesisBlock = int(tmp);
+                    (genesisBlock,) = INToken(ntokenAddress).checkBlockInfo();
                 }
 
-                return standard * _redution(int(block.number) - genesisBlock);
+                return standard * _redution(block.number - genesisBlock);
             }
         }
 
