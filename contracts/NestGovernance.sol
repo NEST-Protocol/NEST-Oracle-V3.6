@@ -27,14 +27,14 @@ contract NestGovernance is NestMapping, INestGovernance {
     //     // Add msg.sender to governance
     //     _governanceMapping[msg.sender] = GovernanceInfo(msg.sender, uint96(0xFFFFFFFFFFFFFFFFFFFFFFFF));
     // }
-    function initialize(address nestGovernanceAddress, address nestTokenAddress) override public {
+    function initialize(address nestGovernanceAddress, address nestTokenAddress, uint nestGenesisBlock) override public {
 
         // While initialize NestGovernance, nestGovernanceAddress is address(this),
         // So must let nestGovernanceAddress to 0
         require(nestGovernanceAddress == address(0), "NestGovernance:!address");
 
         // nestGovernanceAddress is address(this)
-        super.initialize(address(this), nestTokenAddress);
+        super.initialize(address(this), nestTokenAddress, nestGenesisBlock);
 
         // Add msg.sender to governance
         _governanceMapping[msg.sender] = GovernanceInfo(msg.sender, uint96(0xFFFFFFFFFFFFFFFFFFFFFFFF));

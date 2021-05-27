@@ -31,8 +31,8 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
     //     // Placeholder in _accounts, the index of a real account must greater than 0
     //     _accounts.push();
     // }
-    function initialize(address nestGovernanceAddress, address nestTokenAddress) override public {
-        super.initialize(nestGovernanceAddress, nestTokenAddress);
+    function initialize(address nestGovernanceAddress, address nestTokenAddress, uint nestGenesisBlock) override public {
+        super.initialize(nestGovernanceAddress, nestTokenAddress, nestGenesisBlock);
         // Placeholder in _accounts, the index of a real account must greater than 0
         _accounts.push();
     }

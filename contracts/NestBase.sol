@@ -14,13 +14,7 @@ contract NestBase {
     address NEST_TOKEN_ADDRESS;
 
     // Genesis block number of nest
-    // NEST token contract is created at block height 6913517. However, because the mining algorithm of nest1.0
-    // is different from that at present, a new mining algorithm is adopted from nest2.0. The new algorithm
-    // includes the attenuation logic according to the block. Therefore, it is necessary to trace the block
-    // where the nest begins to decay. According to the circulation when nest2.0 is online, the new mining
-    // algorithm is used to deduce and convert the nest, and the new algorithm is used to mine the nest2.0
-    // on-line flow, the actual block is 5120000
-    uint constant NEST_GENESIS_BLOCK = 5120000;
+    uint NEST_GENESIS_BLOCK;
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
@@ -28,10 +22,11 @@ contract NestBase {
     //     require(_governance == address(0), 'NEST:!initialize');
     //     _governance = nestGovernanceAddress;
     // }
-    function initialize(address nestGovernanceAddress, address nestTokenAddress) virtual public {
+    function initialize(address nestGovernanceAddress, address nestTokenAddress, uint nestGenesisBlock) virtual public {
         require(_governance == address(0), 'NEST:!initialize');
         _governance = nestGovernanceAddress;
         NEST_TOKEN_ADDRESS = nestTokenAddress;
+        NEST_GENESIS_BLOCK = nestGenesisBlock;
     }
 
     /// @dev INestGovernance implementation contract address

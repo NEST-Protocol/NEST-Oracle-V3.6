@@ -205,10 +205,19 @@ module.exports = async function (deployer, network, accounts) {
     }
     console.log('nn: ' + nn.address);
 
+    let nestGenesisBlock;
+    if (network == 'mainnet') {
+        nestGenesisBlock = 2000; // FIXME: use the actual block number on BSC Mainnet
+    }
+    else {
+        nestGenesisBlock = 0;
+    }
+    console.log('nestGenesisBlock: ' + nestGenesisBlock);
+
     //const nestBaseInitArgs = [nestGovernance.address];
-    const nestBaseInitArgs = [nestGovernance.address, nest.address];
+    const nestBaseInitArgs = [nestGovernance.address, nest.address, nestGenesisBlock];
     //const nnIncomeInitArgs = [nestGovernance.address];
-    const nnIncomeInitArgs = [nestGovernance.address, nest.address, nn.address];
+    const nnIncomeInitArgs = [nestGovernance.address, nest.address, nestGenesisBlock, nn.address];
     
     let nestLedger = await deployProxy(NestLedger, nestBaseInitArgs, { deployer, initializer: 'initialize' });
     console.log('nestLedger: ' + nestLedger.address);
