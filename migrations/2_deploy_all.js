@@ -190,7 +190,7 @@ module.exports = async function (deployer, network, accounts) {
     }
     console.log('usdt: ' + usdt.address);
 
-    let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000'], { deployer, initializer: 'initialize' });
+    let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000', nest.address], { deployer, initializer: 'initialize' });
     //let nestGovernance = await NestGovernance.at('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
     console.log('nestGovernance: ' + nestGovernance.address);
 
