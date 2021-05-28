@@ -198,6 +198,7 @@ module.exports = async function (deployer, network, accounts) {
         nestGenesisBlock = 0;
     }
     console.log('nestGenesisBlock: ' + nestGenesisBlock);
+    process.env.NEST_GENESIS_BLOCK = nestGenesisBlock;
 
     const deployWithInitArgs = async (contract, initArgs) => await deployProxy(contract, initArgs, { deployer, initializer: 'initialize' });
 

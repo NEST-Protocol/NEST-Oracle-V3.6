@@ -4,9 +4,10 @@ const BN = require("bn.js");
 //const { expect } = require('chai');
 const { USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.utils.js");
 
-contract("NestMining", async accounts => {
+contract("NestMining", async (accounts, network) => {
 
     it('test', async () => {
+        console.log("network: ", network);
 
         //const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
         const nest = await artifacts.require('IBNEST').deployed();
@@ -63,7 +64,7 @@ contract("NestMining", async accounts => {
             });
 
             let nyfi = await NToken.new('nYFI', 'nyfi');
-            await nyfi.initialize(account0);
+            await nyfi.initialize(account0, nest.address, process.env.NEST_GENESIS_BLOCK);
             await nyfi.update(nestGovernance.address);
             let checkBlockInfo = await nyfi.checkBlockInfo();
             let bidder = await nyfi.checkBidder();
