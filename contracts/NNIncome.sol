@@ -25,7 +25,7 @@ contract NNIncome is NestBase, INNIncome {
     // function initialize(address nestGovernanceAddress) override public {
     //     super.initialize(nestGovernanceAddress);
     // }
-    function initialize(address nestGovernanceAddress, address nestTokenAddress, , uint nestGenesisBlock, address nestNodeAddress) public {
+    function initialize(address nestGovernanceAddress, address nestTokenAddress, uint nestGenesisBlock, address nestNodeAddress) public {
         super.initialize(nestGovernanceAddress, nestTokenAddress, nestGenesisBlock);
         NEST_NODE_ADDRESS = nestNodeAddress;
     }

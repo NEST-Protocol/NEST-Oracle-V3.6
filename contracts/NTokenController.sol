@@ -144,8 +144,7 @@ contract NTokenController is NestBase, INTokenController {
         NToken ntoken = new NToken(strConcat("NToken", sn), strConcat("N", sn));
 
         address governance = _governance;
-        //ntoken.initialize(address(this));
-        ntoken.initialize(address(this), NEST_TOKEN_ADDRESS);
+        ntoken.initialize(address(this), NEST_TOKEN_ADDRESS, NEST_GENESIS_BLOCK);
         ntoken.update(governance);
 
         // Is token valid ?

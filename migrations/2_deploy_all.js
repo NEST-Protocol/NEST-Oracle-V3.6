@@ -190,8 +190,18 @@ module.exports = async function (deployer, network, accounts) {
     }
     console.log('usdt: ' + usdt.address);
 
-    let nestGovernance = await deployProxy(NestGovernance, ['0x0000000000000000000000000000000000000000', nest.address], { deployer, initializer: 'initialize' });
-    //let nestGovernance = await NestGovernance.at('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
+    let nestGenesisBlock;
+    if (network == 'mainnet') {
+        nestGenesisBlock = 2000; // FIXME: use the actual block number on BSC Mainnet
+    }
+    else {
+        nestGenesisBlock = 0;
+    }
+    console.log('nestGenesisBlock: ' + nestGenesisBlock);
+
+    const deployWithInitArgs = async (contract, initArgs) => await deployProxy(contract, initArgs, { deployer, initializer: 'initialize' });
+
+    let nestGovernance = await deployWithInitArgs(NestGovernance, ['0x0000000000000000000000000000000000000000', nest.address, nestGenesisBlock]);
     console.log('nestGovernance: ' + nestGovernance.address);
 
     let nn;
@@ -205,42 +215,33 @@ module.exports = async function (deployer, network, accounts) {
     }
     console.log('nn: ' + nn.address);
 
-    let nestGenesisBlock;
-    if (network == 'mainnet') {
-        nestGenesisBlock = 2000; // FIXME: use the actual block number on BSC Mainnet
-    }
-    else {
-        nestGenesisBlock = 0;
-    }
-    console.log('nestGenesisBlock: ' + nestGenesisBlock);
-
     //const nestBaseInitArgs = [nestGovernance.address];
     const nestBaseInitArgs = [nestGovernance.address, nest.address, nestGenesisBlock];
     //const nnIncomeInitArgs = [nestGovernance.address];
     const nnIncomeInitArgs = [nestGovernance.address, nest.address, nestGenesisBlock, nn.address];
     
-    let nestLedger = await deployProxy(NestLedger, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let nestLedger = await deployWithInitArgs(NestLedger, nestBaseInitArgs);
     console.log('nestLedger: ' + nestLedger.address);
 
-    let nTokenController = await deployProxy(NTokenController, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let nTokenController = await deployWithInitArgs(NTokenController, nestBaseInitArgs);
     console.log('nTokenController: ' + nTokenController.address);
 
-    let nestVote = await deployProxy(NestVote, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let nestVote = await deployWithInitArgs(NestVote, nestBaseInitArgs);
     console.log('nestVote: ' + nestVote.address);
 
-    let nestMining = await deployProxy(NestMining, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let nestMining = await deployWithInitArgs(NestMining, nestBaseInitArgs);
     console.log('nestMining: ' + nestMining.address);
 
-    let ntokenMining = await deployProxy(NTokenMining, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let ntokenMining = await deployWithInitArgs(NTokenMining, nestBaseInitArgs);
     console.log('ntokenMining: ' + ntokenMining.address);
 
-    let nestPriceFacade = await deployProxy(NestPriceFacade, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let nestPriceFacade = await deployWithInitArgs(NestPriceFacade, nestBaseInitArgs);
     console.log('nestPriceFacade: ' + nestPriceFacade.address);
 
-    let nestRedeeming = await deployProxy(NestRedeeming, nestBaseInitArgs, { deployer, initializer: 'initialize' });
+    let nestRedeeming = await deployWithInitArgs(NestRedeeming, nestBaseInitArgs);
     console.log('nestRedeeming: ' + nestRedeeming.address);
 
-    let nnIncome = await deployProxy(NNIncome, nnIncomeInitArgs, { deployer, initializer: 'initialize' });
+    let nnIncome = await deployWithInitArgs(NNIncome, nnIncomeInitArgs);
     console.log('nnIncome: ' + nnIncome.address);
 
     let contracts = {
