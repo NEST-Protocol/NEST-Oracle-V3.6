@@ -2,7 +2,7 @@ const INestPriceFacade = artifacts.require('INestPriceFacade');
 const INestQuery = artifacts.require('INestQuery');
 const BN = require("bn.js");
 //const { expect } = require('chai');
-const { USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.utils.js");
+const { USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance, skipBlocks } = require("./.utils.js");
 
 contract("NestMining", async accounts => {
 
@@ -28,12 +28,6 @@ contract("NestMining", async accounts => {
         await usdt.transfer(account0, USDT('10000000'), { from: account0 });
         await nest.transfer(account1, ETHER('1000000000'));
         await nest.transfer(nestMining.address, ETHER('8000000000'));
-
-        const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
-                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
-            }
-        };
 
         // Show balances
         const getBalance = async function(account) {

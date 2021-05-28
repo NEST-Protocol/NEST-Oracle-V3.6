@@ -21,14 +21,6 @@ contract("NestMining", async accounts => {
         await nest.transfer(account1, ETHER('1000000000'));
         await nest.transfer(nestMining.address, ETHER('800000000'));
 
-        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
-        
-        const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
-                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
-            }
-        };
-
         // Show balances
         const getBalance = async function(account) {
             let balances = {

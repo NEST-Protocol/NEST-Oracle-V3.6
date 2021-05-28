@@ -1,6 +1,6 @@
 const BN = require("bn.js");
 //const { expect } = require('chai');
-const {  USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.utils.js");
+const {  USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance, skipBlocks } = require("./.utils.js");
 
 contract("NestMining", async accounts => {
 
@@ -27,12 +27,6 @@ contract("NestMining", async accounts => {
         await nest.transfer(nestMining.address, ETHER('6000000000'));
         await nest.transfer(nnIncome.address, ETHER('2000000000'));
         await nn.transfer(account1, 300);// 30
-
-        const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
-                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
-            }
-        };
 
         // Show balances
         const getBalance = async function(account) {

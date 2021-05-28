@@ -1,11 +1,10 @@
 const BN = require("bn.js");
-const { time } = require('@openzeppelin/test-helpers');
 //const { expect } = require('chai');
 const IBNEST = artifacts.require('IBNEST');
 const USDTToken = artifacts.require('USDT');
 const NestLedger = artifacts.require('NestLedger');
 const NestMining = artifacts.require('NestMining');
-const { USDT, ETHER, LOG, ethBalance } = require("./.utils.js");
+const { USDT, ETHER, LOG, ethBalance, skipBlocks } = require("./.utils.js");
 
 contract("NestMining", async accounts => {
 
@@ -25,15 +24,6 @@ contract("NestMining", async accounts => {
         await usdt.transfer(account1, USDT('10000000'), { from: account1 });
         await nest.transfer(account1, ETHER('1000000000'));
         await nest.transfer(nestMining.address, ETHER('8000000000'));
-
-        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
-        
-        const skipBlocks = async function(blockCount) {
-            for (let ii = 0; ii < blockCount; ++ii) {
-                //await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
-                time.advanceBlock();
-            }
-        };
 
         // Show balances
         const getBalance = async function(account) {

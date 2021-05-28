@@ -1,5 +1,6 @@
 const $hcj = require("./hcore.js");
 const BN = require("bn.js");
+const { time } = require('@openzeppelin/test-helpers');
 
 module.exports = {
     USDT: function(value) { return new BN('1000000').mul(new BN(value * 1000000)).div(new BN('1000000')); },
@@ -14,5 +15,11 @@ module.exports = {
 
     ethBalance: async function(account) {
         return new BN(await web3.eth.getBalance(account));
-    }
+    },
+
+    skipBlocks: async function(blockCount) {
+        for (let i = 0; i < blockCount; ++i) {
+            time.advanceBlock();
+        }
+    },
 }

@@ -39,12 +39,6 @@ contract("NestMining", async accounts => {
         let nhbtcAddress = await nTokenController.getNTokenAddress(hbtc.address);
         let nhbtc = await NToken.at(nhbtcAddress);
 
-        //await web3.eth.sendTransaction({ from: account0, to: account1, value: new BN('200').mul(ETHER)});
-        const skipBlocks = async function(blockCount) {
-            for (var i = 0; i < blockCount; ++i) {
-                await web3.eth.sendTransaction({ from: account0, to: account0, value: ETHER(1)});
-            }
-        };
         // Show balances
         const getBalance = async function(account) {
             let balances = {
