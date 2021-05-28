@@ -12,6 +12,7 @@ contract("NestMining", async accounts => {
         const nest = await artifacts.require('IBNEST').deployed();
         const hbtc = await artifacts.require('HBTC').deployed();
         const nestLedger = await artifacts.require('NestLedger').deployed();
+        const nestMining = await artifacts.require('NestMining').deployed();
         const nTokenController = await artifacts.require('NTokenController').deployed();
         
         const account0 = accounts[0];
