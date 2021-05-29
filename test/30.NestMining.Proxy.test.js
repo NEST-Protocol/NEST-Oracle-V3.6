@@ -211,7 +211,7 @@ contract("NestMining", async accounts => {
 
             let updateProxyPropose = await UpdateProxyPropose.new();
             //let proxyAdminTest = await deployProxy(ProxyAdminTest, [nestGovernance.address], { initializer: 'initialize' });
-            let proxyAdminTest = await deployProxy(ProxyAdminTest, [nestGovernance.address, nn.address], { initializer: 'initialize' });
+            let proxyAdminTest = await deployProxy(ProxyAdminTest, [nestGovernance.address, nn.address, process.env.NEST_GENESIS_BLOCK], { initializer: 'initialize' });
             let proxyAdmin = await proxyAdminTest.getAdmin();
             console.log('proxyAdmin: ' + proxyAdmin);
             let proxy = nestMining;
