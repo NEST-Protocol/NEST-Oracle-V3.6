@@ -245,6 +245,10 @@ module.exports = async function (deployer, network, accounts) {
     let nnIncome = await deployWithInitArgs(NNIncome, nnIncomeInitArgs);
     console.log('nnIncome: ' + nnIncome.address);
 
+    if (network != 'mainnet') {
+        await nn.setContracts(nnIncome.address);
+    }
+
     let contracts = {
         nest: nest,
         nn: nn,
