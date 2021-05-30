@@ -349,9 +349,11 @@ module.exports = async function (deployer, network, accounts) {
 
         // In order to prevent others from preempting to initiate the deletion of administrator's vote,
         // resulting in a passive situation, the voting contract is not authorized during deployment
-        // // Authorization of voting contracts
-        // console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
-        // await nestGovernance.setGovernance(nestVote.address, 1);
+        if (network != "mainnet") {
+            // Authorization of voting contracts
+            console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
+            await nestGovernance.setGovernance(nestVote.address, 1);
+        }
         console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
         await nestLedger.setApplication(nestRedeeming.address, 1);
 
