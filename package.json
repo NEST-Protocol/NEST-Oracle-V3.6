@@ -14,7 +14,7 @@
     "chai": "^4.2.0",
     "dotenv": "^9.0.2",
     "mocha": "^8.1.2",
-    "truffle": "^5.3.7"
+    "truffle": "^5.3.8"
   },
   "scripts": {
     "test": "truffle test"
