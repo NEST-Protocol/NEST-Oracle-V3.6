@@ -46,6 +46,15 @@ interface INestPriceFacade {
     /// @return INestQuery implementation contract address, 0 means use default
     function getNestQuery(address tokenAddress) external view returns (address);
 
+    /// @dev Get cached fee in fee channel
+    /// @param tokenAddress Destination token address
+    /// @return Cached fee in fee channel
+    function getTokenFee(address tokenAddress) external view returns (uint);
+
+    /// @dev Settle fee for charge fee channel
+    /// @param tokenAddress tokenAddress of charge fee channel
+    function settle(address tokenAddress) external;
+    
     /// @dev Get the latest trigger price
     /// @param tokenAddress Destination token address
     /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address

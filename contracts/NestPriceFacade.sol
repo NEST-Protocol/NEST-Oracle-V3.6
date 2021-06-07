@@ -14,6 +14,16 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     // constructor() { }
 
+    /// @dev Charge fee channel
+    struct FeeChannel {
+
+        // ntokenAddress of charge fee channel
+        address ntokenAddress;
+
+        // total fee to be settled of charge fee channel
+        uint96 fee;
+    }
+
     Config _config;
     address _nestLedgerAddress;
     address _nestQueryAddress;
@@ -28,8 +38,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @dev The inestquery address mapped by this address is preferred for price query, which can be used to separate nest price query and token price query. (tokenAddress=>INestQuery)
     mapping(address=>address) _nestQueryMapping;
 
-    /// @dev Mapping from token address to ntoken address. tokenAddress=>ntokenAddress
-    mapping(address=>address) _addressCache;
+    /// @dev Mapping from token address to charge fee channel. tokenAddress=>FeeChannel
+    mapping(address=>FeeChannel) _channels;
 
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
@@ -115,28 +125,35 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @param tokenAddress Destination token address
     /// @param ntokenAddress The ntoken address
     function setNTokenAddress(address tokenAddress, address ntokenAddress) external onlyGovernance {
-        _addressCache[tokenAddress] = ntokenAddress;
+        _channels[tokenAddress].ntokenAddress = ntokenAddress;
     }
 
     /// @dev Get the ntokenAddress from tokenAddress
     /// @param tokenAddress Destination token address
     /// @return The ntoken address
     function getNTokenAddress(address tokenAddress) external view returns (address) {
-        return _addressCache[tokenAddress];
+        return _channels[tokenAddress].ntokenAddress;
     }
 
-    // Get ntoken address of from token address
-    function _getNTokenAddress(address tokenAddress) private returns (address) {
-        
-        address ntokenAddress = _addressCache[tokenAddress];
-        if (ntokenAddress == address(0)) {
-            ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
-            if (ntokenAddress != address(0)) {
-                _addressCache[tokenAddress] = ntokenAddress;
-            }
-        }
-        return ntokenAddress;
+    /// @dev Get cached fee in fee channel
+    /// @param tokenAddress Destination token address
+    /// @return Cached fee in fee channel
+    function getTokenFee(address tokenAddress) external view override returns (uint) {
+        return uint(_channels[tokenAddress].fee);
     }
+
+    // // Get ntoken address of from token address
+    // function _getNTokenAddress(address tokenAddress) private returns (address) {
+        
+    //     address ntokenAddress = _addressCache[tokenAddress];
+    //     if (ntokenAddress == address(0)) {
+    //         ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
+    //         if (ntokenAddress != address(0)) {
+    //             _addressCache[tokenAddress] = ntokenAddress;
+    //         }
+    //     }
+    //     return ntokenAddress;
+    // }
 
     // Payment of transfer fee
     function _pay(address tokenAddress, uint fee, address paybackAddress) private {
@@ -147,9 +164,42 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
         } else {
             require(msg.value == fee, "NestPriceFacade:!fee");
         }
-        INestLedger(_nestLedgerAddress).addETHReward { 
-            value: fee 
-        } (_getNTokenAddress(tokenAddress));
+
+        // Load fee channel
+        FeeChannel memory feeChannel = _channels[tokenAddress];
+        // If ntokenAddress is cached, use it, else load it from INTokenController
+        if (feeChannel.ntokenAddress == address(0)) {
+            feeChannel.ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
+        }
+
+        // Check totalFee
+        uint totalFee = fee + uint(feeChannel.fee);
+        // totalFee less than 1 ether, add to fee
+        if (totalFee < 1 ether)
+        {
+            feeChannel.fee = uint96(totalFee);
+        }
+        // totalFee reach 1 ether, collect
+        else {
+            feeChannel.fee = uint96(0);
+            INestLedger(_nestLedgerAddress).addETHReward { 
+                value: totalFee 
+            } (feeChannel.ntokenAddress);
+        }
+        _channels[tokenAddress] = feeChannel;
+    }
+
+    /// @dev Settle fee for charge fee channel
+    /// @param tokenAddress tokenAddress of charge fee channel
+    function settle(address tokenAddress) external override {
+        FeeChannel memory feeChannel = _channels[tokenAddress];
+        if (uint(feeChannel.fee) > 0) {
+            INestLedger(_nestLedgerAddress).addETHReward {
+                value: uint(feeChannel.fee)
+            } (feeChannel.ntokenAddress);
+            feeChannel.fee = uint96(0);
+            _channels[tokenAddress] = feeChannel;
+        }
     }
 
     /* ========== INestPriceFacade ========== */

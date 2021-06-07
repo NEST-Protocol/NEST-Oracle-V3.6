@@ -17,7 +17,6 @@ const NestMining = artifacts.require('NestMining');
 const NestRedeeming = artifacts.require('NestRedeeming');
 const NNIncome = artifacts.require('NNIncome');
 
-
 async function setConfig(contracts) {
     if (false) {
     } else {
@@ -165,6 +164,9 @@ module.exports = async function (deployer, network) {
 
     if (network == 'development') {
         // Create contract in test/deploy.js
+        await deployer.deploy(NestPriceFacade);
+        await deployer.deploy(NestMining);
+
         return;
     }
     
@@ -175,6 +177,14 @@ module.exports = async function (deployer, network) {
 
     if (network == 'ropsten') {
         // Create contract in test/deploy.js
+        return;
+    }
+
+    if (mainnet == 'mainnet') {
+        // Deployed
+        await deployer.deploy(NestPriceFacade);
+        await deployer.deploy(NestMining);
+
         return;
     }
 

@@ -1,4 +1,4 @@
-//const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
+const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
 
 const IBNEST = artifacts.require('IBNEST');
 const NNToken = artifacts.require('NNToken');
@@ -9,6 +9,7 @@ const NToken = artifacts.require('NToken');
 const NestGovernance = artifacts.require('NestGovernance');
 const NestLedger = artifacts.require('NestLedger');
 const NestPriceFacade = artifacts.require('NestPriceFacade');
+const INestPriceFacade = artifacts.require('INestPriceFacade');
 const NTokenController = artifacts.require('NTokenController');
 const NestVote = artifacts.require('NestVote');
 const NestMining = artifacts.require('NestMining');
@@ -32,7 +33,7 @@ contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        //const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
+        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
         const account0 = accounts[0];
         console.log('account0: ' + account0);
         // let ua = await UpdateAdmin.new('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
@@ -77,6 +78,16 @@ contract("NestMining", async accounts => {
         // console.log('nestRedeeming: ' + await proxyAdmin.getProxyImplementation(nestRedeeming.address));
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
+        let npf = await INestPriceFacade.at(nestPriceFacade.address);
+        for (var i = 0; i < 200; ++i) {
+            console.log('调用: ' + i);
+            await npf.latestPriceAndTriggeredPriceInfo(usdt.address, account0, { value : ETHER(0.01)});
+            console.log({
+                nestPriceFacade: (await ethBalance(npf.address)).toString(),
+                nestLedger: (await ethBalance(nestLedger.address)).toString()
+            });
+            console.log('getTokenFee()=' + await npf.getTokenFee(usdt.address));
+        }
 
         if (false) {
             let nTokenController = await NTokenController.at('0xc4f1690eCe0145ed544f0aee0E2Fa886DFD66B62');

@@ -1,34 +1,10 @@
 {
-  "name": "nest-oracle-v3.6",
-  "version": "3.6.0",
-  "description": "NEST-Oracle-V3.6",
-  "main": "truffle-config.js",
-  "directories": {
-    "doc": "docs",
-    "test": "test"
-  },
-  "devDependencies": {
-    "@openzeppelin/cli": "^2.8.2",
-    "@openzeppelin/contracts": "^3.2.0",
-    "@openzeppelin/test-helpers": "^0.5.6",
-    "@openzeppelin/truffle-upgrades": "^1.0.1",
-    "@truffle/hdwallet-provider": "^1.0.40",
-    "chai": "^4.2.0",
-    "dotenv": "^9.0.2",
-    "mocha": "^8.1.2",
-    "truffle": "^5.3.2"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/NEST-Protocol/NEST-Oracle-V3.6.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/NEST-Protocol/NEST-Oracle-V3.6/issues"
-  },
-  "homepage": "https://github.com/NEST-Protocol/NEST-Oracle-V3.6#readme"
+  "dependencies": {
+    "@openzeppelin/truffle-upgrades": "^1.7.0",
+    "@truffle/hdwallet-provider": "^1.4.0",
+    "chai": "^4.3.4",
+    "dotenv": "^10.0.0",
+    "truffle": "^5.3.8",
+    "truffle-flattener": "^1.5.0"
+  }
 }
