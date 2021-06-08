@@ -164,14 +164,17 @@ module.exports = async function (deployer, network) {
 
     if (network == 'development') {
         // Create contract in test/deploy.js
-        await deployer.deploy(NestPriceFacade);
-        await deployer.deploy(NestMining);
+        //await deployer.deploy(NestPriceFacade);
+        //await deployer.deploy(NestMining);
 
         return;
     }
     
     if (network == 'rinkeby') {
         // Create contract in test/deploy.js
+        //await deployer.deploy(NestPriceFacade);
+        //await deployer.deploy(NestMining);
+
         return;
     }
 
@@ -180,14 +183,15 @@ module.exports = async function (deployer, network) {
         return;
     }
 
-    if (mainnet == 'mainnet') {
+    if (network == 'mainnet') {
         // Deployed
-        await deployer.deploy(NestPriceFacade);
-        await deployer.deploy(NestMining);
+        //await deployer.deploy(NestPriceFacade);
+        //await deployer.deploy(NestMining);
 
         return;
     }
 
+    return;
     //await deployer.deploy(IterableMapping);
     //await deployer.link(IterableMapping, IBNEST);
     //let nest = await deployer.deploy(IBNEST);

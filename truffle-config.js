@@ -80,7 +80,6 @@ module.exports = {
       gas: 8000000,        // Ropsten has a lower block limit than mainnet
       gasPrice: 1000000000,
       confirmations: 0,    // # of confs to wait between deployments. (default: 0)
-      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
       skipDryRun: true,     // Skip dry run before migrations? (default: false for public nets )
       websocket: true,
       timeoutBlocks: 50000,
@@ -115,9 +114,8 @@ module.exports = {
       //provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
       network_id: 1,       // Mainnet's id
       gas: 8000000,        // Mainnet has a lower block limit than mainnet
-      gasPrice: 15000000000,
+      gasPrice: 12000000000,
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
       skipDryRun: false,     // Skip dry run before migrations? (default: false for public nets )
       websocket: true,
       timeoutBlocks: 50000,
