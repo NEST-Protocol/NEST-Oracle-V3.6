@@ -980,8 +980,8 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
                     if (tmp > 0) {
                         // Calculate average price
-                        // avgPrice[i + 1] = avgPrice[i] * 95% + price[i] * 5%
-                        p0.avgFloat = encodeFloat((decodeFloat(p0.avgFloat) * 19 + price) / 20);
+                        // avgPrice[i + 1] = avgPrice[i] * 90% + price[i] * 10%
+                        p0.avgFloat = encodeFloat((decodeFloat(p0.avgFloat) * 9 + price) / 10);
 
                         // When the accuracy of the token is very high or the value of the token relative to
                         // eth is very low, the price may be very large, and there may be overflow problem,
@@ -995,12 +995,12 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
                         // earn = price[i] / price[i - 1] - 1;
                         // seconds = time[i] - time[i - 1];
-                        // sigmaSQ[i + 1] = sigmaSQ[i] * 95% + (earn ^ 2 / seconds) * 5%
+                        // sigmaSQ[i + 1] = sigmaSQ[i] * 90% + (earn ^ 2 / seconds) * 10%
                         tmp = (
-                            uint(p0.sigmaSQ) * 19 + 
+                            uint(p0.sigmaSQ) * 9 + 
                             // It is inevitable that prev greatter than p0.height
                             ((tmp * tmp / ETHEREUM_BLOCK_TIMESPAN / (prev - uint(p0.height))) >> 48)
-                        ) / 20;
+                        ) / 10;
 
                         // The current implementation assumes that the volatility cannot exceed 1, and
                         // corresponding to this, when the calculated value exceeds 1, expressed as 0xFFFFFFFFFFFF
@@ -1207,31 +1207,30 @@ contract NestMining is NestBase, INestMining, INestQuery {
     function estimate(address tokenAddress) override external view returns (uint) {
 
         address ntokenAddress = INTokenController(_nTokenControllerAddress).getNTokenAddress(tokenAddress);
-        if (tokenAddress == ntokenAddress) {
-            return 0;
-        }
+        if (tokenAddress != ntokenAddress) {
 
-        PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
-        uint index = sheets.length;
-        while (index > 0) {
+            PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
+            uint index = sheets.length;
+            while (index > 0) {
 
-            PriceSheet memory sheet = sheets[--index];
-            if (uint(sheet.shares) > 0) {
+                PriceSheet memory sheet = sheets[--index];
+                if (uint(sheet.shares) > 0) {
 
-                // Standard mining amount
-                uint standard = (block.number - uint(sheet.height)) * 1 ether;
-                // Genesis block number of ntoken
-                uint genesisBlock = NEST_GENESIS_BLOCK;
+                    // Standard mining amount
+                    uint standard = (block.number - uint(sheet.height)) * 1 ether;
+                    // Genesis block number of ntoken
+                    uint genesisBlock = NEST_GENESIS_BLOCK;
 
-                // Not nest, the calculation methods of standard mining amount and genesis block number are different
-                if (ntokenAddress != NEST_TOKEN_ADDRESS) {
-                    // The standard mining amount of ntoken is 1/100 of nest
-                    standard /= 100;
-                    // Genesis block number of ntoken is obtained separately
-                    (genesisBlock,) = INToken(ntokenAddress).checkBlockInfo();
+                    // Not nest, the calculation methods of standard mining amount and genesis block number are different
+                    if (ntokenAddress != NEST_TOKEN_ADDRESS) {
+                        // The standard mining amount of ntoken is 1/100 of nest
+                        standard /= 100;
+                        // Genesis block number of ntoken is obtained separately
+                        (genesisBlock,) = INToken(ntokenAddress).checkBlockInfo();
+                    }
+
+                    return standard * _redution(block.number - genesisBlock);
                 }
-
-                return standard * _redution(block.number - genesisBlock);
             }
         }
 

@@ -17,7 +17,6 @@ const NestMining = artifacts.require('NestMining');
 const NestRedeeming = artifacts.require('NestRedeeming');
 const NNIncome = artifacts.require('NNIncome');
 
-
 async function setConfig(contracts) {
     if (false) {
     } else {
@@ -163,6 +162,36 @@ async function setConfig(contracts) {
 
 module.exports = async function (deployer, network) {
 
+    if (network == 'development') {
+        // Create contract in test/deploy.js
+        //await deployer.deploy(NestPriceFacade);
+        //await deployer.deploy(NestMining);
+
+        return;
+    }
+    
+    if (network == 'rinkeby') {
+        // Create contract in test/deploy.js
+        //await deployer.deploy(NestPriceFacade);
+        //await deployer.deploy(NestMining);
+
+        return;
+    }
+
+    if (network == 'ropsten') {
+        // Create contract in test/deploy.js
+        return;
+    }
+
+    if (network == 'mainnet') {
+        // Deployed
+        //await deployer.deploy(NestPriceFacade);
+        //await deployer.deploy(NestMining);
+
+        return;
+    }
+
+    return;
     //await deployer.deploy(IterableMapping);
     //await deployer.link(IterableMapping, IBNEST);
     //let nest = await deployer.deploy(IBNEST);

@@ -1,4 +1,4 @@
-//const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
+const { deploy, USDT, GWEI, ETHER, HBTC, nHBTC, LOG, ethBalance } = require("./.deploy.js");
 
 const IBNEST = artifacts.require('IBNEST');
 const NNToken = artifacts.require('NNToken');
@@ -9,6 +9,7 @@ const NToken = artifacts.require('NToken');
 const NestGovernance = artifacts.require('NestGovernance');
 const NestLedger = artifacts.require('NestLedger');
 const NestPriceFacade = artifacts.require('NestPriceFacade');
+const INestPriceFacade = artifacts.require('INestPriceFacade');
 const NTokenController = artifacts.require('NTokenController');
 const NestVote = artifacts.require('NestVote');
 const NestMining = artifacts.require('NestMining');
@@ -61,8 +62,11 @@ contract("NestMining", async accounts => {
         nTokenController: 0x6C4BD6148F72b525f72b8033D6dD5C5aC4C9DCB7
         nestVote: 0xBBf3E1B2901AcCc3fDe5A4971903a0aBC6CA04CA
         nestMining: 0xE34A736290548227415329962705a6ee17c5f1a5
+                 -> 0xcDAB36F3A9d4705a0F27Bfde64D770597945376A
         ntokenMining: 0xE34A736290548227415329962705a6ee17c5f1a5
+                 -> 0xcDAB36F3A9d4705a0F27Bfde64D770597945376A
         nestPriceFacade: 0xD0B5532Cd0Ae1a14dAdf94f8562679A48aDa3643
+                    -> 0x7D58E982Ac043716B2b8002B16744233cB722211
         nestRedeeming: 0x5441B24FA3a2347Ac6EE70431dD3BfD0c224B4B7
         nnIncome: 0x718626a4b78e0ECfA60dE1D4C386302e68fac8cD
         */
@@ -77,6 +81,92 @@ contract("NestMining", async accounts => {
         // console.log('nestRedeeming: ' + await proxyAdmin.getProxyImplementation(nestRedeeming.address));
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
+        //let nestPriceFacade = await INestPriceFacade.at('0xB5D2890c061c321A5B6A4a4254bb1522425BAF0A');
+        let nestMining = await NestMining.at('0x03dF236EaCfCEf4457Ff7d6B88E8f00823014bcd');
+        let ntokenMining = await NestMining.at('0xC2058Dd4D55Ae1F3e1b0744Bdb69386c9fD902CA');
+
+        console.log('21. nestMining.setConfig()');
+        await nestMining.setConfig({
+        
+            // Eth number of each post. 30
+            // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
+            postEthUnit: 30,
+    
+            // Post fee(0.0001eth，DIMI_ETHER). 1000
+            postFeeUnit: 200,
+    
+            // Proportion of miners digging(10000 based). 8000
+            minerNestReward: 8000,
+            
+            // The proportion of token dug by miners is only valid for the token created in version 3.0
+            // (10000 based). 9500
+            minerNTokenReward: 9500,
+    
+            // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
+            doublePostThreshold: 500,
+            
+            // The limit of ntoken mined blocks. 100
+            ntokenMinedBlockLimit: 300,
+    
+            // -- Public configuration
+            // The number of times the sheet assets have doubled. 4
+            maxBiteNestedLevel: 4,
+            
+            // Price effective block interval. 20
+            priceEffectSpan: 20,
+    
+            // The amount of nest to pledge for each post（Unit: 1000). 100
+            pledgeNest: 100
+        });
+
+        console.log('22. ntokenMining.setConfig()');
+        await ntokenMining.setConfig({
+        
+            // Eth number of each post. 30
+            // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
+            postEthUnit: 10,
+    
+            // Post fee(0.0001eth，DIMI_ETHER). 1000
+            postFeeUnit: 200,
+    
+            // Proportion of miners digging(10000 based). 8000
+            minerNestReward: 8000,
+            
+            // The proportion of token dug by miners is only valid for the token created in version 3.0
+            // (10000 based). 9500
+            minerNTokenReward: 9500,
+    
+            // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
+            doublePostThreshold: 500,
+            
+            // The limit of ntoken mined blocks. 100
+            ntokenMinedBlockLimit: 300,
+    
+            // -- Public configuration
+            // The number of times the sheet assets have doubled. 4
+            maxBiteNestedLevel: 4,
+            
+            // Price effective block interval. 20
+            priceEffectSpan: 20,
+    
+            // The amount of nest to pledge for each post（Unit: 1000). 100
+            pledgeNest: 100
+        });
+
+        return;
+
+        if (false) {
+            let npf = await INestPriceFacade.at(nestPriceFacade.address);
+            for (var i = 0; i < 200; ++i) {
+                console.log('调用: ' + i);
+                await npf.latestPriceAndTriggeredPriceInfo(usdt.address, account0, { value : ETHER(0.01)});
+                console.log({
+                    nestPriceFacade: (await ethBalance(npf.address)).toString(),
+                    nestLedger: (await ethBalance(nestLedger.address)).toString()
+                });
+                console.log('getTokenFee()=' + await npf.getTokenFee(usdt.address));
+            }
+        }
 
         if (false) {
             let nTokenController = await NTokenController.at('0xc4f1690eCe0145ed544f0aee0E2Fa886DFD66B62');
