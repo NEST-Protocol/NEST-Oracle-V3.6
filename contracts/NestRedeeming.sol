@@ -11,17 +11,6 @@ import "./NestBase.sol";
 /// @dev The contract is for redeeming nest token and getting ETH in return
 contract NestRedeeming is NestBase, INestRedeeming {
 
-    // /// @param nestTokenAddress Address of nest token contract
-    // constructor(address nestTokenAddress) {
-    //     NEST_TOKEN_ADDRESS = nestTokenAddress;
-    // }
-
-    /// @dev Governance information
-    struct GovernanceInfo {
-        address addr;
-        uint96 flag;
-    }
-
     /// @dev Redeeming information
     struct RedeemInfo {
         
