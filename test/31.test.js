@@ -90,7 +90,7 @@ contract("NestMining", async accounts => {
         
             // Eth number of each post. 30
             // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
-            postEthUnit: 30,
+            postEthUnit: 10,
     
             // Post fee(0.0001eth，DIMI_ETHER). 1000
             postFeeUnit: 200,
@@ -124,7 +124,7 @@ contract("NestMining", async accounts => {
         
             // Eth number of each post. 30
             // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
-            postEthUnit: 10,
+            postEthUnit: 1,
     
             // Post fee(0.0001eth，DIMI_ETHER). 1000
             postFeeUnit: 200,

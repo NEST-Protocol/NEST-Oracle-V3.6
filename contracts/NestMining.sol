@@ -1168,7 +1168,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint offset,
         uint count,
         uint order
-    ) override external view returns (PriceSheetView[] memory) {
+    ) override external view noContract returns (PriceSheetView[] memory) {
 
         PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         PriceSheetView[] memory result = new PriceSheetView[](count);
