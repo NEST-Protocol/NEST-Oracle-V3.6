@@ -330,18 +330,18 @@ contract("NestMining", async accounts => {
                 console.log(receipt);
                 arr.push(i + 1);
 
-                avgUsdtPrice = avgUsdtPrice.mul(new BN(95)).add(USDT(1600 + i * 10).mul(new BN(5))).div(new BN(100));
-                avgNestPrice = avgNestPrice.mul(new BN(95)).add(ETHER(65536 + i * 655.36).mul(new BN(5))).div(new BN(100));
+                avgUsdtPrice = avgUsdtPrice.mul(new BN(90)).add(USDT(1600 + i * 10).mul(new BN(10))).div(new BN(100));
+                avgNestPrice = avgNestPrice.mul(new BN(90)).add(ETHER(65536 + i * 655.36).mul(new BN(10))).div(new BN(100));
 
                 let earn = USDT(1600 + i * 10).mul(new BN('281474976710656')).div(prevUsdtPrice).sub(new BN('281474976710656'));
-                usdtSigmaSQ = usdtSigmaSQ.mul(new BN(95)).add(
-                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(5)).div(new BN('281474976710656'))
+                usdtSigmaSQ = usdtSigmaSQ.mul(new BN(90)).add(
+                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(10)).div(new BN('281474976710656'))
                 ).div(new BN(100));
                 prevUsdtPrice = USDT(1600 + i * 10);
 
                 earn = ETHER(65536 + i * 655.36).mul(new BN('281474976710656')).div(prevNestPrice).sub(new BN('281474976710656'));
-                nestSigmaSQ = nestSigmaSQ.mul(new BN(95)).add(
-                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(5)).div(new BN('281474976710656'))
+                nestSigmaSQ = nestSigmaSQ.mul(new BN(90)).add(
+                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(10)).div(new BN('281474976710656'))
                 ).div(new BN(100));
                 prevNestPrice = ETHER(65536 + i * 655.36);
 
@@ -398,15 +398,16 @@ contract("NestMining", async accounts => {
             console.log('lastPriceList()');
             await nestMining.lastPriceList(usdt.address, 10);
 
-            console.log('latestPriceAndTriggeredPriceInfo()');
-            pi = await nestMining.latestPriceAndTriggeredPriceInfo(usdt.address);
+            console.log('latestPriceInfo()');
+            pi = await nestMining.latestPriceInfo(usdt.address);
             console.log({
                 latestPriceBlockNumber: pi.latestPriceBlockNumber.toString(),
                 latestPriceValue: pi.latestPriceValue.toString(),
                 triggeredPriceBlockNumber: pi.triggeredPriceBlockNumber.toString(),
                 triggeredPriceValue: pi.triggeredPriceValue.toString(),
                 triggeredAvgPrice: pi.triggeredAvgPrice.toString(),
-                triggeredSigmaSQ: pi.triggeredSigmaSQ.toString()
+                triggeredSigmaSQ: pi.triggeredSigmaSQ.toString(),
+                latestEarnRate: pi.latestEarnRate.toString()
             });
             assert.equal(0, avgUsdtPrice.cmp(pi.triggeredAvgPrice));
             assert.equal(0, usdtSigmaSQ.cmp(pi.triggeredSigmaSQ));

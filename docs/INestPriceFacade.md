@@ -203,3 +203,30 @@
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
     function latestPrice2(address tokenAddress, address paybackAddress) external payable returns (uint blockNumber, uint price, uint ntokenBlockNumber, uint ntokenPrice);
 ```
+
+### 2.16. Returns latestPrice, latestEarnRate and triggered price info
+   
+```javascript
+    /// @dev Returns latestPrice, latestEarnRate and triggered price info
+    /// @param tokenAddress Destination token address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @return latestPriceBlockNumber The block number of latest price
+    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
+    /// @return latestEarnRate Latest earn rate
+    /// @return triggeredPriceBlockNumber The block number of triggered price
+    /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
+    /// @return triggeredAvgPrice Average price
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
+    function latestPriceInfo(address tokenAddress, address paybackAddress) external payable 
+    returns (
+        uint latestPriceBlockNumber,
+        uint latestPriceValue,
+        int latestEarnRate,
+        uint triggeredPriceBlockNumber,
+        uint triggeredPriceValue,
+        uint triggeredAvgPrice,
+        uint triggeredSigmaSQ
+    );
+```

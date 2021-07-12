@@ -154,3 +154,29 @@
         uint ntokenPrice
     );
 ```
+
+### 2.10. Returns latestPrice, latestEarnRate and triggered price info
+   
+```javascript
+    /// @dev Returns latestPrice, latestEarnRate and triggered price info
+    /// @param tokenAddress Destination token address
+    /// @return latestPriceBlockNumber The block number of latest price
+    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
+    /// @return latestEarnRate Latest earn rate
+    /// @return triggeredPriceBlockNumber The block number of triggered price
+    /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
+    /// @return triggeredAvgPrice Average price
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
+    function latestPriceInfo(address tokenAddress) external view 
+    returns (
+        uint latestPriceBlockNumber,
+        uint latestPriceValue,
+        int latestEarnRate,
+        uint triggeredPriceBlockNumber,
+        uint triggeredPriceValue,
+        uint triggeredAvgPrice,
+        uint triggeredSigmaSQ
+    );
+```

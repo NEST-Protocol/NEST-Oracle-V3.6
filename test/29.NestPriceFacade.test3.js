@@ -138,6 +138,11 @@ contract("NestMining", async accounts => {
                 rewards: await nestLedger.totalETHRewards(usdt.address),
                 balance: await ethBalance(nestLedger.address)
             });
+
+            await nestPriceFacade.settle(nest.address);
+            await nestPriceFacade.settle(usdt.address);
+            console.log('await nestLedger.totalETHRewards(nest.address)=', (await nestLedger.totalETHRewards(nest.address)).toString());
+            console.log('await ethBalance(nestLedger.address)', (await ethBalance(nestLedger.address)).toString());
             assert.equal(0, ETHER(0.0137 * 5 + 0.0247 * 3).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 5 + 0.0247 * 3).cmp(await ethBalance(nestLedger.address)));
         }
@@ -329,18 +334,18 @@ contract("NestMining", async accounts => {
                 console.log(receipt);
                 arr.push(i + 1);
 
-                avgUsdtPrice = avgUsdtPrice.mul(new BN(95)).add(USDT(1600 + i * 10).mul(new BN(5))).div(new BN(100));
-                avgNestPrice = avgNestPrice.mul(new BN(95)).add(ETHER(65536 + i * 655.36).mul(new BN(5))).div(new BN(100));
+                avgUsdtPrice = avgUsdtPrice.mul(new BN(90)).add(USDT(1600 + i * 10).mul(new BN(10))).div(new BN(100));
+                avgNestPrice = avgNestPrice.mul(new BN(90)).add(ETHER(65536 + i * 655.36).mul(new BN(10))).div(new BN(100));
 
                 let earn = USDT(1600 + i * 10).mul(new BN('281474976710656')).div(prevUsdtPrice).sub(new BN('281474976710656'));
-                usdtSigmaSQ = usdtSigmaSQ.mul(new BN(95)).add(
-                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(5)).div(new BN('281474976710656'))
+                usdtSigmaSQ = usdtSigmaSQ.mul(new BN(90)).add(
+                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(10)).div(new BN('281474976710656'))
                 ).div(new BN(100));
                 prevUsdtPrice = USDT(1600 + i * 10);
 
                 earn = ETHER(65536 + i * 655.36).mul(new BN('281474976710656')).div(prevNestPrice).sub(new BN('281474976710656'));
-                nestSigmaSQ = nestSigmaSQ.mul(new BN(95)).add(
-                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(5)).div(new BN('281474976710656'))
+                nestSigmaSQ = nestSigmaSQ.mul(new BN(90)).add(
+                    earn.mul(earn).div(new BN(14).mul(d)).mul(new BN(10)).div(new BN('281474976710656'))
                 ).div(new BN(100));
                 prevNestPrice = ETHER(65536 + i * 655.36);
 
@@ -505,6 +510,8 @@ contract("NestMining", async accounts => {
                 balance: await ethBalance(nestLedger.address)
             });
 
+            await nestPriceFacade.settle(nest.address);
+            await nestPriceFacade.settle(usdt.address);
             assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1).cmp(await ethBalance(nestLedger.address)));
 
@@ -520,6 +527,8 @@ contract("NestMining", async accounts => {
                 balance: ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).sub(await ethBalance(nestLedger.address)).toString()
             });
 
+            await nestPriceFacade.settle(nest.address);
+            await nestPriceFacade.settle(usdt.address);
             assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 11 + 0.0247 * 6 + 0.1 * 11).cmp(await ethBalance(nestLedger.address)));
         }
@@ -579,6 +588,8 @@ contract("NestMining", async accounts => {
                 balance: await ethBalance(nestLedger.address)
             });
 
+            await nestPriceFacade.settle(nest.address);
+            await nestPriceFacade.settle(usdt.address);
             assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await ethBalance(nestLedger.address)));
 
@@ -594,6 +605,8 @@ contract("NestMining", async accounts => {
                 balance: ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).sub(await ethBalance(nestLedger.address)).toString()
             });
 
+            await nestPriceFacade.settle(nest.address);
+            await nestPriceFacade.settle(usdt.address);
             assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await nestLedger.totalETHRewards(nest.address)));
             assert.equal(0, ETHER(0.0137 * 17 + 0.0247 * 9 + 0.1 * 11).cmp(await ethBalance(nestLedger.address)));
             console.log('addressFlag: ' + await nestPriceFacade.getAddressFlag(account0));
