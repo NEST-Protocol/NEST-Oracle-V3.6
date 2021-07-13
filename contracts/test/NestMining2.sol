@@ -1697,34 +1697,25 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
         ) = triggeredPriceInfo(tokenAddress);
     }
 
-    /// @dev Returns latestPrice, latestEarnRate and triggered price info
+    /// @dev Returns lastPriceList and triggered price info
     /// @param tokenAddress Destination token address
-    /// @return latestPriceBlockNumber The block number of latest price
-    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
-    /// @return latestEarnRate Latest earn rate
+    /// @param count The number of prices that want to return
+    /// @return prices An array which length is num * 2, each two element expresses one price like blockNumber｜price
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
     /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
     ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
     ///         it means that the volatility has exceeded the range that can be expressed
-    function latestPriceInfo(address tokenAddress) override external view 
+    function lastPriceListAndTriggeredPriceInfo(address tokenAddress, uint count) override external view 
     returns (
-        uint latestPriceBlockNumber,
-        uint latestPriceValue,
-        int latestEarnRate,
+        uint[] memory prices,
         uint triggeredPriceBlockNumber,
         uint triggeredPriceValue,
         uint triggeredAvgPrice,
         uint triggeredSigmaSQ
     ) {
-        uint[] memory array = lastPriceList(tokenAddress, 2);
-        latestPriceBlockNumber = array[0];
-        latestPriceValue = array[1];
-        uint prevPrice = array[3];
-        if (prevPrice > 0) {
-            latestEarnRate = int(latestPriceValue * 1 ether / prevPrice) - 1 ether;
-        }
+        prices = lastPriceList(tokenAddress, count);
         (
             triggeredPriceBlockNumber, 
             triggeredPriceValue, 

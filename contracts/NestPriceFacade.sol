@@ -326,23 +326,20 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
         return INestQuery(_getNestQuery(tokenAddress)).latestPriceAndTriggeredPriceInfo(tokenAddress);
     }
 
-    /// @dev Returns latestPrice, latestEarnRate and triggered price info
+    /// @dev Returns lastPriceList and triggered price info
     /// @param tokenAddress Destination token address
+    /// @param count The number of prices that want to return
     /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
-    /// @return latestPriceBlockNumber The block number of latest price
-    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
-    /// @return latestEarnRate Latest earn rate
+    /// @return prices An array which length is num * 2, each two element expresses one price like blockNumber｜price
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
     /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
     ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
     ///         it means that the volatility has exceeded the range that can be expressed
-    function latestPriceInfo(address tokenAddress, address paybackAddress) override external payable 
+    function lastPriceListAndTriggeredPriceInfo(address tokenAddress, uint count, address paybackAddress) override external payable 
     returns (
-        uint latestPriceBlockNumber,
-        uint latestPriceValue,
-        int latestEarnRate,
+        uint[] memory prices,
         uint triggeredPriceBlockNumber,
         uint triggeredPriceValue,
         uint triggeredAvgPrice,
@@ -352,7 +349,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
         _pay(tokenAddress, config.singleFee, paybackAddress);
-        return INestQuery(_getNestQuery(tokenAddress)).latestPriceInfo(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).lastPriceListAndTriggeredPriceInfo(tokenAddress, count);
     }
 
     /// @dev Get the latest trigger price. (token and ntoken)
@@ -507,32 +504,25 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
         return INestQuery(_getNestQuery(tokenAddress)).latestPriceAndTriggeredPriceInfo(tokenAddress);
     }
 
-    /// @dev Returns latestPrice, latestEarnRate and triggered price info
+    /// @dev Returns lastPriceList and triggered price info
     /// @param tokenAddress Destination token address
-    /// @return latestPriceBlockNumber The block number of latest price
-    /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
-    /// @return latestEarnRate Latest earn rate
+    /// @param count The number of prices that want to return
+    /// @return prices An array which length is num * 2, each two element expresses one price like blockNumber｜price
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
     /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
     ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
     ///         it means that the volatility has exceeded the range that can be expressed
-    function latestPriceInfo(address tokenAddress) 
-    override 
-    external 
-    view
-    noContract 
+    function lastPriceListAndTriggeredPriceInfo(address tokenAddress, uint count) override external view 
     returns (
-        uint latestPriceBlockNumber,
-        uint latestPriceValue,
-        int latestEarnRate,
+        uint[] memory prices,
         uint triggeredPriceBlockNumber,
         uint triggeredPriceValue,
         uint triggeredAvgPrice,
         uint triggeredSigmaSQ
     ) {
-        return INestQuery(_getNestQuery(tokenAddress)).latestPriceInfo(tokenAddress);
+        return INestQuery(_getNestQuery(tokenAddress)).lastPriceListAndTriggeredPriceInfo(tokenAddress, count);
     }
 
     /// @dev Get the latest trigger price. (token and ntoken)

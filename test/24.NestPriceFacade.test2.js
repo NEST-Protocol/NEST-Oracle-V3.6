@@ -398,16 +398,18 @@ contract("NestMining", async accounts => {
             console.log('lastPriceList()');
             await nestMining.lastPriceList(usdt.address, 10);
 
-            console.log('latestPriceInfo()');
-            pi = await nestMining.latestPriceInfo(usdt.address);
+            console.log('lastPriceListAndTriggeredPriceInfo()');
+            pi = await nestMining.lastPriceListAndTriggeredPriceInfo(usdt.address, 2);
             console.log({
-                latestPriceBlockNumber: pi.latestPriceBlockNumber.toString(),
-                latestPriceValue: pi.latestPriceValue.toString(),
+                p1Height: pi.prices[0].toString(),
+                p1: pi.prices[1].toString(),
+                p2Height: pi.prices[2].toString(),
+                p2: pi.prices[3].toString(),
+
                 triggeredPriceBlockNumber: pi.triggeredPriceBlockNumber.toString(),
                 triggeredPriceValue: pi.triggeredPriceValue.toString(),
                 triggeredAvgPrice: pi.triggeredAvgPrice.toString(),
-                triggeredSigmaSQ: pi.triggeredSigmaSQ.toString(),
-                latestEarnRate: pi.latestEarnRate.toString()
+                triggeredSigmaSQ: pi.triggeredSigmaSQ.toString()
             });
             assert.equal(0, avgUsdtPrice.cmp(pi.triggeredAvgPrice));
             assert.equal(0, usdtSigmaSQ.cmp(pi.triggeredSigmaSQ));
