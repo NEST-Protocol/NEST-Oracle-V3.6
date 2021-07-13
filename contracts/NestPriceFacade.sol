@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 import "./interface/INestPriceFacade.sol";
 import "./interface/INestQuery.sol";
@@ -74,7 +74,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config memory config) override external onlyGovernance {
+    function setConfig(Config calldata config) override external onlyGovernance {
         _config = config;
     }
 

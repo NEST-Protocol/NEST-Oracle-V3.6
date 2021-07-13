@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 import "./lib/TransferHelper.sol";
 import "./interface/INestGovernance.sol";
@@ -10,8 +10,7 @@ import "./interface/INestLedger.sol";
 contract NestBase {
 
     // Address of nest token contract
-    //address constant NEST_TOKEN_ADDRESS = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
-    address NEST_TOKEN_ADDRESS;
+    address constant NEST_TOKEN_ADDRESS = 0x04abEdA201850aC0124161F037Efd70c74ddC74C;
 
     // Genesis block number of nest
     // NEST token contract is created at block height 6913517. However, because the mining algorithm of nest1.0
@@ -20,8 +19,7 @@ contract NestBase {
     // where the nest begins to decay. According to the circulation when nest2.0 is online, the new mining
     // algorithm is used to deduce and convert the nest, and the new algorithm is used to mine the nest2.0
     // on-line flow, the actual block is 5120000
-    //uint constant NEST_GENESIS_BLOCK = 5120000;
-    uint constant NEST_GENESIS_BLOCK = 0;
+    uint constant NEST_GENESIS_BLOCK = 5120000;
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
@@ -41,7 +39,6 @@ contract NestBase {
         address governance = _governance;
         require(governance == msg.sender || INestGovernance(governance).checkGovernance(msg.sender, 0), "NEST:!gov");
         _governance = nestGovernanceAddress;
-        NEST_TOKEN_ADDRESS = INestGovernance(nestGovernanceAddress).getNestTokenAddress();
     }
 
     /// @dev Migrate funds from current contract to NestLedger

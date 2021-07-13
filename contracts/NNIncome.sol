@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 import "./lib/IERC20.sol";
 import "./NestBase.sol";
 import "./interface/INNIncome.sol";
-import "./interface/INestGovernance.sol";
 
 /// @dev NestNode mining contract
 contract NNIncome is NestBase, INNIncome {
@@ -37,8 +36,7 @@ contract NNIncome is NestBase, INNIncome {
     uint constant NEST_NODE_TOTALSUPPLY = 1500;
 
     // Address of nest node contract
-    //address constant NEST_NODE_ADDRESS = 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e;
-    address NEST_NODE_ADDRESS;
+    address constant NEST_NODE_ADDRESS = 0xC028E81e11F374f7c1A3bE6b8D2a815fa3E96E6e;
 
     // Generated nest
     uint _generatedNest;
@@ -55,9 +53,7 @@ contract NNIncome is NestBase, INNIncome {
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
     /// @param nestGovernanceAddress INestGovernance implementation contract address
     function update(address nestGovernanceAddress) override public {
-        
         super.update(nestGovernanceAddress);
-        NEST_NODE_ADDRESS = INestGovernance(nestGovernanceAddress).getNestNodeAddress();
     }
 
     /// @dev Nest node transfer settlement. This method is triggered during nest node transfer and must be called by nest node contract

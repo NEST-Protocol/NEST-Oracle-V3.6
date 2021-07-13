@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 import "./lib/IERC20.sol";
 import "./interface/INestLedger.sol";
@@ -65,7 +65,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config memory config) override external onlyGovernance {
+    function setConfig(Config calldata config) override external onlyGovernance {
         _config = config;
     }
 

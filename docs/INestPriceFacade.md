@@ -9,7 +9,7 @@
 ```javascript
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config memory config) external;
+    function setConfig(Config calldata config) external;
 ```
 ```javascript
     /// @dev Price call entry configuration structure
