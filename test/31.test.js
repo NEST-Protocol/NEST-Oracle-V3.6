@@ -63,10 +63,13 @@ contract("NestMining", async accounts => {
         nestVote: 0xBBf3E1B2901AcCc3fDe5A4971903a0aBC6CA04CA
         nestMining: 0xE34A736290548227415329962705a6ee17c5f1a5
                  -> 0xcDAB36F3A9d4705a0F27Bfde64D770597945376A
+                 -> 0xaa6238bA1b26113278B0A00dBbc14b35700E0586
         ntokenMining: 0xE34A736290548227415329962705a6ee17c5f1a5
                  -> 0xcDAB36F3A9d4705a0F27Bfde64D770597945376A
+                 -> 0xaa6238bA1b26113278B0A00dBbc14b35700E0586
         nestPriceFacade: 0xD0B5532Cd0Ae1a14dAdf94f8562679A48aDa3643
                     -> 0x7D58E982Ac043716B2b8002B16744233cB722211
+                    -> 0x200FFB773535c5c1aAD8a24bB9E43a2C93910D43
         nestRedeeming: 0x5441B24FA3a2347Ac6EE70431dD3BfD0c224B4B7
         nnIncome: 0x718626a4b78e0ECfA60dE1D4C386302e68fac8cD
         */
@@ -82,18 +85,20 @@ contract("NestMining", async accounts => {
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
         
-        if (true) {
+        if (false) {
             let newNestMining = await NestMining.new();
             console.log('newNestMining: ' + newNestMining.address);
             let newNestPriceFacade = await NestPriceFacade.new();
             console.log('newNestPriceFacade: ' + newNestPriceFacade.address);
 
+            //newNestMining: 0xaa6238bA1b26113278B0A00dBbc14b35700E0586
+            //newNestPriceFacade: 0x200FFB773535c5c1aAD8a24bB9E43a2C93910D43
             //console.log(await newNestMining.getConfig());
             //console.log(await newNestPriceFacade.getConfig());
             return;
         }
 
-        if (true) {
+        if (false) {
             let nestMining = await NestMining.at('0x03dF236EaCfCEf4457Ff7d6B88E8f00823014bcd');
             let ntokenMining = await NestMining.at('0xC2058Dd4D55Ae1F3e1b0744Bdb69386c9fD902CA');
             let nestRedeeming = await NestRedeeming.at('0xF48D58649dDb13E6e29e03059Ea518741169ceC8');
