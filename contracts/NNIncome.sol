@@ -49,13 +49,6 @@ contract NNIncome is NestBase, INNIncome {
 
     //---------transaction---------
 
-    /// @dev Rewritten in the implementation contract, for load other contract addresses. Call
-    ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
-    /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function update(address nestGovernanceAddress) override public {
-        super.update(nestGovernanceAddress);
-    }
-
     /// @dev Nest node transfer settlement. This method is triggered during nest node transfer and must be called by nest node contract
     /// @param from Transfer from address
     /// @param to Transfer to address
