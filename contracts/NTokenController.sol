@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 import "./lib/IERC20.sol";
 import './lib/TransferHelper.sol';
@@ -31,7 +31,7 @@ contract NTokenController is NestBase, INTokenController {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config memory config) override external onlyGovernance {
+    function setConfig(Config calldata config) override external onlyGovernance {
         require(uint(config.state) <= 1, "NTokenController:!value");
         _config = config;
     }
@@ -110,7 +110,7 @@ contract NTokenController is NestBase, INTokenController {
     function disable(address tokenAddress) override external onlyGovernance
     {
         // When tokenAddress does not exist, _nTokenTags[tokenAddress] - 1 will overflow error
-        _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = 0;
+        _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = uint8(0);
         emit NTokenDisabled(tokenAddress);
     }
 
@@ -118,7 +118,7 @@ contract NTokenController is NestBase, INTokenController {
     function enable(address tokenAddress) override external onlyGovernance
     {
         // When tokenAddress does not exist, _nTokenTags[tokenAddress] - 1 will overflow error
-        _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = 1;
+        _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = uint8(1);
         emit NTokenEnabled(tokenAddress);
     }
 
@@ -128,20 +128,20 @@ contract NTokenController is NestBase, INTokenController {
     function open(address tokenAddress) override external noContract
     {
         Config memory config = _config;
-        require(config.state == 1, "NTokenController:!state");
+        require(uint(config.state) == 1, "NTokenController:!state");
 
         // Check token mapping
         require(getNTokenAddress(tokenAddress) == address(0), "NTokenController:!exists");
 
         // Check token state
         uint index = _nTokenTags[tokenAddress];
-        require(index == 0 || _nTokenTagList[index - 1].state == 0, "NTokenController:!active");
+        require(index == 0 || uint(_nTokenTagList[index - 1].state) == 0, "NTokenController:!active");
 
         uint ntokenCounter = _nTokenTagList.length;
 
         // Create ntoken contract
-        string memory sn = getAddressStr(ntokenCounter);
-        NToken ntoken = new NToken(strConcat("NToken", sn), strConcat("N", sn));
+        string memory sn = _getAddressStr(ntokenCounter);
+        NToken ntoken = new NToken(_strConcat("NToken", sn), _strConcat("N", sn));
 
         address governance = _governance;
         ntoken.initialize(address(this));
@@ -231,7 +231,7 @@ contract NTokenController is NestBase, INTokenController {
     /* ========== HELPERS ========== */
 
     /// @dev from NESTv3.0
-    function strConcat(string memory _a, string memory _b) public pure returns (string memory)
+    function _strConcat(string memory _a, string memory _b) private pure returns (string memory)
     {
         bytes memory _ba = bytes(_a);
         bytes memory _bb = bytes(_b);
@@ -248,7 +248,7 @@ contract NTokenController is NestBase, INTokenController {
     } 
     
     /// @dev Convert number into a string, if less than 4 digits, make up 0 in front, from NestV3.0
-    function getAddressStr(uint256 iv) public pure returns (string memory) 
+    function _getAddressStr(uint256 iv) private pure returns (string memory) 
     {
         bytes memory buf = new bytes(64);
         uint256 index = 0;

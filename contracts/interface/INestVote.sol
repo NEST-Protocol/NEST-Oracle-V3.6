@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 /// @dev This interface defines the methods for voting
 interface INestVote {
@@ -83,7 +83,7 @@ interface INestVote {
     
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config memory config) external;
+    function setConfig(Config calldata config) external;
 
     /// @dev Get configuration
     /// @return Configuration object

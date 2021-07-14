@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 import "./lib/TransferHelper.sol";
 import "./interface/INestLedger.sol";
@@ -33,7 +33,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config memory config) override external onlyGovernance {
+    function setConfig(Config calldata config) override external onlyGovernance {
         require(uint(config.nestRewardScale) <= 10000, "NestLedger:!value");
         _config = config;
     }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.6;
 
 import "./lib/TransferHelper.sol";
 import "./interface/INestMining.sol";
@@ -217,7 +217,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config memory config) override external onlyGovernance {
+    function setConfig(Config calldata config) override external onlyGovernance {
         _config = config;
     }
 
@@ -1168,7 +1168,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint offset,
         uint count,
         uint order
-    ) override external view returns (PriceSheetView[] memory) {
+    ) override external view noContract returns (PriceSheetView[] memory) {
 
         PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
         PriceSheetView[] memory result = new PriceSheetView[](count);
@@ -1626,7 +1626,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     /// @param tokenAddress Destination token address
     /// @param count The number of prices that want to return
     /// @return An array which length is num * 2, each two element expresses one price like blockNumber｜price
-    function lastPriceList(address tokenAddress, uint count) override external view returns (uint[] memory) {
+    function lastPriceList(address tokenAddress, uint count) override public view returns (uint[] memory) {
 
         _check();
         PriceSheet[] storage sheets = _channels[tokenAddress].sheets;
@@ -1684,6 +1684,33 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint triggeredSigmaSQ
     ) {
         (latestPriceBlockNumber, latestPriceValue) = latestPrice(tokenAddress);
+        (
+            triggeredPriceBlockNumber, 
+            triggeredPriceValue, 
+            triggeredAvgPrice, 
+            triggeredSigmaSQ
+        ) = triggeredPriceInfo(tokenAddress);
+    }
+
+    /// @dev Returns lastPriceList and triggered price info
+    /// @param tokenAddress Destination token address
+    /// @param count The number of prices that want to return
+    /// @return prices An array which length is num * 2, each two element expresses one price like blockNumber｜price
+    /// @return triggeredPriceBlockNumber The block number of triggered price
+    /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
+    /// @return triggeredAvgPrice Average price
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
+    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
+    ///         it means that the volatility has exceeded the range that can be expressed
+    function lastPriceListAndTriggeredPriceInfo(address tokenAddress, uint count) override external view 
+    returns (
+        uint[] memory prices,
+        uint triggeredPriceBlockNumber,
+        uint triggeredPriceValue,
+        uint triggeredAvgPrice,
+        uint triggeredSigmaSQ
+    ) {
+        prices = lastPriceList(tokenAddress, count);
         (
             triggeredPriceBlockNumber, 
             triggeredPriceValue, 
