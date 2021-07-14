@@ -85,7 +85,12 @@ contract("NestMining", async accounts => {
         if (true) {
             let newNestMining = await NestMining.new();
             console.log('newNestMining: ' + newNestMining.address);
-            return
+            let newNestPriceFacade = await NestPriceFacade.new();
+            console.log('newNestPriceFacade: ' + newNestPriceFacade.address);
+
+            //console.log(await newNestMining.getConfig());
+            //console.log(await newNestPriceFacade.getConfig());
+            return;
         }
 
         if (true) {
