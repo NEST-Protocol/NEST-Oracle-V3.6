@@ -7,6 +7,7 @@
 // .deploy.rinkeby@20210414.js
 // .deploy.rinkeby@20210420.js
 // .deploy.rinkeby@20210421.js
+// .deploy.rinkeby@20210716.js
 // .deploy.normal.js
 // .deploy.proxy.js
 const deploy = require('./.deploy.proxy.js');

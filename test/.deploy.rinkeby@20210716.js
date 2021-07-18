@@ -165,7 +165,45 @@ module.exports = async function() {
     nn: 0x52Ab1592d71E20167EB657646e86ae5FC04e9E01
     */
 
-    console.log('***** .deploy.rinkeby@20210426.js *****');
+    /*
+    ***** .deploy.rinkeby@20210716.js *****
+    nest: 0xE313F3f49B647fBEDDC5F2389Edb5c93CBf4EE25
+    usdt: 0x20125a7256EFafd0d4Eec24048E08C5045BC5900
+    hbtc: 0xaE73d363Cb4aC97734E07e48B01D0a1FF5D1190B
+    nestGovernance: 0xa52936bD3848567Fbe4bA24De3370ABF419fC1f7
+    nestLedger: 0x005103e352f86e4C32a3CE4B684fe211eB123210
+    nTokenController: 0xb75Fd1a678dAFE00cEafc8d9e9B1ecf75cd6afC5
+    nestVote: 0xF9539C7151fC9E26362170FADe13a4e4c250D720
+    nestMining: 0x50E911480a01B9cF4826a87BD7591db25Ac0727F
+    ntokenMining: 0xb984cCe9fdA423c5A18DFDE4a7bCdfC150DC1012
+    nestPriceFacade: 0xFE6C2A02efd01bf443A1f2392d28177fC53A9923
+    nestRedeeming: 0xeD859B5f5A2e19bC36C14096DC05Fe9192CeFa31
+    nnIncome: 0x82307CbA43f05D632aB835AFfD30ED0073dC4bd9
+    nhbtc: 0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198
+    nn: 0x52Ab1592d71E20167EB657646e86ae5FC04e9E01
+
+    ***** .deploy.rinkeby@20210716.js *****
+    nest: 0xE313F3f49B647fBEDDC5F2389Edb5c93CBf4EE25
+    usdt: 0x20125a7256EFafd0d4Eec24048E08C5045BC5900
+    hbtc: 0xaE73d363Cb4aC97734E07e48B01D0a1FF5D1190B
+    nestGovernance: 0xa52936bD3848567Fbe4bA24De3370ABF419fC1f7
+    nestLedger: 0x005103e352f86e4C32a3CE4B684fe211eB123210
+    nTokenController: 0xb75Fd1a678dAFE00cEafc8d9e9B1ecf75cd6afC5
+    nestVote: 0xF9539C7151fC9E26362170FADe13a4e4c250D720
+    nestMining: 0x50E911480a01B9cF4826a87BD7591db25Ac0727F
+    ntokenMining: 0xb984cCe9fdA423c5A18DFDE4a7bCdfC150DC1012
+    nestPriceFacade: 0x40C3EB032f27fDa7AdcF1B753c75B84e27f26838
+    nestRedeeming: 0xeD859B5f5A2e19bC36C14096DC05Fe9192CeFa31
+    nnIncome: 0x82307CbA43f05D632aB835AFfD30ED0073dC4bd9
+    nhbtc: 0xe6bf6Bd50b07D577a22FEA5b1A205Cf21642b198
+    nn: 0x52Ab1592d71E20167EB657646e86ae5FC04e9E01
+
+    account0: 0x0e20201B2e9bC6eba51bcC6E710C510dC2cFCfA4
+    newNestMiningImpl: 0xea3bDB3630208E1dE4Ab6d738F97294F790fB4eD
+    newNestMiningImpl: 0xD8BF1b64C908Cc358b37263B241bFaeD2eDd8038
+    */
+
+    console.log('***** .deploy.rinkeby@20210716.js *****');
     //let nest = await IBNEST.new();
     let nest = await IBNEST.at('0xE313F3f49B647fBEDDC5F2389Edb5c93CBf4EE25');
     console.log('nest: ' + nest.address);
@@ -193,8 +231,8 @@ module.exports = async function() {
     //let ntokenMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
     let ntokenMining = await NestMining.at('0xb984cCe9fdA423c5A18DFDE4a7bCdfC150DC1012');
     console.log('ntokenMining: ' + ntokenMining.address);
-    //let nestPriceFacade = await deployProxy(NestPriceFacade, [nestGovernance.address], { initializer: 'initialize' });
-    let nestPriceFacade = await NestPriceFacade.at('0x35a37e27B772Fb6DC49819B4902Ed5b45c675992');
+    let nestPriceFacade = await deployProxy(NestPriceFacade, [nestGovernance.address], { initializer: 'initialize' });
+    //let nestPriceFacade = await NestPriceFacade.at('0xFE6C2A02efd01bf443A1f2392d28177fC53A9923');
     console.log('nestPriceFacade: ' + nestPriceFacade.address);
     //let nestRedeeming = await deployProxy(NestRedeeming, [nestGovernance.address], { initializer: 'initialize' });
     let nestRedeeming = await NestRedeeming.at('0xeD859B5f5A2e19bC36C14096DC05Fe9192CeFa31');
@@ -245,7 +283,7 @@ module.exports = async function() {
 
     console.log(contractAddresses);
 
-    if (false) {
+    if (true) {
         console.log('1. nestGovernance.setBuiltinAddress()');
         await nestGovernance.setBuiltinAddress(
             nest.address,
@@ -260,48 +298,48 @@ module.exports = async function() {
             nTokenController.address //nTokenControllerAddress
         );
 
-        console.log('2. nestGovernance.update()');
-        await nestGovernance.update(nestGovernance.address);
-        console.log('3. nestLedger.update()');
-        await nestLedger.update(nestGovernance.address);
-        console.log('4. nTokenController.update()');
-        await nTokenController.update(nestGovernance.address);
-        console.log('5. nestVote.update()');
-        await nestVote.update(nestGovernance.address);
+        // console.log('2. nestGovernance.update()');
+        // await nestGovernance.update(nestGovernance.address);
+        // console.log('3. nestLedger.update()');
+        // await nestLedger.update(nestGovernance.address);
+        // console.log('4. nTokenController.update()');
+        // await nTokenController.update(nestGovernance.address);
+        // console.log('5. nestVote.update()');
+        // await nestVote.update(nestGovernance.address);
         console.log('6. nestMining.update()');
         await nestMining.update(nestGovernance.address);
         console.log('7. ntokenMining.update()');
         await ntokenMining.update(nestGovernance.address);
         console.log('8. nestPriceFacade.update()');
         await nestPriceFacade.update(nestGovernance.address);
-        console.log('9. nestRedeeming.update()');
-        await nestRedeeming.update(nestGovernance.address);
-        console.log('10. nnIncome.update()');
-        await nnIncome.update(nestGovernance.address);
+        // console.log('9. nestRedeeming.update()');
+        // await nestRedeeming.update(nestGovernance.address);
+        // console.log('10. nnIncome.update()');
+        // await nnIncome.update(nestGovernance.address);
 
-        console.log('11. nestGovernance.registerAddress(nest.dao.redeeming)');
-        await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
-        console.log('12. nestGovernance.registerAddress(nest.nToken.offerMain)');
-        await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address);
-        console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
-        await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
+        // console.log('11. nestGovernance.registerAddress(nest.dao.redeeming)');
+        // await nestGovernance.registerAddress('nest.dao.redeeming', nestRedeeming.address);
+        // console.log('12. nestGovernance.registerAddress(nest.nToken.offerMain)');
+        // await nestGovernance.registerAddress('nest.nToken.offerMain', ntokenMining.address);
+        // console.log('12.1. nestGovernance.registerAddress(nodeAssignment)');
+        // await nestGovernance.registerAddress('nodeAssignment', nnIncome.address);
 
-        // Add ntoken mapping
-        console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
-        await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
-        console.log('14. nTokenController.setNTokenMapping(usdt.address, nest.address, 1)');
-        await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
+        // // Add ntoken mapping
+        // console.log('13. nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1)');
+        // await nTokenController.setNTokenMapping(hbtc.address, nhbtc.address, 1);
+        // console.log('14. nTokenController.setNTokenMapping(usdt.address, nest.address, 1)');
+        // await nTokenController.setNTokenMapping(usdt.address, nest.address, 1);
 
         console.log('15. nestPriceFacade.setNestQuery(usdt.address, nestMining.address)');
         await nestPriceFacade.setNestQuery(usdt.address, nestMining.address);
         console.log('16. nestPriceFacade.setNestQuery(nest.address, nestMining.address)');
         await nestPriceFacade.setNestQuery(nest.address, nestMining.address);
 
-        // // Authorization of voting contracts
-        // console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
-        // await nestGovernance.setGovernance(nestVote.address, 1);
-        console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
-        await nestLedger.setApplication(nestRedeeming.address, 1);
+        // // // Authorization of voting contracts
+        // // console.log('17. nestGovernance.setGovernance(nestVote.address, 1)');
+        // // await nestGovernance.setGovernance(nestVote.address, 1);
+        // console.log('18. nestLedger.setApplication(nestRedeeming.address, 1)');
+        // await nestLedger.setApplication(nestRedeeming.address, 1);
 
         // await setConfig(contracts);
     } else {
@@ -310,85 +348,85 @@ module.exports = async function() {
 };
 
 async function setConfig(contracts) {
-    if (false) {
-        // Set configuration
-        console.log('20. nestLedger.setConfig()');
-        await contracts.nestLedger.setConfig({
+    if (true) {
+        // // Set configuration
+        // console.log('20. nestLedger.setConfig()');
+        // await contracts.nestLedger.setConfig({
         
-            // nest reward scale(10000 based). 2000
-            nestRewardScale: 2000
+        //     // nest reward scale(10000 based). 2000
+        //     nestRewardScale: 2000
     
-            // // ntoken reward scale(10000 based). 8000
-            // uint16 ntokenRewardScale;
-        });
+        //     // // ntoken reward scale(10000 based). 8000
+        //     // uint16 ntokenRewardScale;
+        // });
 
-        console.log('21. nestMining.setConfig()');
-        await contracts.nestMining.setConfig({
+        // console.log('21. nestMining.setConfig()');
+        // await contracts.nestMining.setConfig({
         
-            // Eth number of each post. 30
-            // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
-            postEthUnit: 30,
+        //     // Eth number of each post. 30
+        //     // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
+        //     postEthUnit: 30,
     
-            // Post fee(0.0001eth，DIMI_ETHER). 1000
-            postFeeUnit: 1000,
+        //     // Post fee(0.0001eth，DIMI_ETHER). 1000
+        //     postFeeUnit: 1000,
     
-            // Proportion of miners digging(10000 based). 8000
-            minerNestReward: 8000,
+        //     // Proportion of miners digging(10000 based). 8000
+        //     minerNestReward: 8000,
             
-            // The proportion of token dug by miners is only valid for the token created in version 3.0
-            // (10000 based). 9500
-            minerNTokenReward: 9500,
+        //     // The proportion of token dug by miners is only valid for the token created in version 3.0
+        //     // (10000 based). 9500
+        //     minerNTokenReward: 9500,
     
-            // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
-            doublePostThreshold: 500,
+        //     // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
+        //     doublePostThreshold: 500,
             
-            // The limit of ntoken mined blocks. 100
-            ntokenMinedBlockLimit: 100,
+        //     // The limit of ntoken mined blocks. 100
+        //     ntokenMinedBlockLimit: 100,
     
-            // -- Public configuration
-            // The number of times the sheet assets have doubled. 4
-            maxBiteNestedLevel: 4,
+        //     // -- Public configuration
+        //     // The number of times the sheet assets have doubled. 4
+        //     maxBiteNestedLevel: 4,
             
-            // Price effective block interval. 20
-            priceEffectSpan: 20,
+        //     // Price effective block interval. 20
+        //     priceEffectSpan: 20,
     
-            // The amount of nest to pledge for each post（Unit: 1000). 100
-            pledgeNest: 100
-        });
+        //     // The amount of nest to pledge for each post（Unit: 1000). 100
+        //     pledgeNest: 100
+        // });
 
-        console.log('22. ntokenMining.setConfig()');
-        await contracts.ntokenMining.setConfig({
+        // console.log('22. ntokenMining.setConfig()');
+        // await contracts.ntokenMining.setConfig({
         
-            // Eth number of each post. 30
-            // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
-            postEthUnit: 10,
+        //     // Eth number of each post. 30
+        //     // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
+        //     postEthUnit: 10,
     
-            // Post fee(0.0001eth，DIMI_ETHER). 1000
-            postFeeUnit: 1000,
+        //     // Post fee(0.0001eth，DIMI_ETHER). 1000
+        //     postFeeUnit: 1000,
     
-            // Proportion of miners digging(10000 based). 8000
-            minerNestReward: 8000,
+        //     // Proportion of miners digging(10000 based). 8000
+        //     minerNestReward: 8000,
             
-            // The proportion of token dug by miners is only valid for the token created in version 3.0
-            // (10000 based). 9500
-            minerNTokenReward: 9500,
+        //     // The proportion of token dug by miners is only valid for the token created in version 3.0
+        //     // (10000 based). 9500
+        //     minerNTokenReward: 9500,
     
-            // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
-            doublePostThreshold: 500,
+        //     // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
+        //     doublePostThreshold: 500,
             
-            // The limit of ntoken mined blocks. 100
-            ntokenMinedBlockLimit: 100,
+        //     // The limit of ntoken mined blocks. 100
+        //     ntokenMinedBlockLimit: 100,
     
-            // -- Public configuration
-            // The number of times the sheet assets have doubled. 4
-            maxBiteNestedLevel: 4,
+        //     // -- Public configuration
+        //     // The number of times the sheet assets have doubled. 4
+        //     maxBiteNestedLevel: 4,
             
-            // Price effective block interval. 20
-            priceEffectSpan: 20,
+        //     // Price effective block interval. 20
+        //     priceEffectSpan: 20,
     
-            // The amount of nest to pledge for each post（Unit: 1000). 100
-            pledgeNest: 100
-        });
+        //     // The amount of nest to pledge for each post（Unit: 1000). 100
+        //     pledgeNest: 100
+        // });
 
         console.log('23. nestPriceFacade.setConfig()');
         await contracts.nestPriceFacade.setConfig({
@@ -403,51 +441,51 @@ async function setConfig(contracts) {
             normalFlag: 0
         });
 
-        console.log('24. nestRedeeming.setConfig()');
-        await contracts.nestRedeeming.setConfig({
+        // console.log('24. nestRedeeming.setConfig()');
+        // await contracts.nestRedeeming.setConfig({
 
-            // Redeem activate threshold, when the circulation of token exceeds this threshold, 
-            // activate redeem (Unit: 10000 ether). 500 
-            activeThreshold: 500,
+        //     // Redeem activate threshold, when the circulation of token exceeds this threshold, 
+        //     // activate redeem (Unit: 10000 ether). 500 
+        //     activeThreshold: 500,
     
-            // The number of nest redeem per block. 1000
-            nestPerBlock: 1000,
+        //     // The number of nest redeem per block. 1000
+        //     nestPerBlock: 1000,
     
-            // The maximum number of nest in a single redeem. 300000
-            nestLimit: 300000,
+        //     // The maximum number of nest in a single redeem. 300000
+        //     nestLimit: 300000,
     
-            // The number of ntoken redeem per block. 10
-            ntokenPerBlock: 10,
+        //     // The number of ntoken redeem per block. 10
+        //     ntokenPerBlock: 10,
     
-            // The maximum number of ntoken in a single redeem. 3000
-            ntokenLimit: 3000,
+        //     // The maximum number of ntoken in a single redeem. 3000
+        //     ntokenLimit: 3000,
     
-            // Price deviation limit, beyond this upper limit stop redeem (10000 based). 500
-            priceDeviationLimit: 500
-        });
+        //     // Price deviation limit, beyond this upper limit stop redeem (10000 based). 500
+        //     priceDeviationLimit: 500
+        // });
 
-        console.log('25. nestVote.setConfig()');
-        await contracts.nestVote.setConfig({
+        // console.log('25. nestVote.setConfig()');
+        // await contracts.nestVote.setConfig({
 
-            // Proportion of votes required (10000 based). 5100
-            acceptance: 5100,
+        //     // Proportion of votes required (10000 based). 5100
+        //     acceptance: 5100,
     
-            // Voting time cycle (seconds). 5 * 86400
-            voteDuration: 5 * 86400,
+        //     // Voting time cycle (seconds). 5 * 86400
+        //     voteDuration: 5 * 86400,
     
-            // The number of nest votes need to be staked. 100000 nest
-            proposalStaking: '100000000000000000000000'
-        });
+        //     // The number of nest votes need to be staked. 100000 nest
+        //     proposalStaking: '100000000000000000000000'
+        // });
 
-        console.log('26. nTokenController.setConfig()');
-        await contracts.nTokenController.setConfig({
+        // console.log('26. nTokenController.setConfig()');
+        // await contracts.nTokenController.setConfig({
 
-            // The number of nest needed to pay for opening ntoken. 10000 ether
-            openFeeNestAmount: '10000000000000000000000',
+        //     // The number of nest needed to pay for opening ntoken. 10000 ether
+        //     openFeeNestAmount: '10000000000000000000000',
     
-            // ntoken management is enabled. 0: not enabled, 1: enabled
-            state: 1
-        });
+        //     // ntoken management is enabled. 0: not enabled, 1: enabled
+        //     state: 1
+        // });
     } else {
     }
 }

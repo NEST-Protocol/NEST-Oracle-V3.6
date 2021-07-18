@@ -33,7 +33,7 @@ contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        //const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
+        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
         const account0 = accounts[0];
         console.log('account0: ' + account0);
         // let ua = await UpdateAdmin.new('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
@@ -85,16 +85,9 @@ contract("NestMining", async accounts => {
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
         
-        if (false) {
+        if (true) {
             let newNestMining = await NestMining.new();
-            console.log('newNestMining: ' + newNestMining.address);
-            let newNestPriceFacade = await NestPriceFacade.new();
-            console.log('newNestPriceFacade: ' + newNestPriceFacade.address);
-
-            //newNestMining: 0xaa6238bA1b26113278B0A00dBbc14b35700E0586
-            //newNestPriceFacade: 0x200FFB773535c5c1aAD8a24bB9E43a2C93910D43
-            //console.log(await newNestMining.getConfig());
-            //console.log(await newNestPriceFacade.getConfig());
+            console.log('newNestMiningImpl: ' + newNestMining.address);
             return;
         }
 
