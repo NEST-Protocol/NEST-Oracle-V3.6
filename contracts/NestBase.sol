@@ -23,8 +23,8 @@ contract NestBase {
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function initialize(address nestGovernanceAddress) virtual public {
-        require(_governance == address(0), 'NEST:!initialize');
+    function initialize(address nestGovernanceAddress) public virtual {
+        require(_governance == address(0), "NEST:!initialize");
         _governance = nestGovernanceAddress;
     }
 
@@ -34,7 +34,7 @@ contract NestBase {
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function update(address nestGovernanceAddress) virtual public {
+    function update(address nestGovernanceAddress) public virtual {
 
         address governance = _governance;
         require(governance == msg.sender || INestGovernance(governance).checkGovernance(msg.sender, 0), "NEST:!gov");

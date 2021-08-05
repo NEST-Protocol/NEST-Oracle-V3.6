@@ -80,7 +80,7 @@ contract("NestMining", async accounts => {
         await nest.approve(nestVote.address, ETHER('1000000000'));
         await nest.approve(nestVote.address, ETHER('1000000000'), { from: account1 });
 
-        // propose(address contractAddress, string memory brief) override external noContract
+        // propose(address contractAddress, string memory brief) external override noContract
         let setQueryPrice = await SetQueryPrice.new(nestGovernance.address, { from: account1 });
         await nestVote.propose(setQueryPrice.address, '修改配置', { from: account1 });
 

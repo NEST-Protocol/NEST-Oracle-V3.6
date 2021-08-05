@@ -51,7 +51,7 @@ interface INestMining {
     /// @dev PriceSheetView structure
     struct PriceSheetView {
         
-        // Index of the price sheeet
+        // Index of the price sheet
         uint32 index;
 
         // Address of miner
@@ -92,12 +92,14 @@ interface INestMining {
     /// @return Configuration object
     function getConfig() external view returns (Config memory);
 
-    /// @dev Set the ntokenAddress from tokenAddress, if ntokenAddress is equals to tokenAddress, means the token is disabled
+    /// @dev Set the ntokenAddress from tokenAddress, if ntokenAddress is equals to tokenAddress, 
+    /// means the token is disabled
     /// @param tokenAddress Destination token address
     /// @param ntokenAddress The ntoken address
     function setNTokenAddress(address tokenAddress, address ntokenAddress) external;
 
-    /// @dev Get the ntokenAddress from tokenAddress, if ntokenAddress is equals to tokenAddress, means the token is disabled
+    /// @dev Get the ntokenAddress from tokenAddress, if ntokenAddress is equals to tokenAddress, 
+    /// means the token is disabled
     /// @param tokenAddress Destination token address
     /// @return The ntoken address
     function getNTokenAddress(address tokenAddress) external view returns (address);
@@ -105,7 +107,8 @@ interface INestMining {
     /* ========== Mining ========== */
 
     /// @notice Post a price sheet for TOKEN
-    /// @dev It is for TOKEN (except USDT and NTOKENs) whose NTOKEN has a total supply below a threshold (e.g. 5,000,000 * 1e18)
+    /// @dev It is for TOKEN (except USDT and NTOKEN) whose NTOKEN has a total supply below a threshold 
+    /// (e.g. 5,000,000 * 1e18)
     /// @param tokenAddress The address of TOKEN contract
     /// @param ethNum The numbers of ethers to post sheets
     /// @param tokenAmountPerEth The price of TOKEN
@@ -168,7 +171,12 @@ interface INestMining {
     /// @param count Return (count) records
     /// @param order Order. 0 reverse order, non-0 positive order
     /// @return List of price sheets
-    function list(address tokenAddress, uint offset, uint count, uint order) external view returns (PriceSheetView[] memory);
+    function list(
+        address tokenAddress, 
+        uint offset, 
+        uint count, 
+        uint order
+    ) external view returns (PriceSheetView[] memory);
 
     /// @dev Estimated mining amount
     /// @param tokenAddress Destination token address
@@ -176,11 +184,15 @@ interface INestMining {
     function estimate(address tokenAddress) external view returns (uint);
 
     /// @dev Query the quantity of the target quotation
-    /// @param tokenAddress Token address. The token can't mine. Please make sure you don't use the token address when calling
+    /// @param tokenAddress Token address. The token can't mine. Please make sure you don't use the token address 
+    /// when calling
     /// @param index The index of the sheet
     /// @return minedBlocks Mined block period from previous block
     /// @return totalShares Total shares of sheets in the block
-    function getMinedBlocks(address tokenAddress, uint index) external view returns (uint minedBlocks, uint totalShares);
+    function getMinedBlocks(
+        address tokenAddress, 
+        uint index
+    ) external view returns (uint minedBlocks, uint totalShares);
 
     /* ========== Accounts ========== */
 

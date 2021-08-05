@@ -7,7 +7,8 @@ interface INestVote {
 
     /// @dev Event of submitting a voting proposal
     /// @param proposer Proposer address
-    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param contractAddress The contract address which will be executed when the proposal is approved.
+    /// (Must implemented IVotePropose)
     /// @param index Index of proposal
     event NIPSubmitted(address proposer, address contractAddress, uint index);
 
@@ -75,7 +76,8 @@ interface INestVote {
         // The executor of this proposal
         address executor;
 
-        // The execution time (if any, such as block number or time stamp) is placed in the contract and is limited by the contract itself
+        // The execution time (if any, such as block number or time stamp) is placed in the contract and is limited by
+        // the contract itself
 
         // Circulation of nest
         uint96 nestCirculation;
@@ -92,7 +94,8 @@ interface INestVote {
     /* ========== VOTE ========== */
     
     /// @dev Initiate a voting proposal
-    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param contractAddress The contract address which will be executed when the proposal is approved.
+    /// (Must implemented IVotePropose)
     /// @param brief Brief of this propose
     function propose(address contractAddress, string memory brief) external;
 
@@ -101,7 +104,8 @@ interface INestVote {
     /// @param value Amount of nest to vote
     function vote(uint index, uint value) external;
 
-    /// @dev Withdraw the nest of the vote. If the target vote is in the voting state, the corresponding number of votes will be cancelled
+    /// @dev Withdraw the nest of the vote. If the target vote is in the voting state, the corresponding number of 
+    /// votes will be cancelled
     /// @param index Index of the proposal
     function withdraw(uint index) external;
 

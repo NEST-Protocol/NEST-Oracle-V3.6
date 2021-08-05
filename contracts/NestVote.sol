@@ -15,7 +15,8 @@ contract NestVote is NestBase, INestVote {
     
     // constructor() { }
 
-    /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
+    /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing 
+    /// from mapping many times
     struct UINT {
         uint value;
     }
@@ -57,7 +58,8 @@ contract NestVote is NestBase, INestVote {
         // The executor of this proposal
         address executor;
 
-        // The execution time (if any, such as block number or time stamp) is placed in the contract and is limited by the contract itself
+        // The execution time (if any, such as block number or time stamp) is placed in the contract and is 
+        // limited by the contract itself
     }
     
     // Configuration
@@ -83,7 +85,7 @@ contract NestVote is NestBase, INestVote {
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function update(address nestGovernanceAddress) override public {
+    function update(address nestGovernanceAddress) public override {
         super.update(nestGovernanceAddress);
 
         (
@@ -112,25 +114,27 @@ contract NestVote is NestBase, INestVote {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config calldata config) override external onlyGovernance {
+    function setConfig(Config calldata config) external override onlyGovernance {
         require(uint(config.acceptance) <= 10000, "NestVote:!value");
         _config = config;
     }
 
     /// @dev Get configuration
     /// @return Configuration object
-    function getConfig() override external view returns (Config memory) {
+    function getConfig() external view override returns (Config memory) {
         return _config;
     }
 
     /* ========== VOTE ========== */
     
     /// @dev Initiate a voting proposal
-    /// @param contractAddress The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+    /// @param contractAddress The contract address which will be executed when the proposal is approved. 
+    /// (Must implemented IVotePropose)
     /// @param brief Brief of this propose
-    function propose(address contractAddress, string memory brief) override external noContract
+    function propose(address contractAddress, string memory brief) external override noContract
     {
-        // The target address cannot already have governance permission to prevent the governance permission from being covered
+        // The target address cannot already have governance permission to prevent the governance permission 
+        // from being covered
         require(!INestGovernance(_governance).checkGovernance(contractAddress, 0), "NestVote:!governance");
      
         Config memory config = _config;
@@ -143,7 +147,8 @@ contract NestVote is NestBase, INestVote {
             //string brief;
             brief,
 
-            // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+            // The contract address which will be executed when the proposal is approved. 
+            // (Must implemented IVotePropose)
             //address contractAddress;
             contractAddress,
 
@@ -177,7 +182,7 @@ contract NestVote is NestBase, INestVote {
     /// @dev vote
     /// @param index Index of proposal
     /// @param value Amount of nest to vote
-    function vote(uint index, uint value) override external noContract
+    function vote(uint index, uint value) external override noContract
     {
         // 1. Load the proposal
         Proposal memory p = _proposalList[index];
@@ -201,9 +206,10 @@ contract NestVote is NestBase, INestVote {
         emit NIPVote(msg.sender, index, value);
     }
 
-    /// @dev Withdraw the nest of the vote. If the target vote is in the voting state, the corresponding number of votes will be cancelled
+    /// @dev Withdraw the nest of the vote. If the target vote is in the voting state, the corresponding 
+    /// number of votes will be cancelled
     /// @param index Index of the proposal
-    function withdraw(uint index) override external noContract
+    function withdraw(uint index) external override noContract
     {
         // 1. Update voting ledger
         UINT storage balance = _stakedLedger[index][msg.sender];
@@ -221,7 +227,7 @@ contract NestVote is NestBase, INestVote {
 
     /// @dev Execute the proposal
     /// @param index Index of the proposal
-    function execute(uint index) override external noContract
+    function execute(uint index) external override noContract
     {
         Config memory config = _config;
 
@@ -231,11 +237,12 @@ contract NestVote is NestBase, INestVote {
         // 2. Check status
         require(p.state == PROPOSAL_STATE_PROPOSED, "NestVote:!state");
         require(block.timestamp < uint(p.stopTime), "NestVote:!time");
-        // The target address cannot already have governance permission to prevent the governance permission from being covered
+        // The target address cannot already have governance permission to prevent the governance 
+        // permission from being covered
         address governance = _governance;
         require(!INestGovernance(governance).checkGovernance(p.contractAddress, 0), "NestVote:!governance");
 
-        // 3. Check the gaine rate
+        // 3. Check the gain rate
         IERC20 nest = IERC20(NEST_TOKEN_ADDRESS);
 
         // Calculate the circulation of nest
@@ -261,7 +268,7 @@ contract NestVote is NestBase, INestVote {
 
     /// @dev Cancel the proposal
     /// @param index Index of the proposal
-    function cancel(uint index) override external noContract {
+    function cancel(uint index) external override noContract {
 
         // 1. Load proposal
         Proposal memory p = _proposalList[index];
@@ -279,7 +286,11 @@ contract NestVote is NestBase, INestVote {
 
     // Convert PriceSheet to PriceSheetView
     //function _toPriceSheetView(PriceSheet memory sheet, uint index) private view returns (PriceSheetView memory) {
-    function _toProposalView(Proposal memory proposal, uint index, uint nestCirculation) private pure returns (ProposalView memory) {
+    function _toProposalView(
+        Proposal memory proposal, 
+        uint index, 
+        uint nestCirculation
+    ) private pure returns (ProposalView memory) {
 
         return ProposalView(
             // Index of the proposal
@@ -287,7 +298,8 @@ contract NestVote is NestBase, INestVote {
             // Brief of proposal
             //string brief;
             proposal.brief,
-            // The contract address which will be executed when the proposal is approved. (Must implemented IVotePropose)
+            // The contract address which will be executed when the proposal is approved. 
+            // (Must implemented IVotePropose)
             //address contractAddress;
             proposal.contractAddress,
             // Voting start time
@@ -303,8 +315,9 @@ contract NestVote is NestBase, INestVote {
             //uint96 staked;
             proposal.staked,
             // Gained value
-            // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the total 
-            // number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of votes
+            // The maximum value of uint96 can be expressed as 79228162514264337593543950335, which is more than the 
+            // total number of nest 10000000000 ether. Therefore, uint96 can be used to express the total number of 
+            // votes
             //uint96 gainValue;
             proposal.gainValue,
             // The state of this proposal
@@ -322,13 +335,13 @@ contract NestVote is NestBase, INestVote {
     /// @dev Get proposal information
     /// @param index Index of the proposal
     /// @return Proposal information
-    function getProposeInfo(uint index) override external view returns (ProposalView memory) {
+    function getProposeInfo(uint index) external view override returns (ProposalView memory) {
         return _toProposalView(_proposalList[index], index, getNestCirculation());
     }
 
     /// @dev Get the cumulative number of voting proposals
     /// @return The cumulative number of voting proposals
-    function getProposeCount() override external view returns (uint) {
+    function getProposeCount() external view override returns (uint) {
         return _proposalList.length;
     }
 
@@ -337,7 +350,7 @@ contract NestVote is NestBase, INestVote {
     /// @param count Return (count) records
     /// @param order Order. 0 reverse order, non-0 positive order
     /// @return List of price proposals
-    function list(uint offset, uint count, uint order) override external view returns (ProposalView[] memory) {
+    function list(uint offset, uint count, uint order) external view override returns (ProposalView[] memory) {
         
         Proposal[] storage proposalList = _proposalList;
         ProposalView[] memory result = new ProposalView[](count);
@@ -384,7 +397,7 @@ contract NestVote is NestBase, INestVote {
 
     /// @dev Get Circulation of nest
     /// @return Circulation of nest
-    function getNestCirculation() override public view returns (uint) {
+    function getNestCirculation() public view override returns (uint) {
         return _getNestCirculation(IERC20(NEST_TOKEN_ADDRESS));
     }
 
@@ -392,7 +405,7 @@ contract NestVote is NestBase, INestVote {
     /// @param proxyAdmin The address of ProxyAdmin
     /// @param proxy Proxy to be upgraded
     /// @param implementation the address of the Implementation
-    function upgradeProxy(address proxyAdmin, address proxy, address implementation) override external onlyGovernance {
+    function upgradeProxy(address proxyAdmin, address proxy, address implementation) external override onlyGovernance {
         IProxyAdmin(proxyAdmin).upgrade(proxy, implementation);
     }
 
@@ -400,7 +413,7 @@ contract NestVote is NestBase, INestVote {
     ///      Can only be called by the current owner
     /// @param proxyAdmin The address of ProxyAdmin
     /// @param newOwner The address of new owner
-    function transferUpgradeAuthority(address proxyAdmin, address newOwner) override external onlyGovernance {
+    function transferUpgradeAuthority(address proxyAdmin, address newOwner) external override onlyGovernance {
         IProxyAdmin(proxyAdmin).transferOwnership(newOwner);
     }
 }

@@ -20,7 +20,8 @@ contract NestRedeeming is NestBase, INestRedeeming {
 
         // Redeem threshold by circulation of ntoken, when this value equal to config.activeThreshold, 
         // redeeming is enabled without checking the circulation of the ntoken
-        // When config.activeThreshold modified, it will check whether repo is enabled again according to the circulation
+        // When config.activeThreshold modified, it will check whether repo is enabled again 
+        // according to the circulation
         uint32 threshold;
     }
 
@@ -36,7 +37,7 @@ contract NestRedeeming is NestBase, INestRedeeming {
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function update(address nestGovernanceAddress) override public {
+    function update(address nestGovernanceAddress) public override {
         super.update(nestGovernanceAddress);
 
         (
@@ -65,22 +66,23 @@ contract NestRedeeming is NestBase, INestRedeeming {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config calldata config) override external onlyGovernance {
+    function setConfig(Config calldata config) external override onlyGovernance {
         _config = config;
     }
 
     /// @dev Get configuration
     /// @return Configuration object
-    function getConfig() override external view returns (Config memory) {
+    function getConfig() external view override returns (Config memory) {
         return _config;
     }
 
-    /// @dev Redeem ntokens for ethers
-    /// @notice Ethfee will be charged
+    /// @dev Redeem ntoken for ethers
+    /// @notice Eth fee will be charged
     /// @param ntokenAddress The address of ntoken
     /// @param amount The amount of ntoken
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
-    function redeem(address ntokenAddress, uint amount, address paybackAddress) override external payable {
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
+    function redeem(address ntokenAddress, uint amount, address paybackAddress) external payable override {
         
         // 1. Load configuration
         Config memory config = _config;
@@ -89,8 +91,12 @@ contract NestRedeeming is NestBase, INestRedeeming {
         RedeemInfo storage redeemInfo = _redeemLedger[ntokenAddress];
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
-            // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here
-            require(IERC20(ntokenAddress).totalSupply() >= uint(config.activeThreshold) * 10000 ether, "NestRedeeming:!totalSupply");
+            // Since nest has started redeeming and has a large circulation, 
+            // we will not check its circulation separately here
+            require(
+                IERC20(ntokenAddress).totalSupply() >= uint(config.activeThreshold) * 10000 ether, 
+                "NestRedeeming:!totalSupply"
+            );
             redeemInfo.threshold = config.activeThreshold;
         }
 
@@ -102,7 +108,9 @@ contract NestRedeeming is NestBase, INestRedeeming {
             /* uint triggeredPriceValue */,
             uint triggeredAvgPrice,
             /* uint triggeredSigma */
-        ) = INestPriceFacade(_nestPriceFacadeAddress).latestPriceAndTriggeredPriceInfo { value: msg.value } (ntokenAddress, paybackAddress);
+        ) = INestPriceFacade(_nestPriceFacadeAddress).latestPriceAndTriggeredPriceInfo { 
+            value: msg.value
+        } (ntokenAddress, paybackAddress);
 
         // 4. Calculate the number of eth that can be exchanged for redeem
         uint value = amount * 1 ether / latestPriceValue;
@@ -116,21 +124,23 @@ contract NestRedeeming is NestBase, INestRedeeming {
         // require(quota >= amount, "NestRedeeming:!amount");
         require(
             latestPriceValue * 10000 <= triggeredAvgPrice * (10000 + uint(config.priceDeviationLimit)) && 
-            latestPriceValue * 10000 >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)), "NestRedeeming:!price");
+            latestPriceValue * 10000 >= triggeredAvgPrice * (10000 - uint(config.priceDeviationLimit)), 
+            "NestRedeeming:!price"
+        );
         
         // 7. Ntoken transferred to redeem
         address nestLedgerAddress = _nestLedgerAddress;
         TransferHelper.safeTransferFrom(ntokenAddress, msg.sender, nestLedgerAddress, amount);
         
         // 8. Settlement
-        // If a token is not a real token, it should also have no funds in the account book and cannot complete the settlement. 
-        // Therefore, it is no longer necessary to check whether the token is a legal token
+        // If a token is not a real token, it should also have no funds in the account book and cannot complete the 
+        // settlement. Therefore, it is no longer necessary to check whether the token is a legal token
         INestLedger(nestLedgerAddress).pay(ntokenAddress, address(0), msg.sender, value);
     }
 
     /// @dev Get the current amount available for repurchase
     /// @param ntokenAddress The address of ntoken
-    function quotaOf(address ntokenAddress) override public view returns (uint) {
+    function quotaOf(address ntokenAddress) public view override returns (uint) {
 
         // 1. Load configuration
         Config memory config = _config;
@@ -139,7 +149,8 @@ contract NestRedeeming is NestBase, INestRedeeming {
         RedeemInfo storage redeemInfo = _redeemLedger[ntokenAddress];
         RedeemInfo memory ri = redeemInfo;
         if (ri.threshold != config.activeThreshold) {
-            // Since nest has started redeeming and has a large circulation, we will not check its circulation separately here
+            // Since nest has started redeeming and has a large circulation, we will not check its circulation 
+            // separately here
             if (IERC20(ntokenAddress).totalSupply() < uint(config.activeThreshold) * 10000 ether) 
             {
                 return 0;
@@ -152,7 +163,14 @@ contract NestRedeeming is NestBase, INestRedeeming {
     }
 
     // Calculate redeem quota
-    function _quotaOf(Config memory config, RedeemInfo memory ri, address ntokenAddress) private view returns (uint quota, uint scale) {
+    function _quotaOf(
+        Config memory config, 
+        RedeemInfo memory ri, 
+        address ntokenAddress
+    ) private view returns (
+        uint quota, 
+        uint scale
+    ) {
 
         // Calculate redeem quota
         uint quotaPerBlock;

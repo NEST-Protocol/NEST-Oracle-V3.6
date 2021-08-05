@@ -240,7 +240,7 @@ It mainly includes quotation, voting, buy back, price call and other scenarios.
 ```
     struct PriceSheetView {
         
-        // Index of the price sheeet
+        // Index of the price sheet
         uint32 index;
 
         // Address of miner

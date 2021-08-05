@@ -25,7 +25,7 @@ contract UpdateProxyPropose is IVotePropose {
         _newImplAddress = newImplAddress;
     }
 
-    function run() override external {
+    function run() external override {
         INestVote(_nestVoteAddress).upgradeProxy(_proxyAdminAddress, _proxyAddress, _newImplAddress);
         INestVote(_nestVoteAddress).transferUpgradeAuthority(_proxyAdminAddress, tx.origin);
     }

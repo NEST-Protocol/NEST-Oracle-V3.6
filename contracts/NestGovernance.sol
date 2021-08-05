@@ -15,7 +15,7 @@ contract NestGovernance is NestMapping, INestGovernance {
 
     /// @dev To support open-zeppelin/upgrades
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function initialize(address nestGovernanceAddress) override public {
+    function initialize(address nestGovernanceAddress) public override {
 
         // While initialize NestGovernance, nestGovernanceAddress is address(this),
         // So must let nestGovernanceAddress to 0
@@ -42,7 +42,7 @@ contract NestGovernance is NestMapping, INestGovernance {
     /// @param flag Weight. 0 means to delete the governance permission of the target address. Weight is not 
     ///        implemented in the current system, only the difference between authorized and unauthorized. 
     ///        Here, a uint96 is used to represent the weight, which is only reserved for expansion
-    function setGovernance(address addr, uint flag) override external onlyGovernance {
+    function setGovernance(address addr, uint flag) external override onlyGovernance {
         
         if (flag > 0) {
             _governanceMapping[addr] = GovernanceInfo(addr, uint96(flag));
@@ -56,15 +56,16 @@ contract NestGovernance is NestMapping, INestGovernance {
     /// @return Weight. 0 means to delete the governance permission of the target address. Weight is not 
     ///        implemented in the current system, only the difference between authorized and unauthorized. 
     ///        Here, a uint96 is used to represent the weight, which is only reserved for expansion
-    function getGovernance(address addr) override external view returns (uint) {
+    function getGovernance(address addr) external view override returns (uint) {
         return _governanceMapping[addr].flag;
     }
 
     /// @dev Check whether the target address has governance rights for the given target
     /// @param addr Destination address
-    /// @param flag Permission weight. The permission of the target address must be greater than this weight to pass the check
+    /// @param flag Permission weight. The permission of the target address must be greater than 
+    /// this weight to pass the check
     /// @return True indicates permission
-    function checkGovernance(address addr, uint flag) override public view returns (bool) {
+    function checkGovernance(address addr, uint flag) public view override returns (bool) {
         return _governanceMapping[addr].flag > flag;
     }
 

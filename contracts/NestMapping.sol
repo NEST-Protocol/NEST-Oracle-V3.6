@@ -67,7 +67,7 @@ abstract contract NestMapping is NestBase, INestMapping {
         address nestQueryAddress,
         address nnIncomeAddress,
         address nTokenControllerAddress
-    ) override external onlyGovernance {
+    ) external override onlyGovernance {
         
         if (nestTokenAddress != address(0)) {
             _nestTokenAddress = nestTokenAddress;
@@ -112,7 +112,7 @@ abstract contract NestMapping is NestBase, INestMapping {
     /// @return nestQueryAddress INestQuery implementation contract address
     /// @return nnIncomeAddress NNIncome contract address
     /// @return nTokenControllerAddress INTokenController implementation contract address
-    function getBuiltinAddress() override external view returns (
+    function getBuiltinAddress() external view override returns (
         address nestTokenAddress,
         address nestNodeAddress,
         address nestLedgerAddress,
@@ -140,55 +140,55 @@ abstract contract NestMapping is NestBase, INestMapping {
 
     /// @dev Get address of nest token contract
     /// @return Address of nest token contract
-    function getNestTokenAddress() override external view returns (address) { return _nestTokenAddress; }
+    function getNestTokenAddress() external view override returns (address) { return _nestTokenAddress; }
 
     /// @dev Get address of nest node contract
     /// @return Address of nest node contract
-    function getNestNodeAddress() override external view returns (address) { return _nestNodeAddress; }
+    function getNestNodeAddress() external view override returns (address) { return _nestNodeAddress; }
 
     /// @dev Get INestLedger implementation contract address
     /// @return INestLedger implementation contract address
-    function getNestLedgerAddress() override external view returns (address) { return _nestLedgerAddress; }
+    function getNestLedgerAddress() external view override returns (address) { return _nestLedgerAddress; }
 
     /// @dev Get INestMining implementation contract address for nest
     /// @return INestMining implementation contract address for nest
-    function getNestMiningAddress() override external view returns (address) { return _nestMiningAddress; }
+    function getNestMiningAddress() external view override returns (address) { return _nestMiningAddress; }
 
     /// @dev Get INestMining implementation contract address for ntoken
     /// @return INestMining implementation contract address for ntoken
-    function getNTokenMiningAddress() override external view returns (address) { return _ntokenMiningAddress; }
+    function getNTokenMiningAddress() external view override returns (address) { return _ntokenMiningAddress; }
 
     /// @dev Get INestPriceFacade implementation contract address
     /// @return INestPriceFacade implementation contract address
-    function getNestPriceFacadeAddress() override external view returns (address) { return _nestPriceFacadeAddress; }
+    function getNestPriceFacadeAddress() external view override returns (address) { return _nestPriceFacadeAddress; }
 
     /// @dev Get INestVote implementation contract address
     /// @return INestVote implementation contract address
-    function getNestVoteAddress() override external view returns (address) { return _nestVoteAddress; }
+    function getNestVoteAddress() external view override returns (address) { return _nestVoteAddress; }
 
     /// @dev Get INestQuery implementation contract address
     /// @return INestQuery implementation contract address
-    function getNestQueryAddress() override external view returns (address) { return _nestQueryAddress; }
+    function getNestQueryAddress() external view override returns (address) { return _nestQueryAddress; }
 
     /// @dev Get NNIncome contract address
     /// @return NNIncome contract address
-    function getNnIncomeAddress() override external view returns (address) { return _nnIncomeAddress; }
+    function getNnIncomeAddress() external view override returns (address) { return _nnIncomeAddress; }
 
     /// @dev Get INTokenController implementation contract address
     /// @return INTokenController implementation contract address
-    function getNTokenControllerAddress() override external view returns (address) { return _nTokenControllerAddress; }
+    function getNTokenControllerAddress() external view override returns (address) { return _nTokenControllerAddress; }
 
     /// @dev Registered address. The address registered here is the address accepted by nest system
     /// @param key The key
     /// @param addr Destination address. 0 means to delete the registration information
-    function registerAddress(string memory key, address addr) override external onlyGovernance {
+    function registerAddress(string memory key, address addr) external override onlyGovernance {
         _registeredAddress[key] = addr;
     }
 
     /// @dev Get registered address
     /// @param key The key
     /// @return Destination address. 0 means empty
-    function checkAddress(string memory key) override external view returns (address) {
+    function checkAddress(string memory key) external view override returns (address) {
         return _registeredAddress[key];
     }
 }

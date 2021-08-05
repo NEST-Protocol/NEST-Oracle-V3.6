@@ -14,7 +14,8 @@ contract NestLedger is NestBase, INestLedger {
     //     NEST_TOKEN_ADDRESS = nestTokenAddress;
     // }
 
-    /// @dev Structure is used to represent a storage location. Storage variable can be used to avoid indexing from mapping many times
+    /// @dev Structure is used to represent a storage location. 
+    /// Storage variable can be used to avoid indexing from mapping many times
     struct UINT {
         uint value;
     }
@@ -33,21 +34,21 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config calldata config) override external onlyGovernance {
+    function setConfig(Config calldata config) external override onlyGovernance {
         require(uint(config.nestRewardScale) <= 10000, "NestLedger:!value");
         _config = config;
     }
 
     /// @dev Get configuration
     /// @return Configuration object
-    function getConfig() override external view returns (Config memory) {
+    function getConfig() external view override returns (Config memory) {
         return _config;
     }
 
     /// @dev Set DAO application
     /// @param addr DAO application contract address
     /// @param flag Authorization flag, 1 means authorization, 0 means cancel authorization
-    function setApplication(address addr, uint flag) override external onlyGovernance {
+    function setApplication(address addr, uint flag) external override onlyGovernance {
         _applications[addr] = flag;
         emit ApplicationChanged(addr, flag);
     }
@@ -55,13 +56,13 @@ contract NestLedger is NestBase, INestLedger {
     /// @dev Check DAO application flag
     /// @param addr DAO application contract address
     /// @return Authorization flag, 1 means authorization, 0 means cancel authorization
-    function checkApplication(address addr) override external view returns (uint) {
+    function checkApplication(address addr) external view override returns (uint) {
         return _applications[addr];
     }
 
     /// @dev Carve reward
     /// @param ntokenAddress Destination ntoken address
-    function carveETHReward(address ntokenAddress) override external payable {
+    function carveETHReward(address ntokenAddress) external payable override {
 
         // nest not carve
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -84,7 +85,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev Add reward
     /// @param ntokenAddress Destination ntoken address
-    function addETHReward(address ntokenAddress) override external payable {
+    function addETHReward(address ntokenAddress) external payable override {
 
         // Ledger for nest is independent
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
@@ -99,7 +100,7 @@ contract NestLedger is NestBase, INestLedger {
 
     /// @dev The function returns eth rewards of specified ntoken
     /// @param ntokenAddress The ntoken address
-    function totalETHRewards(address ntokenAddress) override external view returns (uint) {
+    function totalETHRewards(address ntokenAddress) external view override returns (uint) {
 
         if (ntokenAddress == NEST_TOKEN_ADDRESS) {
             return _nestLedger;
@@ -112,7 +113,7 @@ contract NestLedger is NestBase, INestLedger {
     /// @param tokenAddress Token address of receiving funds (0 means ETH)
     /// @param to Address to receive
     /// @param value Amount to receive
-    function pay(address ntokenAddress, address tokenAddress, address to, uint value) override external {
+    function pay(address ntokenAddress, address tokenAddress, address to, uint value) external override {
 
         require(_applications[msg.sender] == 1, "NestLedger:!app");
 
@@ -142,7 +143,7 @@ contract NestLedger is NestBase, INestLedger {
     /// @param tokenAddress Token address of receiving funds (0 means ETH)
     /// @param to Address to receive
     /// @param value Amount to receive
-    function settle(address ntokenAddress, address tokenAddress, address to, uint value) override external payable {
+    function settle(address ntokenAddress, address tokenAddress, address to, uint value) external payable override {
 
         require(_applications[msg.sender] == 1, "NestLedger:!app");
 

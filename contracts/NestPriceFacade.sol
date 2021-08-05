@@ -32,10 +32,12 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @dev Unit of post fee. 0.0001 ether
     uint constant DIMI_ETHER = 0.0001 ether; // 1 ether / 10000;
 
-    /// @dev Address flag. Only the address of the user whose address tag is consistent with the configuration tag can call the price tag. (address=>flag)
+    /// @dev Address flag. Only the address of the user whose address tag is consistent with the configuration tag 
+    /// can call the price tag. (address=>flag)
     mapping(address=>uint) _addressFlags;
 
-    /// @dev The inestquery address mapped by this address is preferred for price query, which can be used to separate nest price query and token price query. (tokenAddress=>INestQuery)
+    /// @dev The nestQuery address mapped by this address is preferred for price query, which can be used to separate 
+    /// nest price query and token price query. (tokenAddress=>INestQuery)
     mapping(address=>address) _nestQueryMapping;
 
     /// @dev Mapping from token address to charge fee channel. tokenAddress=>FeeChannel
@@ -44,7 +46,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @dev Rewritten in the implementation contract, for load other contract addresses. Call 
     ///      super.update(nestGovernanceAddress) when overriding, and override method without onlyGovernance
     /// @param nestGovernanceAddress INestGovernance implementation contract address
-    function update(address nestGovernanceAddress) override public {
+    function update(address nestGovernanceAddress) public override {
 
         super.update(nestGovernanceAddress);
         (
@@ -74,41 +76,41 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config calldata config) override external onlyGovernance {
+    function setConfig(Config calldata config) external override onlyGovernance {
         _config = config;
     }
 
     /// @dev Get configuration
     /// @return Configuration object
-    function getConfig() override external view returns (Config memory) {
+    function getConfig() external view override returns (Config memory) {
         return _config;
     }
 
     /// @dev Set the address flag. Only the address flag equals to config.normalFlag can the price be called
     /// @param addr Destination address
     /// @param flag Address flag
-    function setAddressFlag(address addr, uint flag) override external onlyGovernance {
+    function setAddressFlag(address addr, uint flag) external override onlyGovernance {
         _addressFlags[addr] = flag;
     }
 
     /// @dev Get the flag. Only the address flag equals to config.normalFlag can the price be called
     /// @param addr Destination address
     /// @return Address flag
-    function getAddressFlag(address addr) override external view returns(uint) {
+    function getAddressFlag(address addr) external view override returns(uint) {
         return _addressFlags[addr];
     }
 
     /// @dev Set INestQuery implementation contract address for token
     /// @param tokenAddress Destination token address
     /// @param nestQueryAddress INestQuery implementation contract address, 0 means delete
-    function setNestQuery(address tokenAddress, address nestQueryAddress) override external onlyGovernance {
+    function setNestQuery(address tokenAddress, address nestQueryAddress) external override onlyGovernance {
         _nestQueryMapping[tokenAddress] = nestQueryAddress;
     }
 
     /// @dev Get INestQuery implementation contract address for token
     /// @param tokenAddress Destination token address
     /// @return INestQuery implementation contract address, 0 means use default
-    function getNestQuery(address tokenAddress) override external view returns (address) {
+    function getNestQuery(address tokenAddress) external view override returns (address) {
         return _nestQueryMapping[tokenAddress];
     }
 
@@ -206,13 +208,14 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Get the latest trigger price
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     function triggeredPrice(
         address tokenAddress, 
         address paybackAddress
-    ) override external payable returns (uint blockNumber, uint price) {
+    ) external payable override returns (uint blockNumber, uint price) {
 
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
@@ -222,7 +225,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Get the full information of latest trigger price
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
@@ -232,7 +236,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     function triggeredPriceInfo(
         address tokenAddress, 
         address paybackAddress
-    ) override external payable returns (
+    ) external payable override returns (
         uint blockNumber, 
         uint price, uint 
         avgPrice, 
@@ -248,14 +252,15 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @dev Find the price at block number
     /// @param tokenAddress Destination token address
     /// @param height Destination block number
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     function findPrice(
         address tokenAddress, 
         uint height, 
         address paybackAddress
-    ) override external payable returns (uint blockNumber, uint price) {
+    ) external payable override returns (uint blockNumber, uint price) {
         
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
@@ -265,13 +270,14 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Get the latest effective price
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     function latestPrice(
         address tokenAddress, 
         address paybackAddress
-    ) override external payable returns (uint blockNumber, uint price) {
+    ) external payable override returns (uint blockNumber, uint price) {
         
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
@@ -281,14 +287,15 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Get the last (num) effective price
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @param count The number of prices that want to return
     /// @return An array which length is num * 2, each two element expresses one price like blockNumber｜price
     function lastPriceList(
         address tokenAddress, 
         uint count, 
         address paybackAddress
-    ) override external payable returns (uint[] memory) {
+    ) external payable override returns (uint[] memory) {
 
         Config memory config = _config;
         require(_addressFlags[msg.sender] == uint(config.normalFlag), "NestPriceFacade:!flag");
@@ -298,15 +305,16 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Returns the results of latestPrice() and triggeredPriceInfo()
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return latestPriceBlockNumber The block number of latest price
     /// @return latestPriceValue The token latest price. (1eth equivalent to (price) token)
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
-    ///         it means that the volatility has exceeded the range that can be expressed
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation 
+    /// assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 
+    /// 999999999999996447, it means that the volatility has exceeded the range that can be expressed
     function latestPriceAndTriggeredPriceInfo(address tokenAddress, address paybackAddress) 
     override
     external 
@@ -329,15 +337,20 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @dev Returns lastPriceList and triggered price info
     /// @param tokenAddress Destination token address
     /// @param count The number of prices that want to return
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return prices An array which length is num * 2, each two element expresses one price like blockNumber｜price
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
-    ///         it means that the volatility has exceeded the range that can be expressed
-    function lastPriceListAndTriggeredPriceInfo(address tokenAddress, uint count, address paybackAddress) override external payable 
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation 
+    /// assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 
+    ///999999999999996447, it means that the volatility has exceeded the range that can be expressed
+    function lastPriceListAndTriggeredPriceInfo(
+        address tokenAddress, 
+        uint count, 
+        address paybackAddress
+    ) external payable override 
     returns (
         uint[] memory prices,
         uint triggeredPriceBlockNumber,
@@ -354,12 +367,13 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Get the latest trigger price. (token and ntoken)
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function triggeredPrice2(address tokenAddress, address paybackAddress) override external payable returns (
+    function triggeredPrice2(address tokenAddress, address paybackAddress) external payable override returns (
         uint blockNumber, 
         uint price, 
         uint ntokenBlockNumber, 
@@ -374,7 +388,8 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
 
     /// @dev Get the full information of latest trigger price. (token and ntoken)
     /// @param tokenAddress Destination token address
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return avgPrice Average price
@@ -387,7 +402,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that
     ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
     ///         it means that the volatility has exceeded the range that can be expressed
-    function triggeredPriceInfo2(address tokenAddress, address paybackAddress) override external payable returns (
+    function triggeredPriceInfo2(address tokenAddress, address paybackAddress) external payable override returns (
         uint blockNumber, 
         uint price, 
         uint avgPrice,
@@ -410,7 +425,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function latestPrice2(address tokenAddress, address paybackAddress) override external payable returns (
+    function latestPrice2(address tokenAddress, address paybackAddress) external payable override returns (
         uint blockNumber, 
         uint price, 
         uint ntokenBlockNumber, 
@@ -429,7 +444,12 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @param tokenAddress Destination token address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
-    function triggeredPrice(address tokenAddress) override external view noContract returns (uint blockNumber, uint price) {
+    function triggeredPrice(
+        address tokenAddress
+    ) external view override noContract returns (
+        uint blockNumber, 
+        uint price
+    ) {
         return INestQuery(_getNestQuery(tokenAddress)).triggeredPrice(tokenAddress);
     }
 
@@ -441,7 +461,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return sigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
     ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
     ///         it means that the volatility has exceeded the range that can be expressed
-    function triggeredPriceInfo(address tokenAddress) override external view noContract returns (
+    function triggeredPriceInfo(address tokenAddress) external view override noContract returns (
         uint blockNumber, 
         uint price, 
         uint avgPrice, 
@@ -455,7 +475,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @param height Destination block number
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
-    function findPrice(address tokenAddress, uint height) override external view noContract returns (
+    function findPrice(address tokenAddress, uint height) external view override noContract returns (
         uint blockNumber, 
         uint price
     ) {
@@ -466,7 +486,12 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @param tokenAddress Destination token address
     /// @return blockNumber The block number of price
     /// @return price The token price. (1eth equivalent to (price) token)
-    function latestPrice(address tokenAddress) override external view noContract returns (uint blockNumber, uint price) {
+    function latestPrice(
+        address tokenAddress
+    ) external view override noContract returns (
+        uint blockNumber, 
+        uint price
+    ) {
         return INestQuery(_getNestQuery(tokenAddress)).latestPrice(tokenAddress);
     }
 
@@ -474,7 +499,12 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @param tokenAddress Destination token address
     /// @param count The number of prices that want to return
     /// @return An array which length is num * 2, each two element expresses one price like blockNumber｜price
-    function lastPriceList(address tokenAddress, uint count) override external view noContract returns (uint[] memory) {
+    function lastPriceList(
+        address tokenAddress, 
+        uint count
+    ) external view override noContract returns (
+        uint[] memory
+    ) {
         return INestQuery(_getNestQuery(tokenAddress)).lastPriceList(tokenAddress, count);
     }
 
@@ -485,9 +515,9 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
-    ///         it means that the volatility has exceeded the range that can be expressed
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation 
+    /// assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 
+    /// 999999999999996447, it means that the volatility has exceeded the range that can be expressed
     function latestPriceAndTriggeredPriceInfo(address tokenAddress)
     override
     external 
@@ -511,10 +541,10 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return triggeredPriceBlockNumber The block number of triggered price
     /// @return triggeredPriceValue The token triggered price. (1eth equivalent to (price) token)
     /// @return triggeredAvgPrice Average price
-    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that 
-    ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
-    ///         it means that the volatility has exceeded the range that can be expressed
-    function lastPriceListAndTriggeredPriceInfo(address tokenAddress, uint count) override external view 
+    /// @return triggeredSigmaSQ The square of the volatility (18 decimal places). The current implementation 
+    /// assumes that the volatility cannot exceed 1. Correspondingly, when the return value is equal to 
+    /// 999999999999996447, it means that the volatility has exceeded the range that can be expressed
+    function lastPriceListAndTriggeredPriceInfo(address tokenAddress, uint count) external view override 
     returns (
         uint[] memory prices,
         uint triggeredPriceBlockNumber,
@@ -531,7 +561,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function triggeredPrice2(address tokenAddress) override external view noContract returns (
+    function triggeredPrice2(address tokenAddress) external view override noContract returns (
         uint blockNumber, 
         uint price, 
         uint ntokenBlockNumber, 
@@ -554,7 +584,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return ntokenSigmaSQ The square of the volatility (18 decimal places). The current implementation assumes that
     ///         the volatility cannot exceed 1. Correspondingly, when the return value is equal to 999999999999996447,
     ///         it means that the volatility has exceeded the range that can be expressed
-    function triggeredPriceInfo2(address tokenAddress) override external view noContract returns (
+    function triggeredPriceInfo2(address tokenAddress) external view override noContract returns (
         uint blockNumber, 
         uint price, 
         uint avgPrice, 
@@ -573,7 +603,7 @@ contract NestPriceFacade is NestBase, INestPriceFacade, INestQuery {
     /// @return price The token price. (1eth equivalent to (price) token)
     /// @return ntokenBlockNumber The block number of ntoken price
     /// @return ntokenPrice The ntoken price. (1eth equivalent to (price) ntoken)
-    function latestPrice2(address tokenAddress) override external view noContract returns (
+    function latestPrice2(address tokenAddress) external view override noContract returns (
         uint blockNumber, 
         uint price, 
         uint ntokenBlockNumber, 

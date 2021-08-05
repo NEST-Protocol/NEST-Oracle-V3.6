@@ -13,7 +13,7 @@ interface INToken {
     function increaseTotal(uint256 value) external;
 
     /// @notice The view of variables about minting 
-    /// @dev The naming follows Nestv3.0
+    /// @dev The naming follows nest v3.0
     /// @return createBlock The block number where the contract was created
     /// @return recentlyUsedBlock The block number where the last minting went
     function checkBlockInfo() external view returns(uint256 createBlock, uint256 recentlyUsedBlock);

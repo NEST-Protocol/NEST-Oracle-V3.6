@@ -144,7 +144,7 @@ contract BasicToken is ERC20Basic {
   /**
   * @dev Total number of tokens in existence
   */
-  function totalSupply() public override view returns (uint256) {
+  function totalSupply() public view override returns (uint256) {
     return totalSupply_;
   }
 
@@ -174,7 +174,7 @@ contract BasicToken is ERC20Basic {
   * @param _owner The address to query the the balance of.
   * @return An uint256 representing the amount owned by the passed address.
   */
-  function balanceOf(address _owner) public override view returns (uint256) {
+  function balanceOf(address _owner) public view override returns (uint256) {
       return IterableMapping.iterate_getValue(balances, _owner);
   }
 

@@ -23,27 +23,27 @@ contract TestERC20 is ERC20 {
         _setupDecimals(decimals);
     }
 
-    // function name() public override view returns (string memory) {
+    // function name() public view override returns (string memory) {
     //     return _name;
     // }
 
-    // function symbol() external override view returns (string memory) {
+    // function symbol() external view override returns (string memory) {
     //     return _symbol;
     // }
 
-    // function decimals() public override view returns (uint8) {
+    // function decimals() public view override returns (uint8) {
     //     return _decimals;
     // }
     
-    // function totalSupply() public override view returns (uint) {
+    // function totalSupply() public view override returns (uint) {
     //     return _totalSupply;
     // }
 
-    // function balanceOf(address owner) public override view returns (uint) {
+    // function balanceOf(address owner) public view override returns (uint) {
     //     return _balances[owner];
     // }
 
-    // function allowance(address owner, address spender) public override view returns (uint) {
+    // function allowance(address owner, address spender) public view override returns (uint) {
     //     return _allowance[owner][spender];
     // }
 
@@ -86,7 +86,7 @@ contract TestERC20 is ERC20 {
     //     return true;
     // }
 
-    // function DOMAIN_SEPARATOR() public override view returns (bytes32) {
+    // function DOMAIN_SEPARATOR() public view override returns (bytes32) {
     //     return 0x0;
     // }
 
@@ -94,7 +94,7 @@ contract TestERC20 is ERC20 {
     //     return 0x0;
     // }
 
-    // function nonces(address owner) public override view returns (uint) {
+    // function nonces(address owner) public view override returns (uint) {
     //     return 0;
     // }
 

@@ -36,11 +36,12 @@ interface INestRedeeming {
     /// @return Configuration object
     function getConfig() external view returns (Config memory);
 
-    /// @dev Redeem ntokens for ethers
-    /// @notice Ethfee will be charged
+    /// @dev Redeem ntoken for ethers
+    /// @notice Eth fee will be charged
     /// @param ntokenAddress The address of ntoken
     /// @param amount The amount of ntoken
-    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, and the excess fees will be returned through this address
+    /// @param paybackAddress As the charging fee may change, it is suggested that the caller pay more fees, 
+    /// and the excess fees will be returned through this address
     function redeem(address ntokenAddress, uint amount, address paybackAddress) external payable;
 
     /// @dev Get the current amount available for repurchase

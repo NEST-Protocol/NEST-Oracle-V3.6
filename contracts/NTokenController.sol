@@ -31,14 +31,14 @@ contract NTokenController is NestBase, INTokenController {
 
     /// @dev Modify configuration
     /// @param config Configuration object
-    function setConfig(Config calldata config) override external onlyGovernance {
+    function setConfig(Config calldata config) external override onlyGovernance {
         require(uint(config.state) <= 1, "NTokenController:!value");
         _config = config;
     }
 
     /// @dev Get configuration
     /// @return Configuration object
-    function getConfig() override external view returns (Config memory) {
+    function getConfig() external view override returns (Config memory) {
         return _config;
     }
 
@@ -46,7 +46,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @param tokenAddress Destination token address
     /// @param ntokenAddress Destination ntoken address
     /// @param state status for this map
-    function setNTokenMapping(address tokenAddress, address ntokenAddress, uint state) override external onlyGovernance {
+    function setNTokenMapping(address tokenAddress, address ntokenAddress, uint state) external override onlyGovernance {
         
         uint index = _nTokenTags[tokenAddress];
         if (index == 0) {
@@ -83,7 +83,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev Get token address from ntoken address
     /// @param ntokenAddress Destination ntoken address
     /// @return token address
-    function getTokenAddress(address ntokenAddress) override external view returns (address) {
+    function getTokenAddress(address ntokenAddress) external view override returns (address) {
 
         uint index = _nTokenTags[ntokenAddress];
         if (index > 0) {
@@ -95,7 +95,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev Get ntoken address from token address
     /// @param tokenAddress Destination token address
     /// @return ntoken address
-    function getNTokenAddress(address tokenAddress) override public view returns (address) {
+    function getNTokenAddress(address tokenAddress) public view override returns (address) {
 
         uint index = _nTokenTags[tokenAddress];
         if (index > 0) {
@@ -107,7 +107,7 @@ contract NTokenController is NestBase, INTokenController {
     /* ========== ntoken management ========== */
     
     /// @dev Bad tokens should be banned 
-    function disable(address tokenAddress) override external onlyGovernance
+    function disable(address tokenAddress) external override onlyGovernance
     {
         // When tokenAddress does not exist, _nTokenTags[tokenAddress] - 1 will overflow error
         _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = uint8(0);
@@ -115,7 +115,7 @@ contract NTokenController is NestBase, INTokenController {
     }
 
     /// @dev enable ntoken
-    function enable(address tokenAddress) override external onlyGovernance
+    function enable(address tokenAddress) external override onlyGovernance
     {
         // When tokenAddress does not exist, _nTokenTags[tokenAddress] - 1 will overflow error
         _nTokenTagList[_nTokenTags[tokenAddress] - 1].state = uint8(1);
@@ -125,7 +125,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @notice Open a NToken for a token by anyone (contracts aren't allowed)
     /// @dev Create and map the (Token, NToken) pair in NestPool
     /// @param tokenAddress The address of token contract
-    function open(address tokenAddress) override external noContract
+    function open(address tokenAddress) external override noContract
     {
         Config memory config = _config;
         require(uint(config.state) == 1, "NTokenController:!state");
@@ -180,14 +180,14 @@ contract NTokenController is NestBase, INTokenController {
     /// @dev Get ntoken information
     /// @param tokenAddress Destination token address
     /// @return ntoken information
-    function getNTokenTag(address tokenAddress) override external view returns (NTokenTag memory) 
+    function getNTokenTag(address tokenAddress) external view override returns (NTokenTag memory) 
     {
         return _nTokenTagList[_nTokenTags[tokenAddress] - 1];
     }
 
     /// @dev Get opened ntoken count
     /// @return ntoken count
-    function getNTokenCount() override external view returns (uint) {
+    function getNTokenCount() external view override returns (uint) {
         return _nTokenTagList.length;
     }
 
@@ -196,7 +196,7 @@ contract NTokenController is NestBase, INTokenController {
     /// @param count Return (count) records
     /// @param order Order. 0 reverse order, non-0 positive order
     /// @return ntoken information by page
-    function list(uint offset, uint count, uint order) override external view returns (NTokenTag[] memory) {
+    function list(uint offset, uint count, uint order) external view override returns (NTokenTag[] memory) {
         
         NTokenTag[] storage nTokenTagList = _nTokenTagList;
         NTokenTag[] memory result = new NTokenTag[](count);

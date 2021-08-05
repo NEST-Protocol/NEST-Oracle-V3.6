@@ -27,7 +27,7 @@ contract UpdateAdmin is IVotePropose {
     }
 
     /// @dev Methods to be called after approved
-    function run() override external {
+    function run() external override {
 
         address nestGovernanceAddress = _nestMappingAddress;// INestMapping(_nestMappingAddress).getNestGovernanceAddress();
 

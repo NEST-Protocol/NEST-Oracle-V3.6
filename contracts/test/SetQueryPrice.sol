@@ -16,7 +16,7 @@ contract SetQueryPrice is IVotePropose {
     }
 
     /// @dev Methods to be called after approved
-    function run() override external {
+    function run() external override {
 
         // /// @dev Set the built-in contract address of the system
         // /// @return nestTokenAddress Address of nest token contract

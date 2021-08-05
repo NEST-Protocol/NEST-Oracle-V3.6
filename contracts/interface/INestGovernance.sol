@@ -23,7 +23,8 @@ interface INestGovernance is INestMapping {
 
     /// @dev Check whether the target address has governance rights for the given target
     /// @param addr Destination address
-    /// @param flag Permission weight. The permission of the target address must be greater than this weight to pass the check
+    /// @param flag Permission weight. The permission of the target address must be greater than this weight 
+    /// to pass the check
     /// @return True indicates permission
     function checkGovernance(address addr, uint flag) external view returns (bool);
 }

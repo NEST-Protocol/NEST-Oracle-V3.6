@@ -22,13 +22,13 @@ contract NNIncome is NestBase, INNIncome {
 
     // /// @dev To support open-zeppelin/upgrades
     // /// @param nestGovernanceAddress INestGovernance implementation contract address
-    // function initialize(address nestGovernanceAddress) override public {
+    // function initialize(address nestGovernanceAddress) public override {
     //     super.initialize(nestGovernanceAddress);
     // }
 
     /// @dev Reset the blockCursor
     /// @param blockCursor blockCursor value
-    function setBlockCursor(uint blockCursor) override external onlyGovernance {
+    function setBlockCursor(uint blockCursor) external override onlyGovernance {
         _blockCursor = blockCursor;
     }
 
@@ -41,7 +41,7 @@ contract NNIncome is NestBase, INNIncome {
     // Generated nest
     uint _generatedNest;
     
-    // Latest block number of operationed
+    // Latest block number of operated
     uint _blockCursor;
 
     // Personal ledger
@@ -49,17 +49,19 @@ contract NNIncome is NestBase, INNIncome {
 
     //---------transaction---------
 
-    /// @dev Nest node transfer settlement. This method is triggered during nest node transfer and must be called by nest node contract
+    /// @dev Nest node transfer settlement. This method is triggered during nest node transfer and must be called 
+    /// by nest node contract
     /// @param from Transfer from address
     /// @param to Transfer to address
     function nodeCount(address from, address to) external {
         settle(from, to);
     }
 
-    /// @dev Nest node transfer settlement. This method is triggered during nest node transfer and must be called by nest node contract
+    /// @dev Nest node transfer settlement. This method is triggered during nest node transfer and must be called 
+    /// by nest node contract
     /// @param from Transfer from address
     /// @param to Transfer to address
-    function settle(address from, address to) override public {
+    function settle(address from, address to) public override {
 
         require(msg.sender == NEST_NODE_ADDRESS, "NNIncome:!nestNode");
         
@@ -71,7 +73,7 @@ contract NNIncome is NestBase, INNIncome {
         // Calculation of ore drawing increment
         uint generatedNest = _generatedNest = _generatedNest + increment();
 
-        // Update latest block number of operationed
+        // Update latest block number of operated
         _blockCursor = block.number;
 
         mapping(address=>uint) storage infoMapping = _infoMapping;
@@ -98,7 +100,7 @@ contract NNIncome is NestBase, INNIncome {
     }
 
     /// @dev Claim nest
-    function claim() override external noContract {
+    function claim() external override noContract {
         
         // Check balance
         IERC20 nn = IERC20(NEST_NODE_ADDRESS);
@@ -108,7 +110,7 @@ contract NNIncome is NestBase, INNIncome {
         // Calculation of ore drawing increment
         uint generatedNest = _generatedNest = _generatedNest + increment();
 
-        // Update latest block number of operationed
+        // Update latest block number of operated
         _blockCursor = block.number;
 
         // Calculation for current mining
@@ -123,34 +125,35 @@ contract NNIncome is NestBase, INNIncome {
 
     /// @dev Calculation of ore drawing increment
     /// @return Ore drawing increment
-    function increment() override public view returns (uint) {
-        //return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 15 ether / 100;
-        return _redution(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 0.15 ether;
+    function increment() public view override returns (uint) {
+        //return _reduction(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 15 ether / 100;
+        return _reduction(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 0.15 ether;
     }
 
     /// @dev Query the current available nest
     /// @param owner Destination address
     /// @return Number of nest currently available
-    function earned(address owner) override external view returns (uint) {
+    function earned(address owner) external view override returns (uint) {
         uint balance = IERC20(NEST_NODE_ADDRESS).balanceOf(owner);
         return (_generatedNest + increment() - _infoMapping[owner]) * balance / NEST_NODE_TOTALSUPPLY;
     }
 
     /// @dev Get generatedNest value
     /// @return GeneratedNest value
-    function getGeneratedNest() override external view returns (uint) {
+    function getGeneratedNest() external view override returns (uint) {
         return _generatedNest;
     }
 
     /// @dev Get blockCursor value
     /// @return blockCursor value
-    function getBlockCursor() override external view returns (uint) {
+    function getBlockCursor() external view override returns (uint) {
         return _blockCursor;
     }
 
     // Nest ore drawing attenuation interval. 2400000 blocks, about one year
     uint constant NEST_REDUCTION_SPAN = 2400000;
-    // The decay limit of nest ore drawing becomes stable after exceeding this interval. 24 million blocks, about 10 years
+    // The decay limit of nest ore drawing becomes stable after exceeding this interval. 24 million blocks, 
+    // about 10 years
     uint constant NEST_REDUCTION_LIMIT = 24000000; // NEST_REDUCTION_SPAN * 10;
     // Attenuation gradient array, each attenuation step value occupies 16 bits. The attenuation value is an integer
     uint constant NEST_REDUCTION_STEPS = 0x280035004300530068008300A300CC010001400190;
@@ -169,7 +172,7 @@ contract NNIncome is NestBase, INNIncome {
         // | (uint(40) << (16 * 10));
 
     // Calculation of attenuation gradient
-    function _redution(uint delta) private pure returns (uint) {
+    function _reduction(uint delta) private pure returns (uint) {
         
         if (delta < NEST_REDUCTION_LIMIT) {
             return (NEST_REDUCTION_STEPS >> ((delta / NEST_REDUCTION_SPAN) << 4)) & 0xFFFF;

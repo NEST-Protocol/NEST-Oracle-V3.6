@@ -170,7 +170,7 @@
     /// @dev PriceSheetView structure
     struct PriceSheetView {
 
-        // Index of the price sheeet
+        // Index of the price sheet
         uint32 index;
 
         // Address of miner

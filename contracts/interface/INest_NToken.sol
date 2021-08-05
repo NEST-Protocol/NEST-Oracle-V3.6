@@ -45,7 +45,7 @@ interface INest_NToken is IERC20 {
     //  * @param spender 被授权的地址
     //  * @return 已授权的金额
     //  */
-    // function allowance(address owner, address spender) override external view returns (uint256);
+    // function allowance(address owner, address spender) external view override returns (uint256);
 
     // /**
     // * @dev 转账方法

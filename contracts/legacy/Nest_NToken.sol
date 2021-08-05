@@ -251,7 +251,7 @@ contract Nest_NToken is INest_NToken {
     * @dev 重置投票合约方法
     * @param voteFactory 投票合约地址
     */
-    function changeMapping (address voteFactory) override public onlyOwner {
+    function changeMapping (address voteFactory) public override onlyOwner {
         _voteFactory = Nest_3_VoteFactory(address(voteFactory));
     }
     
@@ -259,7 +259,7 @@ contract Nest_NToken is INest_NToken {
     * @dev 增发
     * @param value 增发数量
     */
-    function increaseTotal(uint256 value) override public {
+    function increaseTotal(uint256 value) public override {
         address offerMain = address(_voteFactory.checkAddress("nest.nToken.offerMain"));
         require(msg.sender == offerMain, "No authority");
         _balances[offerMain] = _balances[offerMain].add(value);
@@ -271,7 +271,7 @@ contract Nest_NToken is INest_NToken {
     * @dev 查询token总量
     * @return token总量
     */
-    function totalSupply() override public view returns (uint256) {
+    function totalSupply() public view override returns (uint256) {
         return _totalSupply;
     }
 
@@ -280,7 +280,7 @@ contract Nest_NToken is INest_NToken {
     * @param owner 要查询的地址
     * @return 返回对应地址的余额
     */
-    function balanceOf(address owner) override public view returns (uint256) {
+    function balanceOf(address owner) public view override returns (uint256) {
         return _balances[owner];
     }
     
@@ -289,7 +289,7 @@ contract Nest_NToken is INest_NToken {
     * @return createBlock 初始区块数
     * @return recentlyUsedBlock 最近挖矿增发区块
     */
-    function checkBlockInfo() override public view returns(uint256 createBlock, uint256 recentlyUsedBlock) {
+    function checkBlockInfo() public view override returns(uint256 createBlock, uint256 recentlyUsedBlock) {
         return (_createBlock, _recentlyUsedBlock);
     }
 
@@ -299,7 +299,7 @@ contract Nest_NToken is INest_NToken {
      * @param spender 被授权的地址
      * @return 已授权的金额
      */
-    function allowance(address owner, address spender) override public view returns (uint256) {
+    function allowance(address owner, address spender) public view override returns (uint256) {
         return _allowed[owner][spender];
     }
 
@@ -309,7 +309,7 @@ contract Nest_NToken is INest_NToken {
     * @param value 转账金额
     * @return 转账是否成功
     */
-    function transfer(address to, uint256 value) override public returns (bool) {
+    function transfer(address to, uint256 value) public override returns (bool) {
         _transfer(msg.sender, to, value);
         return true;
     }
@@ -320,7 +320,7 @@ contract Nest_NToken is INest_NToken {
      * @param value 授权数量
      * @return 授权是否成功
      */
-    function approve(address spender, uint256 value) override public returns (bool) {
+    function approve(address spender, uint256 value) public override returns (bool) {
         require(spender != address(0));
 
         _allowed[msg.sender][spender] = value;
@@ -335,7 +335,7 @@ contract Nest_NToken is INest_NToken {
      * @param value 转账金额
      * @return 授权转账是否成功
      */
-    function transferFrom(address from, address to, uint256 value) override public returns (bool) {
+    function transferFrom(address from, address to, uint256 value) public override returns (bool) {
         _allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
         _transfer(from, to, value);
         emit Approval(from, msg.sender, _allowed[from][msg.sender]);
@@ -385,7 +385,7 @@ contract Nest_NToken is INest_NToken {
     * @dev 查询创建者
     * @return 创建者地址
     */
-    function checkBidder() override public view returns(address) {
+    function checkBidder() public view override returns(address) {
         return _bidder;
     }
     
@@ -393,7 +393,7 @@ contract Nest_NToken is INest_NToken {
     * @dev 转让创建者
     * @param bidder 新创建者地址
     */
-    function changeBidder(address bidder) override public {
+    function changeBidder(address bidder) public override {
         require(msg.sender == _bidder);
         _bidder = bidder; 
     }
