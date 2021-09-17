@@ -490,7 +490,7 @@ contract NestMining2 is NestBase, INestMining, INestQuery {
             }
         }
 
-        // 6. Update the biten sheet
+        // 6. Update the bitten sheet
         sheet.remainNum = uint32(uint(sheet.remainNum) - takeNum);
         sheet.ethNumBal = uint32(uint(sheet.ethNumBal) + takeNum);
         sheet.tokenNumBal = uint32(uint(sheet.tokenNumBal) - takeNum);
