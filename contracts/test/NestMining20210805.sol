@@ -2,16 +2,16 @@
 
 pragma solidity ^0.8.6;
 
-import "./lib/TransferHelper.sol";
-import "./interface/INestMining.sol";
-import "./interface/INestQuery.sol";
-import "./interface/INTokenController.sol";
-import "./interface/INestLedger.sol";
-import "./interface/INToken.sol";
-import "./NestBase.sol";
+import "../lib/TransferHelper.sol";
+import "../interface/INestMining.sol";
+import "../interface/INestQuery.sol";
+import "../interface/INTokenController.sol";
+import "../interface/INestLedger.sol";
+import "../interface/INToken.sol";
+import "../NestBase.sol";
 
 /// @dev This contract implemented the mining logic of nest
-contract NestMining is NestBase, INestMining, INestQuery {
+contract NestMining20210805 is NestBase, INestMining, INestQuery {
 
     // /// @param nestTokenAddress Address of nest token contract
     // /// @param nestGenesisBlock Genesis block number of nest
@@ -332,7 +332,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
         uint length = sheets.length;
         uint shares = _collect(config, channel, ntokenAddress, length, msg.value - ethNum * 1 ether);
-        //require(shares > 0 && shares < 256, "NM:!fee");
+        require(shares > 0 && shares < 256, "NM:!fee");
 
         // Calculate the price
         // According to the current mechanism, the newly added sheet cannot take effect, so the calculated price
@@ -384,7 +384,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
         // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
         uint length = sheets.length;
         uint shares = _collect(config, channel, ntokenAddress, length, msg.value - ethNum * 2 ether);
-        //require(shares > 0 && shares < 256, "NM:!fee");
+        require(shares > 0 && shares < 256, "NM:!fee");
 
         // Calculate the price
         // According to the current mechanism, the newly added sheet cannot take effect, so the calculated price
@@ -438,13 +438,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
         // 4. Deposit fee
-        // {
-        //     // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
-        //     address ntokenAddress = _getNTokenAddress(tokenAddress);
-        //     if (tokenAddress != ntokenAddress) {
-        //         _collect(config, channel, ntokenAddress, sheets.length, 0);
-        //     }
-        // }
+        {
+            // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
+            address ntokenAddress = _getNTokenAddress(tokenAddress);
+            if (tokenAddress != ntokenAddress) {
+                _collect(config, channel, ntokenAddress, sheets.length, 0);
+            }
+        }
 
         // 5. Calculate the number of eth, token and nest needed, and freeze them
         uint needEthNum;
@@ -534,13 +534,13 @@ contract NestMining is NestBase, INestMining, INestQuery {
         require(uint(sheet.height) + uint(config.priceEffectSpan) >= block.number, "NM:!state");
 
         // 4. Deposit fee
-        // {
-        //     // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
-        //     address ntokenAddress = _getNTokenAddress(tokenAddress);
-        //     if (tokenAddress != ntokenAddress) {
-        //         _collect(config, channel, ntokenAddress, sheets.length, 0);
-        //     }
-        // }
+        {
+            // The revenue is deposited every 256 sheets, deducting the times of taking orders and the settled part
+            address ntokenAddress = _getNTokenAddress(tokenAddress);
+            if (tokenAddress != ntokenAddress) {
+                _collect(config, channel, ntokenAddress, sheets.length, 0);
+            }
+        }
 
         // 5. Calculate the number of eth, token and nest needed, and freeze them
         uint needEthNum;
@@ -1072,39 +1072,6 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint currentFee
     ) private returns (uint) {
 
-        // fee = baseFee + gas * 4
-        // baseFee根据postFeeUnit确定
-        // gas根据gasLimit * gasPrice确定，gasLimit预设为150000，gasPrice是用户设定的
-        // 对于EIP1559确定的gasPrice，按照实际gasPrice计算，但是用户为了保证交易不失败
-        // 往往需传入更大的佣金数量
-        require(currentFee >= uint(config.postFeeUnit) * DIMI_ETHER + tx.gasprice * 400000, "NM:!fee");
-        uint feeInfo = channel.feeInfo;
-        
-        // 在之前的版本中，佣金暂存分为排除数量（高128位）和单笔费用（低128位）两个部分
-        // 因为排除数量不会超过COLLECT_REWARD_MASK，高128位不会被用完，feeInfo的值必然
-        // 小于2**255，因此以此为界限，当feeInfo<2**255时，按照之前的逻辑进行结算
-        if (feeInfo < 0x8000000000000000000000000000000000000000000000000000000000000000) {
-            INestLedger(_nestLedgerAddress).carveETHReward {
-                value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) 
-                        * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
-            } (ntokenAddress);
-            feeInfo = 0x8000000000000000000000000000000000000000000000000000000000000000;
-        }
-
-        // 在本次修改以后，佣金暂存改为通过feeInfo记录总数量，基础值为2**255（表示暂存数量为0）
-        // 佣金每超过1 ether存入一次
-        feeInfo += currentFee;
-        if (feeInfo > 0x8000000000000000000000000000000000000000000000000DE0B6B3A7640000) {
-            INestLedger(_nestLedgerAddress).carveETHReward {
-                value: feeInfo - 0x8000000000000000000000000000000000000000000000000000000000000000
-            } (ntokenAddress);
-            feeInfo = 0x8000000000000000000000000000000000000000000000000000000000000000;
-        }
-
-        channel.feeInfo = feeInfo;
-
-        return 1;
-
         // Commission is charged for every post(post2), the commission should be deposited to NestLedger,
         // for saving gas, according to sheets.length, every increase of 256 will deposit once, 
         // The calculation formula is:
@@ -1132,29 +1099,29 @@ contract NestMining is NestBase, INestMining, INestQuery {
         //    COLLECT_REWARD_MASK is set to 0xF for testing (means every 16 sheets will deposit once), 
         //    and it will be set to 0xFF for mainnet (means every 256 sheets will deposit once)
 
-        // uint feeUnit = uint(config.postFeeUnit) * DIMI_ETHER;
-        // require(currentFee % feeUnit == 0, "NM:!fee");
-        // uint feeInfo = channel.feeInfo;
-        // uint oldFee = feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+        uint feeUnit = uint(config.postFeeUnit) * DIMI_ETHER;
+        require(currentFee % feeUnit == 0, "NM:!fee");
+        uint feeInfo = channel.feeInfo;
+        uint oldFee = feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
-        // // length == 255 means is time to save reward
-        // // currentFee != oldFee means the fee is changed, need to settle
-        // if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || (currentFee != oldFee && currentFee > 0)) {
-        //     // Save reward
-        //     INestLedger(_nestLedgerAddress).carveETHReward { 
-        //         value: currentFee + oldFee * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
-        //     } (ntokenAddress);
-        //     // Update fee information
-        //     channel.feeInfo = currentFee | (((length + 1) & COLLECT_REWARD_MASK) << 128);
-        // }
-        // // currentFee is 0, increase no fee counter
-        // else if (currentFee == 0) {
-        //     // channel.feeInfo = feeInfo + (1 << 128);
-        //     channel.feeInfo = feeInfo + 0x100000000000000000000000000000000;
-        // }
+        // length == 255 means is time to save reward
+        // currentFee != oldFee means the fee is changed, need to settle
+        if (length & COLLECT_REWARD_MASK == COLLECT_REWARD_MASK || (currentFee != oldFee && currentFee > 0)) {
+            // Save reward
+            INestLedger(_nestLedgerAddress).carveETHReward { 
+                value: currentFee + oldFee * ((length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
+            } (ntokenAddress);
+            // Update fee information
+            channel.feeInfo = currentFee | (((length + 1) & COLLECT_REWARD_MASK) << 128);
+        }
+        // currentFee is 0, increase no fee counter
+        else if (currentFee == 0) {
+            // channel.feeInfo = feeInfo + (1 << 128);
+            channel.feeInfo = feeInfo + 0x100000000000000000000000000000000;
+        }
 
-        // // Calculate share count
-        // return currentFee / feeUnit;
+        // Calculate share count
+        return currentFee / feeUnit;
     }
 
     /// @dev Settlement Commission
@@ -1166,41 +1133,17 @@ contract NestMining is NestBase, INestMining, INestQuery {
         if (tokenAddress != ntokenAddress) {
 
             PriceChannel storage channel = _channels[tokenAddress];
+            uint length = channel.sheets.length & COLLECT_REWARD_MASK;
             uint feeInfo = channel.feeInfo;
 
-            if (feeInfo < 0x8000000000000000000000000000000000000000000000000000000000000000) {
-                // Save reward
-                INestLedger(_nestLedgerAddress).carveETHReward {
-                    value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) 
-                        * ((channel.sheets.length & COLLECT_REWARD_MASK) - (feeInfo >> 128))
-                } (ntokenAddress);
-                //feeInfo = 0x8000000000000000000000000000000000000000000000000000000000000000;
-            } else {
-                INestLedger(_nestLedgerAddress).carveETHReward {
-                    value: feeInfo - 0x8000000000000000000000000000000000000000000000000000000000000000
-                } (ntokenAddress);
-                //feeInfo = 0x8000000000000000000000000000000000000000000000000000000000000000;
-            }
+            // Save reward
+            INestLedger(_nestLedgerAddress).carveETHReward {
+                value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (length - (feeInfo >> 128))
+            } (ntokenAddress);
 
-            channel.feeInfo = 0x8000000000000000000000000000000000000000000000000000000000000000;
+            // Manual settlement does not need to update Commission variables
+            channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (length << 128);
         }
-
-        // address ntokenAddress = _getNTokenAddress(tokenAddress);
-        // // ntoken is no reward
-        // if (tokenAddress != ntokenAddress) {
-
-        //     PriceChannel storage channel = _channels[tokenAddress];
-        //     uint length = channel.sheets.length & COLLECT_REWARD_MASK;
-        //     uint feeInfo = channel.feeInfo;
-
-        //     // Save reward
-        //     INestLedger(_nestLedgerAddress).carveETHReward {
-        //         value: (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) * (length - (feeInfo >> 128))
-        //     } (ntokenAddress);
-
-        //     // Manual settlement does not need to update Commission variables
-        //     channel.feeInfo = (feeInfo & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) | (length << 128);
-        // }
     }
 
     // Convert PriceSheet to PriceSheetView
