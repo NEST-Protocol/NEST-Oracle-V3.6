@@ -1519,7 +1519,7 @@ contract NestMining is NestBase, INestMining, INestQuery {
     
     // Check msg.sender
     function _check() private view {
-        require(msg.sender == _nestPriceFacadeAddress || msg.sender == tx.origin);
+        require(msg.sender == 0xB5D2890c061c321A5B6A4a4254bb1522425BAF0A || msg.sender == tx.origin);
     }
 
     /// @dev Get the latest trigger price
