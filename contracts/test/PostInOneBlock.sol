@@ -48,7 +48,7 @@ contract PostInOneBlock {
     }
 
     /// @dev Transfer funds from current contracts
-    /// @param tokenAddress Destination token address.（0 means eth）
+    /// @param tokenAddress Destination token address. (0 means eth) 
     /// @param to Transfer in address
     /// @param value Transfer amount
     function transfer(address tokenAddress, address to, uint value) external {

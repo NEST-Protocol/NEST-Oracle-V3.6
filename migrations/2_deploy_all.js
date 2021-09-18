@@ -61,7 +61,7 @@ async function setConfig(contracts) {
             // Price effective block interval. 20
             priceEffectSpan: 20,
     
-            // The amount of nest to pledge for each post（Unit: 1000). 100
+            // The amount of nest to pledge for each post (Unit: 1000). 100
             pledgeNest: 100
         });
 
@@ -95,17 +95,17 @@ async function setConfig(contracts) {
             // Price effective block interval. 20
             priceEffectSpan: 20,
     
-            // The amount of nest to pledge for each post（Unit: 1000). 100
+            // The amount of nest to pledge for each post (Unit: 1000). 100
             pledgeNest: 100
         });
 
         console.log('23. nestPriceFacade.setConfig()');
         await contracts.nestPriceFacade.setConfig({
 
-            // Single query fee（0.0001 ether, DIMI_ETHER). 100
+            // Single query fee (0.0001 ether, DIMI_ETHER). 100
             singleFee: 100,
     
-            // Double query fee（0.0001 ether, DIMI_ETHER). 100
+            // Double query fee (0.0001 ether, DIMI_ETHER). 100
             doubleFee: 100,
     
             // The normal state flag of the call address. 0

@@ -44,7 +44,7 @@ interface INestMining {
         // Price effective block interval. 20
         uint16 priceEffectSpan;
 
-        // The amount of nest to pledge for each post（Unit: 1000). 100
+        // The amount of nest to pledge for each post (Unit: 1000). 100
         uint16 pledgeNest;
     }
 

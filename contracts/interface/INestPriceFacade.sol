@@ -8,10 +8,10 @@ interface INestPriceFacade {
     /// @dev Price call entry configuration structure
     struct Config {
 
-        // Single query fee（0.0001 ether, DIMI_ETHER). 100
+        // Single query fee (0.0001 ether, DIMI_ETHER). 100
         uint16 singleFee;
 
-        // Double query fee（0.0001 ether, DIMI_ETHER). 100
+        // Double query fee (0.0001 ether, DIMI_ETHER). 100
         uint16 doubleFee;
 
         // The normal state flag of the call address. 0

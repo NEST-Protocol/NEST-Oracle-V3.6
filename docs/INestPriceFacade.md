@@ -15,10 +15,10 @@
     /// @dev Price call entry configuration structure
     struct Config {
 
-        // Single query fee（0.0001 ether, DIMI_ETHER). 100
+        // Single query fee (0.0001 ether, DIMI_ETHER). 100
         uint16 singleFee;
 
-        // Double query fee（0.0001 ether, DIMI_ETHER). 100
+        // Double query fee (0.0001 ether, DIMI_ETHER). 100
         uint16 doubleFee;
 
         // The normal state flag of the call address. 0
@@ -157,7 +157,7 @@
     );
 ```
 
-### 2.13. Get the latest trigger price. (token and ntoken）
+### 2.13. Get the latest trigger price. (token and ntoken) 
    
 ```javascript
     /// @dev Get the latest trigger price. (token and ntoken)

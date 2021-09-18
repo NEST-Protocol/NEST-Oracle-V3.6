@@ -73,10 +73,10 @@ contract("NestMining", async accounts => {
             console.log(await nestPriceFacade.getConfig());
             console.log('setConfig()');
             nestPriceFacade.setConfig({
-                // Single query fee（0.0001 ether, DIMI_ETHER). 100
+                // Single query fee (0.0001 ether, DIMI_ETHER). 100
                 singleFee: 137,
 
-                // Double query fee（0.0001 ether, DIMI_ETHER). 100
+                // Double query fee (0.0001 ether, DIMI_ETHER). 100
                 doubleFee: 247,
 
                 // The normal state flag of the call address. 0
@@ -536,10 +536,10 @@ contract("NestMining", async accounts => {
         if (true) {
             
             await nestPriceFacade.setConfig({
-                // Single query fee（0.0001 ether, DIMI_ETHER). 100
+                // Single query fee (0.0001 ether, DIMI_ETHER). 100
                 singleFee: 137,
 
-                // Double query fee（0.0001 ether, DIMI_ETHER). 100
+                // Double query fee (0.0001 ether, DIMI_ETHER). 100
                 doubleFee: 247,
 
                 // The normal state flag of the call address. 0

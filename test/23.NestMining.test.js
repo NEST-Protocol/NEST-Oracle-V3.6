@@ -84,7 +84,7 @@ contract("NestMining", async accounts => {
             // Price effective block interval. 20
             priceEffectSpan: 25,
 
-            // The amount of nest to pledge for each post（Unit: 1000). 100
+            // The amount of nest to pledge for each post (Unit: 1000). 100
             pledgeNest: 200
         });
         config = await nestMining.getConfig();

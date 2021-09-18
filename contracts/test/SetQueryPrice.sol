@@ -45,9 +45,9 @@ contract SetQueryPrice is IVotePropose {
         address nestPriceFacadeAddress = INestMapping(_nestMappingAddress).getNestPriceFacadeAddress();
 
         INestPriceFacade(nestPriceFacadeAddress).setConfig(INestPriceFacade.Config(
-            // Single query fee（0.0001 ether, DIMI_ETHER). 100
+            // Single query fee (0.0001 ether, DIMI_ETHER). 100
             uint16(200),
-            // Double query fee（0.0001 ether, DIMI_ETHER). 100
+            // Double query fee (0.0001 ether, DIMI_ETHER). 100
             uint16(400),
             // The normal state flag of the call address. 0
             uint8(0)

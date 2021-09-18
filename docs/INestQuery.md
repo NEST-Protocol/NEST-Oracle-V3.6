@@ -92,7 +92,7 @@
     );
 ```
 
-### 2.7. Get the latest trigger price. (token and ntoken）
+### 2.7. Get the latest trigger price. (token and ntoken) 
    
 ```javascript
     /// @dev Get the latest trigger price. (token and ntoken)
