@@ -1072,9 +1072,9 @@ contract NestMining is NestBase, INestMining, INestQuery {
         uint currentFee
     ) private returns (uint) {
 
-        // fee = baseFee + gas * 4
+        // fee = baseFee + gas * 3
         // baseFee根据postFeeUnit确定
-        // gas根据gasLimit * gasPrice确定，gasLimit预设为150000，gasPrice是用户设定的
+        // gas根据gasLimit * gasPrice确定，gasLimit预设为133333，gasPrice是用户设定的
         // 对于EIP1559确定的gasPrice，按照实际gasPrice计算，但是用户为了保证交易不失败
         // 往往需传入更大的佣金数量
         require(currentFee >= uint(config.postFeeUnit) * DIMI_ETHER + tx.gasprice * 400000, "NM:!fee");
