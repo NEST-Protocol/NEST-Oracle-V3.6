@@ -33,7 +33,7 @@ contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
+        //const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
         const account0 = accounts[0];
         console.log('account0: ' + account0);
         // let ua = await UpdateAdmin.new('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
@@ -87,6 +87,7 @@ contract("NestMining", async accounts => {
         
         if (true) {
             let newNestMining = await NestMining.new();
+            // newNestMiningImpl: 0x24AC69F7810e5a929795E0675beB7994CA23B25a
             console.log('newNestMiningImpl: ' + newNestMining.address);
             return;
         }

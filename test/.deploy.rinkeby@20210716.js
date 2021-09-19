@@ -283,7 +283,7 @@ module.exports = async function() {
 
     console.log(contractAddresses);
 
-    if (true) {
+    if (false) {
         console.log('1. nestGovernance.setBuiltinAddress()');
         await nestGovernance.setBuiltinAddress(
             nest.address,
