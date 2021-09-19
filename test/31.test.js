@@ -33,7 +33,7 @@ contract("NestMining", async accounts => {
 
     it('test', async () => {
 
-        //const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
+        const { nest, nn, usdt, hbtc, nhbtc, nestLedger, nestMining, ntokenMining, nestPriceFacade, nestVote, nnIncome, nTokenController, nestRedeeming, nestGovernance } = await deploy();
         const account0 = accounts[0];
         console.log('account0: ' + account0);
         // let ua = await UpdateAdmin.new('0x79BAD49d6f76c7f0Ed6CD8E93A198a6E29765179');
@@ -84,14 +84,37 @@ contract("NestMining", async accounts => {
         // console.log('nestRedeeming: ' + await proxyAdmin.getProxyImplementation(nestRedeeming.address));
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
-        
         if (true) {
+            let cfg = await nestPriceFacade.getConfig();
+            let c = {
+                singleFee: cfg.singleFee.toString(),
+                doubleFee: cfg.doubleFee.toString(),
+                normalFlag: cfg.normalFlag.toString()
+            }
+            console.log(c);
+            // console.log('23. nestPriceFacade.setConfig()');
+            // await nestPriceFacade.setConfig({
+    
+            //     // Single query fee (0.0001 ether, DIMI_ETHER). 100
+            //     singleFee: 10,
+        
+            //     // Double query fee (0.0001 ether, DIMI_ETHER). 100
+            //     doubleFee: 10,
+        
+            //     // The normal state flag of the call address. 0
+            //     normalFlag: 0
+            // });
+        }
+        return;
+
+        if (false) {
             let newNestMining = await NestMining.new();
-            // newNestMiningImpl: 0x24AC69F7810e5a929795E0675beB7994CA23B25a
+            // newNestMiningImpl: 0x45cEF1Cf7CE1C2217F123242632D5812FD10D74d
             console.log('newNestMiningImpl: ' + newNestMining.address);
             return;
         }
 
+        return;
         if (false) {
             let nestMining = await NestMining.at('0x03dF236EaCfCEf4457Ff7d6B88E8f00823014bcd');
             let ntokenMining = await NestMining.at('0xC2058Dd4D55Ae1F3e1b0744Bdb69386c9fD902CA');
