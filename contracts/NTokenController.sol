@@ -155,7 +155,6 @@ contract NTokenController is NestBase, INTokenController {
         // Pay nest
         IERC20(NEST_TOKEN_ADDRESS).transferFrom(msg.sender, governance, uint(config.openFeeNestAmount));
 
-        // TODO: Consider how to migrate the existing token information
         _nTokenTags[tokenAddress] = _nTokenTags[address(ntoken)] = ntokenCounter + 1;
         _nTokenTagList.push(NTokenTag(
             // address ntokenAddress;
