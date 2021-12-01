@@ -10,7 +10,7 @@
 // .deploy.rinkeby@20210716.js
 // .deploy.normal.js
 // .deploy.proxy.js
-const deploy = require('./.deploy.proxy.js');
+const deploy = require('./.deploy.mainnet@20210427.js');
 const $hcj = require("./hcore.js");
 const BN = require("bn.js");
 

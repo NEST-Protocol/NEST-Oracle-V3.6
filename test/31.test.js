@@ -84,27 +84,26 @@ contract("NestMining", async accounts => {
         // console.log('nestRedeeming: ' + await proxyAdmin.getProxyImplementation(nestRedeeming.address));
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
-        if (true) {
-            let cfg = await nestPriceFacade.getConfig();
-            let c = {
-                singleFee: cfg.singleFee.toString(),
-                doubleFee: cfg.doubleFee.toString(),
-                normalFlag: cfg.normalFlag.toString()
-            }
-            console.log(c);
-            // console.log('23. nestPriceFacade.setConfig()');
-            // await nestPriceFacade.setConfig({
-    
-            //     // Single query fee (0.0001 ether, DIMI_ETHER). 100
-            //     singleFee: 10,
-        
-            //     // Double query fee (0.0001 ether, DIMI_ETHER). 100
-            //     doubleFee: 10,
-        
-            //     // The normal state flag of the call address. 0
-            //     normalFlag: 0
-            // });
-        }
+        let cfg = await nestMining.getConfig();
+        console.log(cfg);
+        cfg = {
+            postEthUnit: cfg.postEthUnit,
+            postFeeUnit: cfg.postFeeUnit,
+            minerNestReward: cfg.minerNestReward,
+            minerNTokenReward: cfg.minerNTokenReward,
+            doublePostThreshold: cfg.doublePostThreshold,
+            ntokenMinedBlockLimit: cfg.ntokenMinedBlockLimit,
+            maxBiteNestedLevel: cfg.maxBiteNestedLevel,
+            priceEffectSpan: cfg.priceEffectSpan,
+            pledgeNest: cfg.pledgeNest
+        };
+
+        console.log(cfg);
+        cfg.postEthUnit = '1';
+        console.log(cfg);
+        console.log('21. nestMining.setConfig()');
+        await nestMining.setConfig(cfg);
+
         return;
 
         if (false) {
