@@ -84,25 +84,15 @@ contract("NestMining", async accounts => {
         // console.log('nestRedeeming: ' + await proxyAdmin.getProxyImplementation(nestRedeeming.address));
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
-        let cfg = await nestMining.getConfig();
-        console.log(cfg);
-        cfg = {
-            postEthUnit: cfg.postEthUnit,
-            postFeeUnit: cfg.postFeeUnit,
-            minerNestReward: cfg.minerNestReward,
-            minerNTokenReward: cfg.minerNTokenReward,
-            doublePostThreshold: cfg.doublePostThreshold,
-            ntokenMinedBlockLimit: cfg.ntokenMinedBlockLimit,
-            maxBiteNestedLevel: cfg.maxBiteNestedLevel,
-            priceEffectSpan: cfg.priceEffectSpan,
-            pledgeNest: cfg.pledgeNest
-        };
+        console.log('26. nTokenController.setConfig()');
+        await nTokenController.setConfig({
 
-        console.log(cfg);
-        cfg.postEthUnit = '1';
-        console.log(cfg);
-        console.log('21. nestMining.setConfig()');
-        await nestMining.setConfig(cfg);
+            // The number of nest needed to pay for opening ntoken. 10000 ether
+            openFeeNestAmount: '10000000000000000000000',
+    
+            // ntoken management is enabled. 0: not enabled, 1: enabled
+            state: 0
+        });
 
         return;
 
