@@ -231,8 +231,8 @@ module.exports = async function() {
     //let ntokenMining = await deployProxy(NestMining, [nestGovernance.address], { initializer: 'initialize' });
     let ntokenMining = await NestMining.at('0xb984cCe9fdA423c5A18DFDE4a7bCdfC150DC1012');
     console.log('ntokenMining: ' + ntokenMining.address);
-    let nestPriceFacade = await deployProxy(NestPriceFacade, [nestGovernance.address], { initializer: 'initialize' });
-    //let nestPriceFacade = await NestPriceFacade.at('0xFE6C2A02efd01bf443A1f2392d28177fC53A9923');
+    //let nestPriceFacade = await deployProxy(NestPriceFacade, [nestGovernance.address], { initializer: 'initialize' });
+    let nestPriceFacade = await NestPriceFacade.at('0xFE6C2A02efd01bf443A1f2392d28177fC53A9923');
     console.log('nestPriceFacade: ' + nestPriceFacade.address);
     //let nestRedeeming = await deployProxy(NestRedeeming, [nestGovernance.address], { initializer: 'initialize' });
     let nestRedeeming = await NestRedeeming.at('0xeD859B5f5A2e19bC36C14096DC05Fe9192CeFa31');

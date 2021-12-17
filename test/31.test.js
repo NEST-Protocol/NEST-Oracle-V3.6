@@ -84,121 +84,67 @@ contract("NestMining", async accounts => {
         // console.log('nestRedeeming: ' + await proxyAdmin.getProxyImplementation(nestRedeeming.address));
         // console.log('nnIncome: ' + await proxyAdmin.getProxyImplementation(nnIncome.address));
 
-        console.log('26. nTokenController.setConfig()');
-        await nTokenController.setConfig({
+        let cfg1 = await nestRedeeming.getConfig();
+        let c1 = {
 
-            // The number of nest needed to pay for opening ntoken. 10000 ether
-            openFeeNestAmount: '10000000000000000000000',
+            // Redeem activate threshold, when the circulation of token exceeds this threshold, 
+            // activate redeem (Unit: 10000 ether). 500 
+            activeThreshold: 100, //cfg1.activeThreshold.toString(),
+
+            // The number of nest redeem per block. 1000
+            nestPerBlock: 50000, //cfg1.nestPerBlock.toString(),
+
+            // The maximum number of nest in a single redeem. 300000
+            nestLimit: 15000000, //cfg1.nestLimit.toString(),
+
+            // The number of ntoken redeem per block. 10
+            ntokenPerBlock: 500, //cfg1.ntokenPerBlock.toString(),
+
+            // The maximum number of ntoken in a single redeem. 3000
+            ntokenLimit: 150000, //cfg1.ntokenLimit.toString(),
+
+            // Price deviation limit, beyond this upper limit stop redeem (10000 based). 500
+            priceDeviationLimit: cfg1.priceDeviationLimit.toString()
+        };
+        console.log('24. nestRedeeming.setConfig()');
+        await nestRedeeming.setConfig(c1);
+
+        let cfg2 = await ntokenMining.getConfig();
+        let c2 = {
+
+            // Eth number of each post. 30
+            // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
+            postEthUnit: cfg2.postEthUnit.toString(),
     
-            // ntoken management is enabled. 0: not enabled, 1: enabled
-            state: 0
-        });
+            // Post fee(0.0001eth，DIMI_ETHER). 1000
+            postFeeUnit: cfg2.postFeeUnit.toString(),
+    
+            // Proportion of miners digging(10000 based). 8000
+            minerNestReward: cfg2.minerNestReward.toString(),
+            
+            // The proportion of token dug by miners is only valid for the token created in version 3.0
+            // (10000 based). 9500
+            minerNTokenReward: cfg2.minerNTokenReward.toString(),
+    
+            // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
+            doublePostThreshold: 100,
+            
+            // The limit of ntoken mined blocks. 100
+            ntokenMinedBlockLimit: cfg2.ntokenMinedBlockLimit.toString(),
+    
+            // -- Public configuration
+            // The number of times the sheet assets have doubled. 4
+            maxBiteNestedLevel: cfg2.maxBiteNestedLevel.toString(),
+            
+            // Price effective block interval. 20
+            priceEffectSpan: cfg2.priceEffectSpan.toString(),
+    
+            // The amount of nest to pledge for each post (Unit: 1000). 100
+            pledgeNest: cfg2.pledgeNest.toString()
+        };
+        console.log('22. ntokenMining.setConfig()');
+        await ntokenMining.setConfig(c2);
 
         return;
-
-        if (false) {
-            let newNestMining = await NestMining.new();
-            // newNestMiningImpl: 0x45cEF1Cf7CE1C2217F123242632D5812FD10D74d
-            console.log('newNestMiningImpl: ' + newNestMining.address);
-            return;
-        }
-
-        return;
-        if (false) {
-            let nestMining = await NestMining.at('0x03dF236EaCfCEf4457Ff7d6B88E8f00823014bcd');
-            let ntokenMining = await NestMining.at('0xC2058Dd4D55Ae1F3e1b0744Bdb69386c9fD902CA');
-            let nestRedeeming = await NestRedeeming.at('0xF48D58649dDb13E6e29e03059Ea518741169ceC8');
-
-            console.log('21. nestMining.setConfig()');
-            await nestMining.setConfig({
-            
-                // Eth number of each post. 30
-                // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
-                postEthUnit: 10,
-        
-                // Post fee(0.0001eth，DIMI_ETHER). 1000
-                postFeeUnit: 100,
-        
-                // Proportion of miners digging(10000 based). 8000
-                minerNestReward: 8000,
-                
-                // The proportion of token dug by miners is only valid for the token created in version 3.0
-                // (10000 based). 9500
-                minerNTokenReward: 9500,
-        
-                // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
-                doublePostThreshold: 500,
-                
-                // The limit of ntoken mined blocks. 100
-                ntokenMinedBlockLimit: 300,
-        
-                // -- Public configuration
-                // The number of times the sheet assets have doubled. 4
-                maxBiteNestedLevel: 4,
-                
-                // Price effective block interval. 20
-                priceEffectSpan: 20,
-        
-                // The amount of nest to pledge for each post (Unit: 1000). 100
-                pledgeNest: 100
-            });
-
-            console.log('22. ntokenMining.setConfig()');
-            await ntokenMining.setConfig({
-            
-                // Eth number of each post. 30
-                // We can stop post and taking orders by set postEthUnit to 0 (closing and withdraw are not affected)
-                postEthUnit: 1,
-        
-                // Post fee(0.0001eth，DIMI_ETHER). 1000
-                postFeeUnit: 100,
-        
-                // Proportion of miners digging(10000 based). 8000
-                minerNestReward: 8000,
-                
-                // The proportion of token dug by miners is only valid for the token created in version 3.0
-                // (10000 based). 9500
-                minerNTokenReward: 9500,
-        
-                // When the circulation of ntoken exceeds this threshold, post() is prohibited(Unit: 10000 ether). 500
-                doublePostThreshold: 500,
-                
-                // The limit of ntoken mined blocks. 100
-                ntokenMinedBlockLimit: 300,
-        
-                // -- Public configuration
-                // The number of times the sheet assets have doubled. 4
-                maxBiteNestedLevel: 4,
-                
-                // Price effective block interval. 20
-                priceEffectSpan: 20,
-        
-                // The amount of nest to pledge for each post (Unit: 1000). 100
-                pledgeNest: 100
-            });
-
-            console.log('24. nestRedeeming.setConfig()');
-            await nestRedeeming.setConfig({
-
-                // Redeem activate threshold, when the circulation of token exceeds this threshold, 
-                // activate redeem (Unit: 10000 ether). 500 
-                activeThreshold: 500,
-        
-                // The number of nest redeem per block. 1000
-                nestPerBlock: 10000,
-        
-                // The maximum number of nest in a single redeem. 300000
-                nestLimit: 3000000,
-        
-                // The number of ntoken redeem per block. 10
-                ntokenPerBlock: 100,
-        
-                // The maximum number of ntoken in a single redeem. 3000
-                ntokenLimit: 30000,
-        
-                // Price deviation limit, beyond this upper limit stop redeem (10000 based). 500
-                priceDeviationLimit: 1000
-            });
-        }
     });
 });
