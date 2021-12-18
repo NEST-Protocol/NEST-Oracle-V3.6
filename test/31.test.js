@@ -107,7 +107,8 @@ contract("NestMining", async accounts => {
             priceDeviationLimit: cfg1.priceDeviationLimit.toString()
         };
         console.log('24. nestRedeeming.setConfig()');
-        await nestRedeeming.setConfig(c1);
+        console.log(c1);
+        //await nestRedeeming.setConfig(c1);
 
         let cfg2 = await ntokenMining.getConfig();
         let c2 = {
@@ -143,7 +144,8 @@ contract("NestMining", async accounts => {
             pledgeNest: cfg2.pledgeNest.toString()
         };
         console.log('22. ntokenMining.setConfig()');
-        await ntokenMining.setConfig(c2);
+        console.log(c2);
+        //await ntokenMining.setConfig(c2);
 
         return;
     });

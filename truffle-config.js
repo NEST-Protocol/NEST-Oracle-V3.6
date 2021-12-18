@@ -114,9 +114,9 @@ module.exports = {
       //provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
       network_id: 1,       // Mainnet's id
       gas: 8000000,        // Mainnet has a lower block limit than mainnet
-      gasPrice: 90000000000,
+      gasPrice: 55e9,
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-      skipDryRun: false,     // Skip dry run before migrations? (default: false for public nets )
+      skipDryRun: true,     // Skip dry run before migrations? (default: false for public nets )
       websocket: true,
       timeoutBlocks: 50000,
       networkCheckTimeout: 1000000
