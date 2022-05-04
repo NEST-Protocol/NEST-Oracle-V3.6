@@ -127,7 +127,7 @@ contract NNIncome is NestBase, INNIncome {
     /// @return Ore drawing increment
     function increment() public view override returns (uint) {
         //return _reduction(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 15 ether / 100;
-        return _reduction(block.number - NEST_GENESIS_BLOCK) * (block.number - _blockCursor) * 0.15 ether;
+        return _reduction(block.number - 13827379) * (block.number - _blockCursor) * 4.5 ether / 400;
     }
 
     /// @dev Query the current available nest
